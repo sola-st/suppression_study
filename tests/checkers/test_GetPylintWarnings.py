@@ -25,6 +25,4 @@ def test_GetPylintWarning():
     assert actual_warnings.__len__() == expected_warnings.__len__()
     for actual_warn, expected_warn in zip(actual_warnings, expected_warnings):
         assert actual_warn == expected_warn
-
-if __name__=="__main__":
-    test_GetPylintWarning()
+        
