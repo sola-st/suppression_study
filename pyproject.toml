@@ -25,7 +25,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "GitPython~=3.1.31",
+]
 
 [project.urls]
 Documentation = "https://github.com/sola-st/suppression-study/README.md"
