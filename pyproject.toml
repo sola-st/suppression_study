@@ -36,6 +36,11 @@ Documentation = "https://github.com/sola-st/suppression-study/README.md"
 Issues = "https://github.com/sola-st/suppression-study/issues"
 Source = "https://github.com/sola-st/suppression-study"
 
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/suppression_study",
+]
+
 [tool.hatch.envs.default]
 dependencies = [
   "pytest",
