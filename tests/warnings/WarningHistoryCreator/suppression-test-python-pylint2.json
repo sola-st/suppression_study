@@ -1,0 +1,22 @@
+{
+    "a2840cc_bla.py_5_undefined-variable": [
+        {
+            "event": "new",
+            "commit": "a2840cc",
+            "file": "bla.py",
+            "line": 5,
+            "kind": "undefined-variable"
+        },
+        {
+            "event": "existing",
+            "commit": "94ab65c",
+            "file": "bla.py",
+            "line": 9,
+            "kind": "undefined-variable"
+        },
+        {
+            "event": "removed",
+            "commit": "d27c5e9"
+        }
+    ]
+}
