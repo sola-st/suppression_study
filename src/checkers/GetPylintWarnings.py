@@ -64,7 +64,6 @@ class GetPylintWarnings(GetWarningsSuper):
                                     "line_number" : line_number}
                             warnings.append(warning_dict)
                     line = f.readline()
-            f.close()
 
         return warnings 
     

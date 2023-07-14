@@ -29,7 +29,6 @@ class GetWarningsSuper():
         output_txt = result.stdout
         with open(report, "w") as f:
             f.writelines(output_txt)
-        f.close()
 
         return report, commit_results_dir
 
@@ -43,4 +42,3 @@ class GetWarningsSuper():
                 single_write_str = single_warning['file_path'] + "," + single_warning['warning_type'] + "," + single_warning['line_number']
                 write_str = write_str + single_write_str + "\n"
             f.write(write_str)
-        f.close()

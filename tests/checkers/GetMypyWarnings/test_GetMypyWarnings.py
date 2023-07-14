@@ -17,11 +17,9 @@ def test_GetMypyWarning():
 
     with open(demo_path + "/06d4370_warnings.csv", "r") as f:
         expected_warnings = f.readlines()
-    f.close()
 
     with open(demo_path + "checker_results/06d4370/06d4370_warnings.csv", "r") as f:
         actual_warnings = f.readlines()
-    f.close()
     
     assert len(actual_warnings) == len(expected_warnings)
     for actual_warn, expected_warn in zip(actual_warnings, expected_warnings):
