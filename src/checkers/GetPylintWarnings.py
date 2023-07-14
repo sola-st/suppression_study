@@ -1,8 +1,6 @@
 import argparse
-import subprocess
-from git.repo import Repo
+from src.checkers.GetWarningsSuper import GetWarningsSuper
 import os
-from os.path import join
 import shutil
 
 
@@ -12,7 +10,7 @@ parser.add_argument("--commit_id", help="Specify which commit to run checkers", 
 parser.add_argument("--results_dir", help="Directory where to put the results, endswith '/'", required=True)
 
 
-class GetPylintWarnings(): 
+class GetPylintWarnings(GetWarningsSuper): 
     '''
     By receiving a repository and a commit, this script will run Pylint checker 
     on the specified commit, and return a warning list (written to a csv file.).
@@ -25,18 +23,8 @@ class GetPylintWarnings():
     def run_checker(self):
         '''
         Run Pylint checker, Return a report file
-        '''
-        target_repo = Repo(self.repo_dir)
-        target_repo.git.checkout(self.commit_id)
-        os.chdir(self.repo_dir) # go to repo_dir to run checkers
-        
-        commit_results_dir = self.results_dir + "checker_results/" + commit_id + "/"
-        if not os.path.exists(commit_results_dir):
-            os.makedirs(commit_results_dir)
-        report = commit_results_dir + commit_id + "_pylint.txt"
-        '''
-        Option: choose to disable I, R message or not 
 
+        Option: choose to disable I, R message or not 
         [I]nformational messages that Pylint emits (do not contribute to your analysis score)
         [R]efactor for a "good practice" metric violation
         [C]onvention for coding standard violation
@@ -45,8 +33,9 @@ class GetPylintWarnings():
         [F]atal for errors which prevented further processing
         here do not consider about I and F.
         '''
-        command_line = "pylint --recursive=y --disable=I,R ./ > " + report
-        subprocess.run(command_line, shell=True)
+        checker = "pylint"
+        command_line = "pylint --recursive=y --disable=I,R ./"
+        report, commit_results_dir = super(GetPylintWarnings, self).run_checker(checker, command_line)
 
         return report, commit_results_dir
 
@@ -75,7 +64,6 @@ class GetPylintWarnings():
                                     "line_number" : line_number}
                             warnings.append(warning_dict)
                     line = f.readline()
-            f.close()
 
         return warnings 
     
@@ -83,14 +71,12 @@ class GetPylintWarnings():
         '''
         Write all reported warnings to a csv file.
         '''
-        with open(join(commit_results_dir, self.commit_id + "_warnings.csv"), "w") as f:
-            write_str = ""
-            for single_warning in warnings:
-                single_write_str = single_warning['file_path'] + "," + single_warning['warning_type'] + "," + single_warning['line_number']
-                write_str = write_str + single_write_str + "\n"
-            f.write(write_str)
-        f.close()
-    
+        if warnings:
+            super(GetPylintWarnings, self).write_warning_list(warnings, commit_results_dir)
+        else:
+            shutil.rmtree(commit_results_dir)
+            print("No reported warnings.")
+
     
 if __name__=="__main__":
     args = parser.parse_args()
@@ -101,10 +87,6 @@ if __name__=="__main__":
     init = GetPylintWarnings(repo_dir, commit_id, results_dir)
     report, commit_results_dir = init.run_checker()
     warnings = init.read_reports(report)
-    if warnings:
-        init.write_warning_list(warnings, commit_results_dir)
-    else:
-        shutil.rmtree(commit_results_dir)
-        print("No reported warnings.")
+    init.write_warning_list(warnings, commit_results_dir)
 
     print("Done.")
