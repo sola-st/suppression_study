@@ -30,10 +30,10 @@ class GetPylintWarnings():
         target_repo.git.checkout(self.commit_id)
         os.chdir(self.repo_dir) # go to repo_dir to run checkers
         
-        commit_results_dir = self.results_dir + "checker_results/" + commit_id + "/"
+        commit_results_dir = self.results_dir + "checker_results/" + self.commit_id + "/"
         if not os.path.exists(commit_results_dir):
             os.makedirs(commit_results_dir)
-        report = commit_results_dir + commit_id + "_pylint.txt"
+        report = commit_results_dir + self.commit_id + "_pylint.txt"
         '''
         Option: choose to disable I, R message or not 
 
@@ -90,14 +90,9 @@ class GetPylintWarnings():
                 write_str = write_str + single_write_str + "\n"
             f.write(write_str)
         f.close()
-    
-    
-if __name__=="__main__":
-    args = parser.parse_args()
-    repo_dir = args.repo_dir
-    commit_id = args.commit_id
-    results_dir = args.results_dir
-    
+
+
+def main(repo_dir, commit_id, results_dir):
     init = GetPylintWarnings(repo_dir, commit_id, results_dir)
     report, commit_results_dir = init.run_checker()
     warnings = init.read_reports(report)
@@ -108,3 +103,8 @@ if __name__=="__main__":
         print("No reported warnings.")
 
     print("Done.")
+
+    
+if __name__=="__main__":
+    args = parser.parse_args()
+    main(args.repo_dir, args.commit_id, args.results_dir)
