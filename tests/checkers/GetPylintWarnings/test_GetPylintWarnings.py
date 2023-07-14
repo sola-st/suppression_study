@@ -23,7 +23,7 @@ def test_GetPylintWarning():
         actual_warnings = f.readlines()
     f.close()
     
-    assert actual_warnings.__len__() == expected_warnings.__len__()
+    assert len(actual_warnings) == len(expected_warnings)
     for actual_warn, expected_warn in zip(actual_warnings, expected_warnings):
         assert actual_warn == expected_warn
 

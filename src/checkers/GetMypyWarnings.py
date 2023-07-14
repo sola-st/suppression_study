@@ -1,8 +1,5 @@
 import argparse
-import subprocess
-from git.repo import Repo
-import os
-from os.path import join
+from src.checkers.GetWarningsSuper import GetWarningsSuper
 import shutil
 
 
@@ -12,7 +9,7 @@ parser.add_argument("--commit_id", help="Specify which commit to run checkers", 
 parser.add_argument("--results_dir", help="Directory where to put the results, endswith '/'", required=True)
 
 
-class GetMypyWarnings(): 
+class GetMypyWarnings(GetWarningsSuper): 
     '''
     By receiving a repository and a commit, this script will run Mypy checker 
     on the specified commit, and return a warning list (written to a csv file.).
@@ -26,17 +23,9 @@ class GetMypyWarnings():
         '''
         Run Mypy checker, Return a report file
         '''
-        target_repo = Repo(self.repo_dir)
-        target_repo.git.checkout(self.commit_id)
-        os.chdir(self.repo_dir) # go to repo_dir to run checkers
-        
-        commit_results_dir = self.results_dir + "checker_results/" + commit_id + "/"
-        if not os.path.exists(commit_results_dir):
-            os.makedirs(commit_results_dir)
-        report = commit_results_dir + commit_id + "_mypy.txt"
-        
-        command_line = "mypy ./ > " + report
-        subprocess.run(command_line, shell=True)
+        checker = "mypy"
+        command_line = "mypy ./"
+        report, commit_results_dir = super(GetMypyWarnings, self).run_checker(checker, command_line)
 
         return report, commit_results_dir
 
@@ -60,7 +49,7 @@ class GetMypyWarnings():
                     file_path = line.split(":")[0].strip()
                     line_number = line.split(":")[1].strip()
                     if "[" in line:
-                        warning_type = "[" + line.split("[")[-1].replace("\n", "").strip()
+                        warning_type = line.split("[")[-1].replace("\n", "").replace("]", "").strip()
                     else:
                         warning_type = line.split(":")[-1].strip()
                     warning_dict = {"file_path" : file_path,
@@ -76,15 +65,13 @@ class GetMypyWarnings():
         '''
         Write all reported warnings to a csv file.
         '''
-        with open(join(commit_results_dir, self.commit_id + "_warnings.csv"), "w") as f:
-            write_str = ""
-            for single_warning in warnings:
-                single_write_str = single_warning['file_path'] + "," + single_warning['warning_type'] + "," + single_warning['line_number']
-                write_str = write_str + single_write_str + "\n"
-            f.write(write_str)
-        f.close()
-    
-    
+        if warnings:
+            super(GetMypyWarnings, self).write_warning_list(warnings, commit_results_dir)
+        else:
+            shutil.rmtree(commit_results_dir)
+            print("No reported warnings.")
+
+
 if __name__=="__main__":
     args = parser.parse_args()
     repo_dir = args.repo_dir
@@ -94,10 +81,6 @@ if __name__=="__main__":
     init = GetMypyWarnings(repo_dir, commit_id, results_dir)
     report, commit_results_dir = init.run_checker()
     warnings = init.read_reports(report)
-    if warnings:
-        init.write_warning_list(warnings, commit_results_dir)
-    else:
-        shutil.rmtree(commit_results_dir)
-        print("No reported warnings.")
+    init.write_warning_list(warnings, commit_results_dir)
 
     print("Done.")
