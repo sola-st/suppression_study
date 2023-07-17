@@ -23,9 +23,9 @@ class GrepSuppressionSuper():
         if output_txt_lines.split(":", 1)[0].isdigit():
             command = "find . -name " + self.source_file_extension + " | xargs grep -l -E " + self.filter_keywords + " -n"
             result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-            raw_suppression_results = result.stdout # should only with a file path
-            file_path = raw_suppression_results.strip()
-            for txt in output_txt_lines:
+            file_path = result.stdout.strip() # should only with a file path
+            output_txt_lines_list = output_txt_lines.strip().split("\n")
+            for txt in output_txt_lines_list:
                 new_txt = file_path + ":" + txt
                 new_txt_lines.append(new_txt)
 

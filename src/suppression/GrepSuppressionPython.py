@@ -29,7 +29,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         Run "Grep" command to find suppression in specified commit, return a .txt file 
         ''' 
         raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
-        if os.path.getsize(raw_suppression_results):
+        if os.path.getsize(raw_suppression_results): # If no suppression, will be an empty file.
             self.format_to_csv(raw_suppression_results)
         else:
             os.remove(raw_suppression_results)
@@ -41,11 +41,10 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         ''' 
         output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits()
         for raw_suppression_results in output_txt_files:
-            if os.path.exists(raw_suppression_results):
-                if os.path.getsize(raw_suppression_results):
-                    self.format_to_csv(raw_suppression_results)
-                else:
-                    os.remove(raw_suppression_results)
+            if os.path.getsize(raw_suppression_results):
+                self.format_to_csv(raw_suppression_results)
+            else:
+                os.remove(raw_suppression_results)
 
     def format_to_csv(self, raw_suppression_results): 
         comment_symbol = "#" 
