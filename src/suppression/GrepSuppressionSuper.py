@@ -23,7 +23,7 @@ class GrepSuppressionSuper():
         if output_txt_lines.split(":", 1)[0].isdigit():
             command = "find . -name " + self.source_file_extension + " | xargs grep -l -E " + self.filter_keywords + " -n"
             result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-            raw_suppression_results = result.stdout.read() # should only with a file path
+            raw_suppression_results = result.stdout # should only with a file path
             file_path = raw_suppression_results.strip()
             for txt in output_txt_lines:
                 new_txt = file_path + ":" + txt
@@ -55,6 +55,7 @@ class GrepSuppressionSuper():
 
     def grep_suppression_for_all_commits(self):
         output_txt_files = []
+        previous_target_folder = self.repo_dir
 
         df = pd.read_csv(self.commit_id, header=None, names=['commits', 'dates'])
         all_commits =df['commits'].to_list()
@@ -64,16 +65,15 @@ class GrepSuppressionSuper():
             commit = commit.replace("\"", "").strip()
             repo_base.git.checkout(commit)
             target_folder = self.repo_dir.replace(self.repo_name, commit)
-            os.rename(self.repo_dir, target_folder) # Rename, will rename back later
+            os.rename(previous_target_folder, target_folder) 
             if not os.path.exists(self.output_path):
                 os.makedirs(self.output_path)
 
-            raw_suppression_results = self.output_path + self.commit_id + ".txt"
+            raw_suppression_results = self.output_path + commit + ".txt"
             self.find_suppression(target_folder, raw_suppression_results)
             output_txt_files.append(raw_suppression_results)
+            previous_target_folder = target_folder
 
         os.rename(target_folder, self.repo_dir) # Rename back
 
         return output_txt_files
-
-

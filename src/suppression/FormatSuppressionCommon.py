@@ -52,11 +52,11 @@ class FormatSuppressionCommon():
         3) cannot mixed with other comments
         Has several representation ways:
 
-        pylint:
+        Pylint:
         --1 # pylint: 
         --2 source code # pylint: 
 
-        mypy:
+        Mypy:
         --1 source code # type: 
         --1 source code # type: # other comments (eg,. # noqa)
 
@@ -115,7 +115,8 @@ class FormatSuppressionCommon():
                     processed_suppression =  "\"" + code_suppression + "\""
 
             # Reorder suppression keys and combined to a whole one
-            csv_txt = csv_txt + raw_suppression['file_path'] + "," + processed_suppression + "," + raw_suppression['line_number'] + "\n"
+            processed_info = raw_suppression['file_path'].replace("./", "", 1) + "," + processed_suppression + "," + raw_suppression['line_number']
+            csv_txt = csv_txt + processed_info + "\n"
 
         with open(self.precessed_suppression_csv,"w") as d:
             d.writelines(csv_txt)
