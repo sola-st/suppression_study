@@ -77,16 +77,17 @@ class GetPylintWarnings(GetWarningsSuper):
             shutil.rmtree(commit_results_dir)
             print("No reported warnings.")
 
-    
-if __name__=="__main__":
-    args = parser.parse_args()
-    repo_dir = args.repo_dir
-    commit_id = args.commit_id
-    results_dir = args.results_dir
-    
+
+def main(repo_dir, commit_id, results_dir):
     init = GetPylintWarnings(repo_dir, commit_id, results_dir)
     report, commit_results_dir = init.run_checker()
     warnings = init.read_reports(report)
     init.write_warning_list(warnings, commit_results_dir)
 
     print("Done.")
+
+
+if __name__=="__main__":
+    args = parser.parse_args()
+    main(args.repo_dir, args.commit_id, args.results_dir)   
+    
