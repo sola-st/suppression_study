@@ -1,5 +1,5 @@
 import argparse
-from src.checkers.GetWarningsSuper import GetWarningsSuper
+from suppression_study.checkers.GetWarningsSuper import GetWarningsSuper
 import shutil
 
 

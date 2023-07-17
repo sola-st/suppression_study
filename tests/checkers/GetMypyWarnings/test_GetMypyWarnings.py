@@ -10,7 +10,7 @@ def test_GetMypyWarning():
     subprocess.run("git clone " + demo_repo_git_link, shell=True)
     os.chdir(initial_work_dir)
 
-    subprocess.run(["python3", "src/checkers/GetMypyWarnings.py",
+    subprocess.run(["python", "-m", "suppression_study.checkers.GetMypyWarnings",
         "--repo_dir=" + demo_path + "suppression-test-python-mypy/",
         "--commit_id=06d4370",
         "--results_dir=../"])

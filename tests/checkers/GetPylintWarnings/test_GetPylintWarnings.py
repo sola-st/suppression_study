@@ -10,7 +10,7 @@ def test_GetPylintWarning():
     subprocess.run("git clone " + demo_repo_git_link, shell=True)
     os.chdir(initial_work_dir)
 
-    subprocess.run(["python3", "src/checkers/GetPylintWarnings.py",
+    subprocess.run(["python", "-m", "suppression_study.checkers.GetPylintWarnings",
         "--repo_dir=" + demo_path + "suppression-test-python-pylint/",
         "--commit_id=a09fcfe",
         "--results_dir=../"])
