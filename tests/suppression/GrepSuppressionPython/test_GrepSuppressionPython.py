@@ -70,8 +70,3 @@ def test_GrepSuppressionPython_pylint_single_commit():
 
     shutil.rmtree(demo_path + demo_repo_name + "/")  
     shutil.rmtree(demo_path + "grep/")
-
-
-if __name__=="__main__":
-    test_GrepSuppressionPython_mypy_commit_list()
-    test_GrepSuppressionPython_pylint_single_commit()
