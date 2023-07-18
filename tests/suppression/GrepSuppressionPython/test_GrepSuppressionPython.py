@@ -21,7 +21,7 @@ def test_GrepSuppressionPython_mypy_commit_list():
     os.chdir(initial_work_dir)
 
     repo_dir = os.path.join(initial_work_dir, demo_path, demo_repo_name)
-    subprocess.run(["python", "m", "suppression_study.suppression.GrepSuppressionPython",
+    subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
         "--repo_dir=" + repo_dir + "/",
         "--commit_id=" + repo_dir + "/check_commits_1000.csv",
         "--results_dir=" + initial_work_dir + "/" + demo_path])
@@ -53,7 +53,7 @@ def test_GrepSuppressionPython_pylint_single_commit():
     os.chdir(initial_work_dir)
 
     repo_dir = os.path.join(initial_work_dir, demo_path, demo_repo_name)
-    subprocess.run(["python", "m", "suppression_study.suppression.GrepSuppressionPython",
+    subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
         "--repo_dir=" + repo_dir + "/",
         "--commit_id=a09fcfe",
         "--results_dir=" + initial_work_dir + "/" + demo_path])
