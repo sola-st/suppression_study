@@ -3,8 +3,8 @@ Get suppression for Python, both Mypy and Pylint.
 '''
 
 import argparse
-from src.suppression.GrepSuppressionSuper import GrepSuppressionSuper
-from src.suppression.FormatSuppressionCommon import FormatSuppressionCommon
+from suppression_study.suppression.GrepSuppressionSuper import GrepSuppressionSuper
+from suppression_study.suppression.FormatSuppressionCommon import FormatSuppressionCommon
 import os
 
 
