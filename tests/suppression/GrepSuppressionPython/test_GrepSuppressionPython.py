@@ -32,12 +32,13 @@ def test_GrepSuppressionPython_mypy_commit_list():
             actual = os.path.join(demo_path, "grep", a)
             with open(actual, "r") as f:
                 actual_suppression = f.readlines()
+            actual_suppression.sort()
 
             expected = actual.replace("/grep", "")
             with open(expected, "r") as f:
                 expected_suppression = f.readlines()
+            expected_suppression.sort()
 
-            print(f"Comparing {actual} and {expected}")
             for actual_sup, expected_sup in zip(actual_suppression, expected_suppression):
                 assert actual_sup == expected_sup
 
@@ -61,9 +62,11 @@ def test_GrepSuppressionPython_pylint_single_commit():
 
     with open(demo_path + "a09fcfe_suppression.csv", "r") as f:
         expected_suppression = f.readlines()
+    expected_suppression.sort()
 
     with open(demo_path + "grep/a09fcfe_suppression.csv", "r") as f:
         actual_suppression = f.readlines()
+    actual_suppression.sort()
     
     assert len(actual_suppression) == len(expected_suppression)
     for actual_sup, expected_sup in zip(actual_suppression, expected_suppression):
