@@ -1,6 +1,5 @@
 import subprocess
 from git.repo import Repo
-import pandas as pd
 import os
 
 
@@ -57,12 +56,13 @@ class GrepSuppressionSuper():
         output_txt_files = []
         previous_target_folder = self.repo_dir
 
-        df = pd.read_csv(self.commit_id, header=None, names=['commits', 'dates'])
-        all_commits =df['commits'].to_list()
+        all_commits = []
+        with open(self.commit_id, "r") as f: # 2 columns: commit and date
+            commit = f.readline().split(",")[0].strip()
+            all_commits.append(commit)
         
         repo_base= Repo(self.repo_dir)
         for commit in all_commits:
-            commit = commit.replace("\"", "").strip()
             repo_base.git.checkout(commit)
             target_folder = self.repo_dir.replace(self.repo_name, commit)
             os.rename(previous_target_folder, target_folder) 
