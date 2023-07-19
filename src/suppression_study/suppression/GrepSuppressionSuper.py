@@ -58,8 +58,11 @@ class GrepSuppressionSuper():
 
         all_commits = []
         with open(self.commit_id, "r") as f: # 2 columns: commit and date
-            commit = f.readline().split(",")[0].replace("\"", "").strip()
-            all_commits.append(commit)
+            line = f.readline()
+            while line:
+                commit = line.split(",")[0].replace("\"", "").strip()
+                all_commits.append(commit)
+                line = f.readline()
         
         repo_base= Repo(self.repo_dir)
         for commit in all_commits:
