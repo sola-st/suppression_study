@@ -37,6 +37,7 @@ def test_GrepSuppressionPython_mypy_commit_list():
             with open(expected, "r") as f:
                 expected_suppression = f.readlines()
 
+            print(f"Comparing {actual} and {expected}")
             for actual_sup, expected_sup in zip(actual_suppression, expected_suppression):
                 assert actual_sup == expected_sup
 
