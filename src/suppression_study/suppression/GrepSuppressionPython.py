@@ -11,7 +11,7 @@ import os
 parser = argparse.ArgumentParser(description="Find suppression in Python repositories")
 parser.add_argument("--repo_dir", help="Directory with the repository to check", required=True)
 parser.add_argument("--commit_id", help="A specific commit ID, or the .csv file which stores a list of commit IDs", required=True)
-parser.add_argument("--results_dir", help="Directory where to put the results, endswith '/'", required=True)
+parser.add_argument("--results_dir", help="Directory where to put the results", required=True)
 
 
 class GrepSuppressionPython(GrepSuppressionSuper):
@@ -48,8 +48,8 @@ class GrepSuppressionPython(GrepSuppressionSuper):
 
     def format_to_csv(self, raw_suppression_results): 
         comment_symbol = "#" 
-        precessed_suppression_csv = raw_suppression_results.replace(".txt", "_suppression.csv")
-        FormatSuppressionCommon(comment_symbol, raw_suppression_results, precessed_suppression_csv).format_suppression_common()
+        preprocessed_suppression_csv = raw_suppression_results.replace(".txt", "_suppression.csv")
+        FormatSuppressionCommon(comment_symbol, raw_suppression_results, preprocessed_suppression_csv).format_suppression_common()
 
         
 if __name__=="__main__":
@@ -59,7 +59,7 @@ if __name__=="__main__":
     results_dir = args.results_dir
 
     repo_name = repo_dir.split("/")[-2].strip()
-    output_path = results_dir + "grep/" 
+    output_path = os.path.join(results_dir, "grep")
     source_file_extension = "\"*.py\""
     filter_keywords="\#\ pylint:\|\#\ type:\ ignore"
 

@@ -5,6 +5,7 @@ Common functions for getting warnings from running checkers.
 import subprocess
 from git.repo import Repo
 import os
+from os.path import join
 
 class GetWarningsSuper():
 
@@ -18,14 +19,13 @@ class GetWarningsSuper():
         '''
         target_repo = Repo(self.repo_dir)
         target_repo.git.checkout(self.commit_id)
-        os.chdir(self.repo_dir) # go to repo_dir to run checkers
         
-        commit_results_dir = self.results_dir + "checker_results/" + self.commit_id + "/"
+        commit_results_dir = join(self.results_dir, "checker_results", self.commit_id)
         if not os.path.exists(commit_results_dir):
             os.makedirs(commit_results_dir)
-        report = commit_results_dir + self.commit_id + "_" + checker + ".txt"
+        report = join(commit_results_dir, self.commit_id + "_" + checker + ".txt")
         
-        result = subprocess.run(command_line, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+        result = subprocess.run(command_line, cwd=self.repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         output_txt = result.stdout
         with open(report, "w") as f:
             f.writelines(output_txt)
@@ -36,7 +36,7 @@ class GetWarningsSuper():
         '''
         Write all reported warnings to a .csv file.
         '''
-        with open(os.path.join(commit_results_dir, self.commit_id + "_warnings.csv"), "w") as f:
+        with open(join(commit_results_dir, self.commit_id + "_warnings.csv"), "w") as f:
             write_str = ""
             for single_warning in warnings:
                 single_write_str = single_warning['file_path'] + "," + single_warning['warning_type'] + "," + single_warning['line_number']
