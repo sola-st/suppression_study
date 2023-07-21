@@ -16,19 +16,18 @@ parser.add_argument("--results_dir", help="Directory where to put the results", 
 
 class GrepSuppressionPython(GrepSuppressionSuper):
 
-    def __init__(self, repo_name, repo_dir, commit_id, output_path, source_file_extension, filter_keywords):
+    def __init__(self, repo_name, repo_dir, commit_id, output_path):
         self.repo_name = repo_name
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.output_path = output_path
-        self.source_file_extension = source_file_extension
-        self.filter_keywords = filter_keywords
 
     def grep_suppression_for_specific_commit(self):
         '''
         Run "Grep" command to find suppression in specified commit, return a .txt file 
         ''' 
-        raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
+        language = "python"
+        raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit(language)
         if os.path.getsize(raw_suppression_results): # If no suppression, will be an empty file.
             self.format_to_csv(raw_suppression_results)
         else:
@@ -39,7 +38,8 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         Run "Grep" command to find suppression in all the commits (multi-commit)
         Return .txt files, 1 commit --> 1 .txt 
         ''' 
-        output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits()
+        language = "python"
+        output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits(language)
         for raw_suppression_results in output_txt_files:
             if os.path.getsize(raw_suppression_results):
                 self.format_to_csv(raw_suppression_results)
@@ -60,10 +60,8 @@ if __name__=="__main__":
 
     repo_name = repo_dir.split("/")[-2].strip()
     output_path = os.path.join(results_dir, "grep")
-    source_file_extension = "\"*.py\""
-    filter_keywords="\#\ pylint:\|\#\ type:\ ignore"
 
-    init = GrepSuppressionPython(repo_name, repo_dir, commit_id, output_path, source_file_extension, filter_keywords)
+    init = GrepSuppressionPython(repo_name, repo_dir, commit_id, output_path)
 
     if os.path.exists(commit_id): # It's a file
         init.grep_suppression_for_all_commits()  

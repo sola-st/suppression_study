@@ -7,12 +7,22 @@ from suppression_study.utils.FunctionsCommon import FunctionsCommon
 
 class GrepSuppressionSuper():
 
-    def find_suppression(self, target_folder, raw_suppression_results):
+    def find_suppression(self, language, target_folder, raw_suppression_results):
         '''
         Run "Grep" command to find suppression
         '''
+        if language == "java":
+            source_file_extension = "\"*.java\""
+            filter_keywords='@SuppressWarnings'
+        elif language == "python":
+            source_file_extension = "\"*.py\""
+            filter_keywords="\#\ pylint:\|\#\ type:\ ignore"
+        else: # "javascript":
+            source_file_extension = "\"*.js\" -o -name \"*.ts\""  
+            filter_keywords="?Flow\|eslint-disable" # $Flow, $ is a special symbol in grep.
+
         # Record relative path in results
-        find_command = "find . -name " + self.source_file_extension + " | xargs grep -E " + self.filter_keywords + " -n"
+        find_command = "find . -name " + source_file_extension + " | xargs grep -E " + filter_keywords + " -n"
         result = subprocess.run(find_command, cwd=target_folder, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         output_txt_lines = result.stdout # output_txt_lines : type: str
         '''
@@ -21,7 +31,7 @@ class GrepSuppressionSuper():
         '''
         new_txt_lines = []
         if output_txt_lines.split(":", 1)[0].isdigit():
-            command = "find . -name " + self.source_file_extension + " | xargs grep -l -E " + self.filter_keywords + " -n"
+            command = "find . -name " + source_file_extension + " | xargs grep -l -E " + filter_keywords + " -n"
             result = subprocess.run(command, cwd=target_folder, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
             file_path = result.stdout.strip() # should only with a file path
             output_txt_lines_list = output_txt_lines.strip().split("\n")
@@ -38,18 +48,18 @@ class GrepSuppressionSuper():
             with open(raw_suppression_results, "w") as f:
                 f.writelines(output_txt_lines)
 
-    def grep_suppression_for_specific_commit(self):
+    def grep_suppression_for_specific_commit(self, language):
         repo_base= Repo(self.repo_dir)
         repo_base.git.checkout(self.commit_id)
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
         
         raw_suppression_results = join(self.output_path, self.commit_id +".txt")
-        self.find_suppression(self.repo_dir, raw_suppression_results)
+        self.find_suppression(language, self.repo_dir, raw_suppression_results)
 
         return raw_suppression_results
 
-    def grep_suppression_for_all_commits(self):
+    def grep_suppression_for_all_commits(self, language):
         output_txt_files = []
 
         all_commits = FunctionsCommon.get_commit_list(self.commit_id)
@@ -60,7 +70,7 @@ class GrepSuppressionSuper():
                 os.makedirs(self.output_path)
 
             raw_suppression_results = join(self.output_path, commit + ".txt")
-            self.find_suppression(self.repo_dir, raw_suppression_results)
+            self.find_suppression(language, self.repo_dir, raw_suppression_results)
             output_txt_files.append(raw_suppression_results)
 
         return output_txt_files
