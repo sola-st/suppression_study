@@ -7,6 +7,7 @@ from git.repo import Repo
 import os
 from os.path import join
 
+
 class GetWarningsSuper():
 
     def run_checker(self, checker, command_line):
