@@ -4,9 +4,9 @@ import shutil
 
 
 parser = argparse.ArgumentParser(description="Gather all Mypy warnings in a specific commit")
-parser.add_argument("--repo_dir", help="Directory with the repository to check, endswith '/'", required=True)
+parser.add_argument("--repo_dir", help="Directory with the repository to check", required=True)
 parser.add_argument("--commit_id", help="Specify which commit to run checkers", required=True)
-parser.add_argument("--results_dir", help="Directory where to put the results, endswith '/'", required=True)
+parser.add_argument("--results_dir", help="Directory where to put the results", required=True)
 
 
 class GetMypyWarnings(GetWarningsSuper): 

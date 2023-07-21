@@ -1,30 +1,26 @@
+import tempfile
 import subprocess
-import os
-import shutil
+from os.path import join
 
 def test_GetPylintWarning():
-    initial_work_dir = os.getcwd()
-    demo_path = "tests/checkers/GetPylintWarnings/"
-    os.chdir(demo_path)
-    demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
-    subprocess.run("git clone " + demo_repo_git_link, shell=True)
-    os.chdir(initial_work_dir)
+    expected_results = "tests/checkers/GetPylintWarnings/a09fcfe_warnings.csv"
+    with tempfile.TemporaryDirectory() as demo_path:
+        demo_repo_name = "suppression-test-python-pylint"
+        demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
+        subprocess.run("git clone " + demo_repo_git_link, cwd=demo_path, shell=True)
 
-    subprocess.run(["python", "-m", "suppression_study.checkers.GetPylintWarnings",
-        "--repo_dir=" + demo_path + "suppression-test-python-pylint/",
-        "--commit_id=a09fcfe",
-        "--results_dir=../"])
+        repo_dir = join(demo_path, demo_repo_name)
+        subprocess.run(["python", "-m", "suppression_study.checkers.GetPylintWarnings",
+            "--repo_dir=" + repo_dir,
+            "--commit_id=a09fcfe",
+            "--results_dir=" + demo_path])
 
-    with open(demo_path + "/a09fcfe_warnings.csv", "r") as f:
-        expected_warnings = f.readlines()
+        with open(expected_results, "r") as f:
+            expected_warnings = f.readlines()
 
-    with open(demo_path + "checker_results/a09fcfe/a09fcfe_warnings.csv", "r") as f:
-        actual_warnings = f.readlines()
-    
-    assert len(actual_warnings) == len(expected_warnings)
-    for actual_warn, expected_warn in zip(actual_warnings, expected_warnings):
-        assert actual_warn == expected_warn
-
-
-    shutil.rmtree(demo_path + "suppression-test-python-pylint/")  
-    shutil.rmtree(demo_path + "checker_results/")
+        with open(join(demo_path, "checker_results/a09fcfe/a09fcfe_warnings.csv"), "r") as f:
+            actual_warnings = f.readlines()
+        
+        assert len(actual_warnings) == len(expected_warnings)
+        for actual_warn, expected_warn in zip(actual_warnings, expected_warnings):
+            assert actual_warn == expected_warn
