@@ -17,6 +17,7 @@ parser.add_argument("--results_dir", help="Directory where to put the results", 
 class GrepSuppressionPython(GrepSuppressionSuper):
 
     def __init__(self, repo_name, repo_dir, commit_id, output_path):
+        super().__init__("*.py", "\#\ pylint:\|\#\ type:\ ignore")
         self.repo_name = repo_name
         self.repo_dir = repo_dir
         self.commit_id = commit_id
@@ -26,8 +27,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         '''
         Run "Grep" command to find suppression in specified commit, return a .txt file 
         ''' 
-        language = "python"
-        raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit(language)
+        raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
         if os.path.getsize(raw_suppression_results): # If no suppression, will be an empty file.
             self.format_to_csv(raw_suppression_results)
         else:
@@ -38,8 +38,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         Run "Grep" command to find suppression in all the commits (multi-commit)
         Return .txt files, 1 commit --> 1 .txt 
         ''' 
-        language = "python"
-        output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits(language)
+        output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits()
         for raw_suppression_results in output_txt_files:
             if os.path.getsize(raw_suppression_results):
                 self.format_to_csv(raw_suppression_results)
