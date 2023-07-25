@@ -1,0 +1,26 @@
+commit a09fcfece6532e441c33be40c59d98c4623da3cf
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 11:07:19 2023 +0200
+
+    Adding a new file with a suppression
+
+diff --git a/folder1/foo.py b/folder1/foo.py
+--- /dev/null
++++ b/folder1/foo.py
+@@ -0,0 +1,2 @@
++# pylint: disable=missing-module-docstring
++x = 23
+
+commit 125ad475f183d09959c522939063daa445829e30
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 11:07:54 2023 +0200
+
+    Code change unrelated to the existing "missing-module-docstring" suppression
+
+diff --git a/folder1/foo.py b/folder1/foo.py
+--- a/folder1/foo.py
++++ b/folder1/foo.py
+@@ -1,2 +1,2 @@
+ # pylint: disable=missing-module-docstring
+-x = 23
++x = 42

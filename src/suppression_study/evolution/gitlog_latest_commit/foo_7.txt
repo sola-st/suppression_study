@@ -1,0 +1,92 @@
+commit b8b38907473533f98784700b4cf6e9a656b1780d
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 10:50:41 2023 +0200
+
+    Adding new file with a new function
+
+diff --git a/foo.py b/foo.py
+--- /dev/null
++++ b/foo.py
+@@ -0,0 +1,2 @@
++def some_fun(a, b):
++    return a + b
+\ No newline at end of file
+
+commit b8c363dab2c08061876d71b926f3cd4b0a5dd3a7
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 10:53:28 2023 +0200
+
+    Adding suppression that removes two warnings:
+    foo.py:1:13: C0103: Argument name "a" doesn't conform to snake_case naming style (invalid-name)
+    foo.py:1:16: C0103: Argument name "b" doesn't conform to snake_case naming style (invalid-name)
+
+diff --git a/foo.py b/foo.py
+--- a/foo.py
++++ b/foo.py
+@@ -1,2 +1,2 @@
+-def some_fun(a, b):
++def some_fun(a, b):  # pylint: disable=invalid-name
+     return a + b
+\ No newline at end of file
+
+commit a2b8e1e9636bac9464ecbc1df48cccea228bff75
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 10:54:03 2023 +0200
+
+    Renaming a parameter (but leaving a suppression related to it untouched)
+
+diff --git a/foo.py b/foo.py
+--- a/foo.py
++++ b/foo.py
+@@ -1,2 +1,2 @@
+-def some_fun(a, b):  # pylint: disable=invalid-name
+-    return a + b
+\ No newline at end of file
++def some_fun(a, c):  # pylint: disable=invalid-name
++    return a + c
+\ No newline at end of file
+
+commit 6f794e03473ba9cfdcb7afcede0b4076055ae6da
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 10:55:24 2023 +0200
+
+    Replacing entire function, and along with it also the "invalid-name" suppression
+
+diff --git a/foo.py b/foo.py
+--- a/foo.py
++++ b/foo.py
+@@ -1,2 +2,1 @@
+-def some_fun(a, c):  # pylint: disable=invalid-name
+-    return a + c
+\ No newline at end of file
++    return x + 1
+\ No newline at end of file
+
+commit 2977797af18b6a74e72e6bb5d32d577016451311
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 11:02:36 2023 +0200
+
+    Adding "disable=all" suppression
+
+diff --git a/foo.py b/foo.py
+--- a/foo.py
++++ b/foo.py
+@@ -2,1 +2,2 @@
++    # pylint: disable=all
+     return x + 1
+\ No newline at end of file
+
+commit 67f22c62d2fd70a108dd8a097de29c9ee6f33b1d
+Author: Michael Pradel <michael@binaervarianz.de>
+Date:   Tue Jul 4 11:05:12 2023 +0200
+
+    Bring back an old function (incl. a suppression)
+
+diff --git a/foo.py b/foo.py
+--- a/foo.py
++++ b/foo.py
+@@ -7,2 +7,2 @@
+     # pylint: disable=all
+-    return x + 1
+\ No newline at end of file
++    return x + 1
