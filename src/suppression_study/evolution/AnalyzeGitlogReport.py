@@ -77,42 +77,43 @@ class FormatGitlogReport():
         warning_type_set = []
         line_number_set = []
         type_line_set = []
-        the_suppressor = "# pylint:"
+        suppressor_set = ["# pylint:", "# type:"]
         comment_symbol = "#"
 
         for source_line, line_number in zip(source_code, line_nums):
-            if the_suppressor in source_line:
-                if source_line.startswith(the_suppressor):
-                    warning_type_set.append(source_line)
-                    line_number_set.append(line_number)
-                else: # suppression mixed with code
-                    if source_line.startswith(comment_symbol): # Current source_line is a comment.
-                        pass 
-                    else: 
-                        suppression_content = ""
-                        if source_line.count(comment_symbol) >= 1: # 1 comment_symbol for suppression
-                            suppression_tmp = source_line.split(the_suppressor)[1]
-                            if comment_symbol in suppression_tmp: # comments come after suppression
-                                suppression_content = the_suppressor + suppression_tmp.split(self.comment_symbol, 1)[0]
-                            else: 
-                                suppression_content = the_suppressor + suppression_tmp
+            for the_suppressor in suppressor_set:
+                if the_suppressor in source_line:
+                    if source_line.startswith(the_suppressor):
+                        warning_type_set.append(source_line)
+                        line_number_set.append(line_number)
+                    else: # suppression mixed with code
+                        if source_line.startswith(comment_symbol): # Current source_line is a comment.
+                            pass 
+                        else: 
+                            suppression_content = ""
+                            if source_line.count(comment_symbol) >= 1: # 1 comment_symbol for suppression
+                                suppression_tmp = source_line.split(the_suppressor)[1]
+                                if comment_symbol in suppression_tmp: # comments come after suppression
+                                    suppression_content = the_suppressor + suppression_tmp.split(self.comment_symbol, 1)[0]
+                                else: 
+                                    suppression_content = the_suppressor + suppression_tmp
 
-                        # Multi-type suppression
-                        if "(" in suppression_content:
-                            warning_type_tmp = suppression_content.split("(")[1].replace(")", "")
-                            for warning_type in warning_type_tmp:
-                                warning_type_set.append(warning_type)
+                            # Multi-type suppression
+                            if "(" in suppression_content:
+                                raw_warning_type = suppression_content.split("(")[1].replace(")", "")
+                                warning_type_set.append(raw_warning_type)
                                 line_number_set.append(line_number)
-                        elif "[" in suppression_content:
-                            warning_type_tmp = suppression_content.split("[")[1].replace("]", "")
-                            for warning_type in warning_type_tmp:
-                                warning_type_set.append(warning_type)
+                            elif "[" in suppression_content:
+                                raw_warning_type = suppression_content.split("[")[1].replace("]", "")
+                                warning_type_set.append(raw_warning_type)
                                 line_number_set.append(line_number)
-                        else:
-                            warning_type_set.append(suppression_content)
-                            line_number_set.append(line_number)
+                            else:
+                                warning_type_set.append(suppression_content)
+                                line_number_set.append(line_number)
+                    break
 
         for warning_type, line_number in zip(warning_type_set, line_number_set):
+            # warning_type can be multiple types.
             type_line = WarningTypeLine(warning_type, line_number)
             type_line_set.append(type_line)
 
@@ -127,21 +128,19 @@ class FormatGitlogReport():
         
         old_suppression_count = len(old_type_line_set)
         new_suppression_count = len(new_type_line_set)
-        if not old_type_line_set: # no suppression in old commit
-            if new_suppression_count == 0: # also no suppression in new commit
-                pass
-            else:
+        if old_suppression_count == 0: # no suppression in old commit
+            if new_suppression_count > 0: 
                 operation = "add"
-                for i, operation_helper in zip(range(new_suppression_count), operation_set_helper):
+                for operation_helper in operation_set_helper:
                     if operation_helper:
                         operation_set.append(operation_helper)
                     else:
                         operation_set.append(operation)
                 type_line_set = new_type_line_set
-        else: # update file delete later, write a made-up repository for test, or add new commit
+        else: # old_suppression_count > 0
             if new_suppression_count == 0:
                 operation = "delete"
-                for i, operation_helper in zip(range(old_suppression_count), operation_set_helper):
+                for operation_helper in operation_set_helper:
                     if operation_helper:
                         operation_set.append(operation_helper)
                     else:
@@ -150,18 +149,62 @@ class FormatGitlogReport():
             else: # suppression in both old and new commit
                 if old_suppression_count == new_suppression_count:
                     for old, new in zip(old_type_line_set, new_type_line_set):
-                        if old.warning_type == new.warning_type:
-                            # suppression no change , and mixed source code changed
-                            operation = "nochange" 
-                            operation_set.append(operation)
-                        else:
-                            operation = "delete"
-                            type_line_set.append(old)
-                            operation_set.append(operation)
-                            operation = "add"
-                            type_line_set.append(new)
-                            operation_set.append(operation)
-                # Update later, In-line changes: eg,.2 warning types -> 1
+                        # Handle multiple warning types in one line.
+                        old_multi_num = 0
+                        new_multi_num = 0
+                        old_warning_types = []
+                        new_warning_types = []
+                        if "," in old.warning_type:
+                            old_warning_types = old.warning_type.split(",")
+                            old_multi_num = len(old_warning_types)
+                        if "," in new.warning_type:
+                            new_warning_types = new.warning_type.split(",")
+                            new_multi_num = len(new_warning_types)
+                        # Sub-case: the number of warnings in a line is the same, includes 0.
+                        if old_multi_num == new_multi_num:
+                            if old.warning_type != new.warning_type:
+                                operation = "delete"
+                                type_line_set.append(old)
+                                operation_set.append(operation)
+                                operation = "add"
+                                type_line_set.append(new)
+                                operation_set.append(operation)
+                        # Sub-case: delete existing warning types in-line
+                        elif old_multi_num > new_multi_num: 
+                            real_delete = 0
+                            for old_type in old_warning_types:
+                                old_type = old_type.strip()
+                                if old_type not in str(new_warning_types):
+                                    real_delete +=1
+                                    operation = "delete"
+                                    deleted_old = WarningTypeLine(old_type, old.line_number)
+                                    type_line_set.append(deleted_old)
+                                    operation_set.append(operation)
+                            # All old warning type were deleted, and add a totally new warning type
+                            if real_delete == old_multi_num and new_multi_num != 0:
+                                for new_type in new_warning_types:
+                                    operation = "add"
+                                    added_new = WarningTypeLine(new_type, new.line_number)
+                                    type_line_set.append(added_new)
+                                    operation_set.append(operation)
+                        # Sub-case: add new warning types in-line
+                        elif old_multi_num < new_multi_num: 
+                            real_add = 0
+                            for new_type in new_warning_types:
+                                new_type = new_type.strip()
+                                if new_type not in str(old_warning_types):
+                                    real_add +=1
+                                    operation = "add"
+                                    added_new = WarningTypeLine(new_type, new.line_number)
+                                    type_line_set.append(added_new)
+                                    operation_set.append(operation)
+                            # All new warning type are newly added, and the existing warning types were deleted
+                            if real_add == new_multi_num and old_multi_num != 0:
+                                for old_type in old_warning_types:
+                                    operation = "delete"
+                                    deleted_old = WarningTypeLine(old_type, old.line_number)
+                                    type_line_set.append(deleted_old)
+                                    operation_set.append(operation)
                 else:
                     operation_set.append("tricky")
         
@@ -200,15 +243,14 @@ class FormatGitlogReport():
                 operation_helper = ""
                 operation_set_helper = []
                 for line in block:
-                    line = line
                     # Extract metadata from git log report.
                     if line.startswith("commit "): # Commit
                         commit_id = line.split(" ")[1].strip()
                     elif line.startswith("Date:"): # Date
                         date = line.split(":", 1)[1].strip()
                     elif line.startswith("--- /dev/null"): # File not exists in old commit
-                        operation_helper = "file add"
-                    elif line.startswith("+++"): # file path in new commit
+                        operation_helper = "file add" # Only able to report "file add", not "file delete"
+                    elif line.startswith("+++"): # File path in new commit
                         file_path = line.split("/", 1)[1].strip()
                     elif line.startswith("@@ "): # Change line hunk
                         # eg,. @@ -1,2 +2,1 @@
@@ -248,12 +290,22 @@ class FormatGitlogReport():
                         for old_type_line, operation in zip(type_line_set, operation_set):
                             change_event = self.represent_to_json_string(commit_id, date, file_path, 
                                     old_type_line.warning_type, old_type_line.line_number, operation)
-                            change_events_file_level.append(change_event)
+                            # Avoid crossed changed hunk, step 1
+                            change_events_file_level, all_index = self.handle_crossed_hunk(change_event, 
+                                    all_change_events, change_events_file_level, all_index)
                     elif operation_set.count("add") == operation_count:
                         for new_type_line, operation in zip(type_line_set, operation_set):
                             change_event = self.represent_to_json_string(commit_id, date, file_path, 
                                     new_type_line.warning_type, new_type_line.line_number, operation)
-                            change_events_file_level.append(change_event)
+                            change_events_file_level, all_index = self.handle_crossed_hunk(change_event, 
+                                    all_change_events, change_events_file_level, all_index)
+                    elif operation_set[0] == "tricky":
+                        tricky_recorder = join(self.log_result_folder, "tricky_recorder.txt")
+                        write_str = ""
+                        for line in block:
+                            write_str = write_str + line + "\n"
+                        with open(tricky_recorder, "a") as f:
+                            f.writelines(write_str+ "\n")
                     else:
                         for type_line, operation in zip(type_line_set, operation_set):
                             if operation == "delete":
@@ -262,17 +314,30 @@ class FormatGitlogReport():
                             elif operation == "add":
                                 change_event = self.represent_to_json_string(commit_id, date, file_path, 
                                     type_line.warning_type, type_line.line_number, operation)
-                            elif operation == "nochange":
-                                pass
-                            else: # tricky
-                                tricky_recorder = join(self.log_result_folder, "tricky_recorder.txt")
-                                with open(tricky_recorder, "a") as f:
-                                    f.writelines(block)
-
-                            change_events_file_level.append(change_event)
-            all_change_events.append({"# S" + str(all_index) : change_events_file_level})
-            all_index+=1
+                            change_events_file_level, all_index = self.handle_crossed_hunk(change_event, 
+                                    all_change_events, change_events_file_level, all_index)
+            # Avoid crossed changed hunk, step 2
+            if change_events_file_level:
+                all_change_events.append({"# S" + str(all_index) : change_events_file_level})
+                all_index+=1
         return all_change_events # commit level
+    
+    def handle_crossed_hunk(self, change_event, all_change_events, change_events_file_level, all_index):
+        if str(change_event) not in str(all_change_events):
+            if change_events_file_level:
+                last_event = change_events_file_level[-1]
+                # Recognize different suppressions
+                if last_event["warning_type"] != change_event["warning_type"] or (last_event["warning_type"] 
+                        == change_event["warning_type"] and last_event["line_number"] != change_event["line_number"]):
+                    all_change_events.append({"# S" + str(all_index) : change_events_file_level})
+                    change_events_file_level = []
+                    all_index+=1
+                    change_events_file_level.append(change_event)
+                else:
+                    change_events_file_level.append(change_event)
+            else:
+                change_events_file_level.append(change_event)
+        return change_events_file_level, all_index
 
     def write_to_json_file(self, output, all_change_events):
         with open(output,"a", newline="\n") as ds:
@@ -282,5 +347,13 @@ class FormatGitlogReport():
     def main(self):
         all_commit_block = self.get_commit_block()
         all_change_events = self.represent_log_result_to_json(all_commit_block)
-        json_file = join(self.log_result_folder, "history_latest_commit.json")
+        json_file = join(self.log_result_folder, "history_latest_commit_correct.json")
         self.write_to_json_file(json_file, all_change_events)
+
+
+if __name__=="__main__":
+    log_result_folder = "/home/huimin/suppression_study/data/python/results/repositories/suppression-test-python-mypy/gitlog_latest_commit/"
+    init = FormatGitlogReport(log_result_folder)
+    init.main()
+
+    print("Done.")

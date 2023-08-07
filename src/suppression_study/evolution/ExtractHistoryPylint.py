@@ -2,24 +2,19 @@ import argparse
 import csv
 import subprocess
 import os
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
-from suppression_study.evolution.FormatGitlogReport import FormatGitlogReport
 from git.repo import Repo
 from os.path import join
+
+
+from suppression_study.evolution.AnalyzeGitlogReport import FormatGitlogReport
+from suppression_study.utils.SuppressionInfo import SuppressionInfo
+from suppression_study.utils.FunctionsCommon import FunctionsCommon
 
 
 parser = argparse.ArgumentParser(description="Extract change histories of all suppression at the repository level")
 parser.add_argument("--repo_dir", help="Directory with the repository to check", required=True)
 parser.add_argument("--commit_id", help=".csv file which stores a list of commit IDs", required=True)
 parser.add_argument("--results_dir", help="Directory where to put the results", required=True)
-
-
-class SuppressionInfo():
-    '''Class for representing suppression csv files'''
-    def __init__(self, file_path, warning_type, line_number):
-        self.file_path = file_path
-        self.warning_type = warning_type
-        self.line_number = line_number
 
 
 class ExtractHistory(): 
@@ -41,7 +36,7 @@ class ExtractHistory():
         '''
         Read the latest_suppression, and represent it as a class
         '''
-        suppression_csv = join(self.results_dir, "grep", specified_commit, "_suppression.csv")
+        suppression_csv = join(self.results_dir, "grep", specified_commit + "_suppression.csv")
 
         suppression_commit_level = []
         with open(suppression_csv, 'r') as csvfile:
@@ -78,11 +73,17 @@ class ExtractHistory():
             current_file_name = current_file.split("/")[-1].strip()
             log_result_file_name = current_file_name.replace(".py", "_" + line_range_start_str + ".txt")
             
-            log_result = log_result_folder + log_result_file_name
+            log_result = join(log_result_folder, log_result_file_name)
             if os.path.exists(log_result): # Avoid duplicated source file names
                 current_file_parent_folder = current_file.split("/")[-2].strip()
                 log_result.replace(".txt", "_" + current_file_parent_folder + ".txt")
             '''
+            1) git log command cannot find file delete cases.
+               It extracts the histories from when the file was added, re-added is a new start.
+            2) The result.stdout will not be empty.
+                eg,. Assume that suppression only exists in latest commit, 
+                     result.stdout will show the changes in latest commit.
+
             -C: cover copied files
             -M: cover renamed files
             -L: [line_range_start, line_range_end)
@@ -92,16 +93,16 @@ class ExtractHistory():
             result = subprocess.run(command_line, cwd=self.repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
             with open(log_result, "w") as f:
                 f.writelines(result.stdout) 
-                # will stdout be empty? I mean the suppression only in latest commit. 
-                # Create a made-up commit to test later
 
-        return log_result_folder # for easier to iterate all the log_result files
+        return log_result_folder # For easier to iterate all the log_result files
     
     # Update checking history commits  and suppression later.
 
 
 def main(repo_dir, commit_id, results_dir):
     # Get commit list and suppression for all the commits.
+    if not os.path.exists(commit_id):
+        FunctionsCommon.get_commit_csv(repo_dir, commit_id)
     all_commits = FunctionsCommon.get_commit_list(commit_id)
     if not os.path.exists(join(args.results_dir, "grep")):
         subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
@@ -113,7 +114,7 @@ def main(repo_dir, commit_id, results_dir):
     # Get git log results for all the suppression in latest commit
     log_result_folder = init.get_gitlog_results_latest_commit()
     # Represent git log results to Json files (change histories of suppressions in latest commit)
-    FormatGitlogReport(log_result_folder).main()
+    # FormatGitlogReport(log_result_folder).main()
     # Check history commits and suppression to extract full histories of all suppressions.
     # ...
 

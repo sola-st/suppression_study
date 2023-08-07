@@ -14,7 +14,7 @@ class FunctionsCommon():
                 line = f.readline()
         return all_commits
     
-    def get_commit_csv(repo_dir, commits_file_name):
+    def get_commit_csv(repo_dir, commit_id_csv):
         # Get commit file
         '''
         Valid for the repository which the repo_dir point to is in latest commit status,
@@ -25,6 +25,5 @@ class FunctionsCommon():
         git_get_commits = subprocess.run(commit_command, cwd=repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         commits = git_get_commits.stdout 
 
-        commit_id_csv = join(repo_dir, commits_file_name) # "check_commits.csv"
         with open(commit_id_csv, "w") as f:
             f.writelines(commits)
