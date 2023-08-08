@@ -2,7 +2,6 @@ import tempfile
 import subprocess
 import os
 from os.path import join
-import shutil
 
 
 def test_GrepSuppressionPython_mypy_commit_list():

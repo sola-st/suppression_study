@@ -1,5 +1,4 @@
 import os
-import json
 from os.path import join
 
 class WarningTypeLine():
@@ -8,10 +7,12 @@ class WarningTypeLine():
         self.line_number = line_number
 
 
-class FormatGitlogReport():
-
+class AnalyzeGitlogReport():
     def __init__(self, log_result_folder):
         self.log_result_folder = log_result_folder
+
+        all_change_events = []
+        self.all_change_events = all_change_events
 
     def get_commit_block(self):
         '''
@@ -65,7 +66,8 @@ class FormatGitlogReport():
 
                 all_commit_block.append(all_commit_block_file_level)
 
-        return all_commit_block # 2 dimensions
+        all_change_events_list_latest_commit = self.represent_log_result_to_json(all_commit_block)
+        return all_change_events_list_latest_commit
         
     def get_warning_type_line(self, source_code, line_nums):
         '''
@@ -225,7 +227,6 @@ class FormatGitlogReport():
         '''
         Represent git log results to JSON strings, return a change_events_file_level list.
         '''
-        all_change_events = []
         all_index = 0
         commit_id = ""
         date = ""
@@ -292,13 +293,13 @@ class FormatGitlogReport():
                                     old_type_line.warning_type, old_type_line.line_number, operation)
                             # Avoid crossed changed hunk, step 1
                             change_events_file_level, all_index = self.handle_crossed_hunk(change_event, 
-                                    all_change_events, change_events_file_level, all_index)
+                                    change_events_file_level, all_index)
                     elif operation_set.count("add") == operation_count:
                         for new_type_line, operation in zip(type_line_set, operation_set):
                             change_event = self.represent_to_json_string(commit_id, date, file_path, 
                                     new_type_line.warning_type, new_type_line.line_number, operation)
                             change_events_file_level, all_index = self.handle_crossed_hunk(change_event, 
-                                    all_change_events, change_events_file_level, all_index)
+                                    change_events_file_level, all_index)
                     elif operation_set[0] == "tricky":
                         tricky_recorder = join(self.log_result_folder, "tricky_recorder.txt")
                         write_str = ""
@@ -315,21 +316,22 @@ class FormatGitlogReport():
                                 change_event = self.represent_to_json_string(commit_id, date, file_path, 
                                     type_line.warning_type, type_line.line_number, operation)
                             change_events_file_level, all_index = self.handle_crossed_hunk(change_event, 
-                                    all_change_events, change_events_file_level, all_index)
+                                    change_events_file_level, all_index)
             # Avoid crossed changed hunk, step 2
             if change_events_file_level:
-                all_change_events.append({"# S" + str(all_index) : change_events_file_level})
+                self.all_change_events.append({"# S" + str(all_index) : change_events_file_level})
                 all_index+=1
-        return all_change_events # commit level
+
+        return self.all_change_events # commit level
     
-    def handle_crossed_hunk(self, change_event, all_change_events, change_events_file_level, all_index):
-        if str(change_event) not in str(all_change_events):
+    def handle_crossed_hunk(self, change_event, change_events_file_level, all_index):
+        if str(change_event) not in str(self.all_change_events):
             if change_events_file_level:
                 last_event = change_events_file_level[-1]
                 # Recognize different suppressions
                 if last_event["warning_type"] != change_event["warning_type"] or (last_event["warning_type"] 
                         == change_event["warning_type"] and last_event["line_number"] != change_event["line_number"]):
-                    all_change_events.append({"# S" + str(all_index) : change_events_file_level})
+                    self.all_change_events.append({"# S" + str(all_index) : change_events_file_level})
                     change_events_file_level = []
                     all_index+=1
                     change_events_file_level.append(change_event)
@@ -339,21 +341,3 @@ class FormatGitlogReport():
                 change_events_file_level.append(change_event)
         return change_events_file_level, all_index
 
-    def write_to_json_file(self, output, all_change_events):
-        with open(output,"a", newline="\n") as ds:
-            json.dump(all_change_events, ds, indent=4, ensure_ascii=False)
-        ds.close()
-
-    def main(self):
-        all_commit_block = self.get_commit_block()
-        all_change_events = self.represent_log_result_to_json(all_commit_block)
-        json_file = join(self.log_result_folder, "history_latest_commit_correct.json")
-        self.write_to_json_file(json_file, all_change_events)
-
-
-if __name__=="__main__":
-    log_result_folder = "/home/huimin/suppression_study/data/python/results/repositories/suppression-test-python-mypy/gitlog_latest_commit/"
-    init = FormatGitlogReport(log_result_folder)
-    init.main()
-
-    print("Done.")
