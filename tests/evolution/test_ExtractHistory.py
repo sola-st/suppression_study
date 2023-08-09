@@ -28,6 +28,3 @@ def test_ExtractHistory_pylint():
         assert len(actual_history) == len(expected_history)
         for actual, expected in zip(actual_history, expected_history):
             assert actual == expected
-
-if __name__=="__main__":
-    test_ExtractHistory_pylint()

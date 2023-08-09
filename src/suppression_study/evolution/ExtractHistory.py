@@ -5,6 +5,7 @@ import os
 from git.repo import Repo
 from os.path import join
 import json
+import datetime
 
 
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
@@ -33,10 +34,9 @@ class ExtractHistory():
 
     def read_suppression_files(self, specified_commit):
         '''
-        Read the latest_suppression, and represent it as a class
+        Read the all_suppression_commit_level, and represent it as a class
         '''
         suppression_csv = join(self.results_dir, "grep", specified_commit + "_suppression.csv")
- 
         if not os.path.exists(suppression_csv):
             return 
 
@@ -65,7 +65,7 @@ class ExtractHistory():
         all_change_events_list_latest_commit = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
         # write to a file for check at the first stage, may removed later
         if all_change_events_list_latest_commit:
-            with open(self.history_json_file, "w", newline="\n") as ds:
+            with open(self.history_json_file.replace(".json", "_" + latest_commit + "_latest.json"), "w", newline="\n") as ds:
                 json.dump(all_change_events_list_latest_commit, ds, indent=4, ensure_ascii=False)
 
         return all_change_events_list_latest_commit
@@ -74,23 +74,35 @@ class ExtractHistory():
         repo_base= Repo(self.repo_dir)
         repo_base.git.checkout(current_commit)
 
-        latest_suppression = self.read_suppression_files(current_commit)
-        if not latest_suppression:
+        all_suppression_commit_level = self.read_suppression_files(current_commit)
+        if not all_suppression_commit_level:
             return
         
-        for suppression in latest_suppression:
+        suppression_index = 0 
+        for suppression in all_suppression_commit_level:
+            suppression_index += 1
             line_range_start = suppression.line_number
             line_range_end = line_range_start + 1
             line_range_start_str = str(line_range_start)
             line_range_end_str =str(line_range_end)
 
             current_file = suppression.file_path
-            current_file_name = current_file.split("/")[-1].strip()
-            current_file_name_base = current_file_name.split(".")[0]
+            current_file_name = current_file.split("/")[-1].strip() # eg,. 'example.py'
+            current_file_name_base = current_file_name.split(".")[0] # eg,. 'example'
+            # Additional effort, avoid duplicated source file names, include the parent folder for easier manual checking
             # Get log_result_file_name
-            # eg,. with a python file, a.py, line 10, the corresponding log_result_file_name is a_10.txt
-            log_result_file_name = current_file_name_base + "_" + line_range_start_str + ".txt"
-            
+            # eg,. with a python file, src/main/a.py, line 10, suppression_index 5,
+            #      the corresponding log_result_file_name is main_a_5_10.txt
+            current_file_parent_folder = "root"
+            try:
+                current_file_parent_folder = current_file.split("/")[-2].strip()
+            except:
+                pass
+            # To avoid duplicated source file names, set the format of log_result_file_name as:
+            # Format : <parent_folder>_<current_file_name_base>_<suppression_index>_<line_number>
+            log_result_file_name = current_file_parent_folder + "_" + current_file_name_base + "_" \
+                    + str(suppression_index) + "_" + line_range_start_str + ".txt"
+                        
             # Get the parent folder of log_result_file_name, which is log_result_commit_folder
             log_result_commit_folder = join(self.log_result_folder, current_commit)
             if not os.path.exists(log_result_commit_folder):
@@ -98,19 +110,27 @@ class ExtractHistory():
 
             log_result = join(log_result_commit_folder, log_result_file_name)
 
-            if os.path.exists(log_result): # Avoid duplicated source file names and line numbers
-                current_file_parent_folder = "root"
-                try:
-                    current_file_parent_folder = current_file.split("/")[-2].strip()
-                except:
-                    pass
-                log_result.replace(".txt", "_" + current_file_parent_folder + ".txt")
+            # for check_file in os.listdir(log_result_commit_folder):
+            #     check_file_name_base = check_file.split(".")[0] # eg,. 'example_10'
+            #     check_file_line_number = check_file_name_base.split("_")[-1] # eg,. '10.txt'
+            #     check_name = check_file_name_base.replace("_" + check_file_line_number, "") # eg,. 'example'
+            #     if check_name == current_file_name_base:
+            #         current_file_parent_folder = "root"
+            #         try:
+            #             current_file_parent_folder = current_file.split("/")[-2].strip()
+            #         except:
+            #             pass
+                    
+            #         # Update log_result_file_name
+            #         log_result_file_name = current_file_parent_folder + "_" + log_result_file_name
+            #         log_result = join(log_result_commit_folder, log_result_file_name)
+            #         break
             '''
             1) git log command cannot find file delete cases.
                It extracts the histories from when the file was added, re-added is a new start.
             2) The result.stdout will not be empty.
-                eg,. Assume that suppression only exists in latest commit, 
-                     result.stdout will show the changes in latest commit.
+                eg,. Assume that there is a repository, suppression only exists in latest commit, 
+                     the result.stdout will show the changes in latest commit.
 
             -C: cover copied files
             -M: cover renamed files
@@ -135,7 +155,7 @@ class ExtractHistory():
             if log_result_commit_folder:
                 all_change_events_list_history_commit = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
                 if all_change_events_list_history_commit:
-                    with open(self.history_json_file.replace(".json", "_" + commit + ".txt"), "w", newline="\n") as ds:
+                    with open(self.history_json_file.replace(".json", "_" + commit + ".json"), "w", newline="\n") as ds:
                         json.dump(all_change_events_list_history_commit, ds, indent=4, ensure_ascii=False)
                 '''
                 The format of all_change_events_list_history_commit:
@@ -188,11 +208,17 @@ def main(repo_dir, commit_id, results_dir):
     all_commits = FunctionsCommon.get_commit_list(commit_id)
 
     # Get suppression
-    if not os.path.exists(join(results_dir, "grep")):
+    suppression_result = join(results_dir, "grep")
+    if not os.path.exists(suppression_result):
         subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
         "--repo_dir=" + repo_dir,
         "--commit_id=" + commit_id,
         "--results_dir=" + results_dir])
+
+    if not os.listdir(suppression_result):
+        os.rmdir(suppression_result)
+        print("No suppression found by running GrepSuppressionPython.")
+        return
 
     # Create a folder for storing 'git log' results
     log_result_folder = join(results_dir, "gitlog_history")
@@ -212,6 +238,11 @@ def main(repo_dir, commit_id, results_dir):
     
 if __name__=="__main__":
     args = parser.parse_args()
+    print("Running...")
+    start_time = datetime.datetime.now()
     main(args.repo_dir, args.commit_id, args.results_dir)
-
+    end_time = datetime.datetime.now()
+    executing_time = (end_time - start_time).seconds
+    print("Executing time:", executing_time, "seconds")
     print("Done.")
+

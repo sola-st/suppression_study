@@ -7,7 +7,7 @@
                 "file_path": "folder1/foo.py",
                 "warning_type": "# pylint: disable=missing-module-docstring",
                 "line_number": 1,
-                "change_operation": "add"
+                "change_operation": "file add"
             }
         ]
     },
@@ -20,7 +20,11 @@
                 "warning_type": "# pylint: disable=invalid-name",
                 "line_number": 1,
                 "change_operation": "add"
-            },
+            }
+        ]
+    },
+    {
+        "# S2": [
             {
                 "commit_id": "6f794e03473ba9cfdcb7afcede0b4076055ae6da",
                 "date": "Tue Jul 4 10:55:24 2023 +0200",
@@ -32,13 +36,25 @@
         ]
     },
     {
-        "# S2": [
+        "# S3": [
             {
                 "commit_id": "2977797af18b6a74e72e6bb5d32d577016451311",
                 "date": "Tue Jul 4 11:02:36 2023 +0200",
                 "file_path": "foo.py",
                 "warning_type": "# pylint: disable=all",
                 "line_number": 2,
+                "change_operation": "add"
+            }
+        ]
+    },
+    {
+        "# S4": [
+            {
+                "commit_id": "67f22c62d2fd70a108dd8a097de29c9ee6f33b1d",
+                "date": "Tue Jul 4 11:05:12 2023 +0200",
+                "file_path": "foo.py",
+                "warning_type": "# pylint: disable=invalid-name",
+                "line_number": 10,
                 "change_operation": "add"
             }
         ]
