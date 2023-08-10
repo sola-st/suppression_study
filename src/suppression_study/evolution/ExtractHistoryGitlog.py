@@ -13,7 +13,7 @@ from suppression_study.utils.SuppressionInfo import SuppressionInfo
 from suppression_study.utils.FunctionsCommon import FunctionsCommon
 
 
-parser = argparse.ArgumentParser(description="Extract change histories of all suppression at the repository level")
+parser = argparse.ArgumentParser(description="Extract change histories of all suppressions at the repository level")
 parser.add_argument("--repo_dir", help="Directory with the repository to check", required=True)
 parser.add_argument("--commit_id", help=".csv file which stores a list of commit IDs", required=True)
 parser.add_argument("--results_dir", help="Directory where to put the results", required=True)
@@ -57,7 +57,16 @@ class ExtractHistory():
         Return a log_result file for each suppression. --> to log_result_folder
         '''
         latest_commit = self.all_commits[0]
-        log_result_commit_folder = self.run_gitlog_command(latest_commit)
+        previous_commit = self.all_commits[-1]
+        log_result_commit_folder, deleted_files = self.run_gitlog_command(previous_commit, latest_commit)
+        if deleted_files:
+            all_suppression_previous_commit = self.read_suppression_files(previous_commit)
+            if not all_suppression_previous_commit:
+                for suppression in all_suppression_previous_commit:
+                    # delete_event_connect_its_add_event()
+                    # Update later if needed
+                    print()
+
         if not log_result_commit_folder:
             return
 
@@ -70,10 +79,12 @@ class ExtractHistory():
 
         return all_change_events_list_latest_commit
         
-    def run_gitlog_command(self, current_commit):
+    def run_gitlog_command(self, previous_commit, current_commit):
         repo_base= Repo(self.repo_dir)
         repo_base.git.checkout(current_commit)
-
+        # Suppression in deleted_files(previous_commit) are deleted
+        deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
+        
         all_suppression_commit_level = self.read_suppression_files(current_commit)
         if not all_suppression_commit_level:
             return
@@ -110,22 +121,8 @@ class ExtractHistory():
 
             log_result = join(log_result_commit_folder, log_result_file_name)
 
-            # for check_file in os.listdir(log_result_commit_folder):
-            #     check_file_name_base = check_file.split(".")[0] # eg,. 'example_10'
-            #     check_file_line_number = check_file_name_base.split("_")[-1] # eg,. '10.txt'
-            #     check_name = check_file_name_base.replace("_" + check_file_line_number, "") # eg,. 'example'
-            #     if check_name == current_file_name_base:
-            #         current_file_parent_folder = "root"
-            #         try:
-            #             current_file_parent_folder = current_file.split("/")[-2].strip()
-            #         except:
-            #             pass
-                    
-            #         # Update log_result_file_name
-            #         log_result_file_name = current_file_parent_folder + "_" + log_result_file_name
-            #         log_result = join(log_result_commit_folder, log_result_file_name)
-            #         break
             '''
+            Format 
             1) git log command cannot find file delete cases.
                It extracts the histories from when the file was added, re-added is a new start.
             2) The result.stdout will not be empty.
@@ -142,7 +139,7 @@ class ExtractHistory():
             with open(log_result, "w") as f:
                 f.writelines(result.stdout) 
        
-        return log_result_commit_folder
+        return log_result_commit_folder, deleted_files
 
 
     def track_back_history_commits(self, all_change_events_accumulator):
@@ -150,8 +147,11 @@ class ExtractHistory():
         # Use it as a accumulator to get all histories (all commits)
         all_commits_num = len(self.all_commits)
         for i in range(1, all_commits_num): # Except the latest commit
+            previous_commit = ""
+            if i+1 < all_commits_num:
+                previous_commit = self.all_commits[i+1]
             commit = self.all_commits[i]
-            log_result_commit_folder = self.run_gitlog_command(commit)
+            log_result_commit_folder = self.run_gitlog_command(previous_commit, commit)
             if log_result_commit_folder:
                 all_change_events_list_history_commit = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
                 if all_change_events_list_history_commit:
