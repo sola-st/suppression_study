@@ -1,2 +1,2 @@
-src/person/person.py,"# type: ignore[arg-type]",6
 src/compare/find_max.py,"# type: ignore[return-value]",6
+src/person/person.py,"# type: ignore[arg-type]",6

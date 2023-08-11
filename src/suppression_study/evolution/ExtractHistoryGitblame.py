@@ -249,7 +249,7 @@ def main(repo_dir, commit_id, results_dir):
     # Get commit list and suppression for all the commits.
     if not os.path.exists(commit_id):
         FunctionsCommon.get_commit_csv(repo_dir, commit_id)
-    all_commits_list, all_dates_list = FunctionsCommon.get_commit_list(commit_id)
+    all_commits_list, all_dates_list = FunctionsCommon.get_commit_date_lists(commit_id)
 
     # Get suppression
     suppression_result = join(results_dir, "grep")
@@ -288,4 +288,3 @@ if __name__=="__main__":
     executing_time = (end_time - start_time).seconds
     print("Executing time:", executing_time, "seconds")
     print("Done.")
-

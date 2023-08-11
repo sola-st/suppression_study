@@ -4,6 +4,18 @@ from os.path import join
 class FunctionsCommon():
     
     def get_commit_list(commit_id_csv):
+        '''Read given commit .csv file, return a commit list'''
+        all_commits = []
+        with open(commit_id_csv, "r") as f: # 2 columns: commit and date
+            line = f.readline()
+            while line:
+                tmp =  line.split(",")
+                commit = tmp[0].replace("\"", "").strip()
+                all_commits.append(commit)
+                line = f.readline()
+        return all_commits
+    
+    def get_commit_date_lists(commit_id_csv):
         '''Read given commit .csv file, return a commit list and a date list'''
         all_commits = []
         all_date = []
