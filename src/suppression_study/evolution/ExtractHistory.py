@@ -57,18 +57,10 @@ class ExtractHistory():
         Return a log_result file for each suppression. --> to log_result_folder
         '''
         latest_commit = self.all_commits[0]
-        previous_commit = self.all_commits[-1]
-        log_result_commit_folder, deleted_files = self.run_gitlog_command(previous_commit, latest_commit)
-        if deleted_files:
-            all_suppression_previous_commit = self.read_suppression_files(previous_commit)
-            if not all_suppression_previous_commit:
-                for suppression in all_suppression_previous_commit:
-                    # delete_event_connect_its_add_event()
-                    # Update later if needed
-                    print()
+        log_result_commit_folder = self.run_gitlog_command(latest_commit)
 
         if not log_result_commit_folder:
-            return
+            return []
 
         # Represent git log results to Json files (change histories of suppressions in latest commit)  
         all_change_events_list_latest_commit = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
@@ -79,11 +71,9 @@ class ExtractHistory():
 
         return all_change_events_list_latest_commit
         
-    def run_gitlog_command(self, previous_commit, current_commit):
+    def run_gitlog_command(self, current_commit):
         repo_base= Repo(self.repo_dir)
         repo_base.git.checkout(current_commit)
-        # Suppression in deleted_files(previous_commit) are deleted
-        deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
         all_suppression_commit_level = self.read_suppression_files(current_commit)
         if not all_suppression_commit_level:
@@ -139,65 +129,81 @@ class ExtractHistory():
             with open(log_result, "w") as f:
                 f.writelines(result.stdout) 
        
-        return log_result_commit_folder, deleted_files
-
+        return log_result_commit_folder
 
     def track_back_history_commits(self, all_change_events_accumulator):
         # all_change_events_accumulator comes from all_change_events_list_latest_commit
         # Use it as a accumulator to get all histories (all commits)
         all_commits_num = len(self.all_commits)
         for i in range(1, all_commits_num): # Except the latest commit
-            previous_commit = ""
-            if i+1 < all_commits_num:
-                previous_commit = self.all_commits[i+1]
             commit = self.all_commits[i]
-            log_result_commit_folder = self.run_gitlog_command(previous_commit, commit)
+            log_result_commit_folder = self.run_gitlog_command(commit)
             if log_result_commit_folder:
-                all_change_events_list_history_commit = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
-                if all_change_events_list_history_commit:
+                all_change_events_list_commit_level = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
+                # Write for manual checking, may remove later
+                if all_change_events_list_commit_level:
                     with open(self.history_json_file.replace(".json", "_" + commit + ".json"), "w", newline="\n") as ds:
-                        json.dump(all_change_events_list_history_commit, ds, indent=4, ensure_ascii=False)
-                '''
-                The format of all_change_events_list_history_commit:
+                        json.dump(all_change_events_list_commit_level, ds, indent=4, ensure_ascii=False)
+                    '''
+                    The format of all_change_events_list_commit_level:
 
-                [ ---- commit level: the element is a suppression level dict [suppression ID : change event(s)]
-                    {
-                        "# S0": [ ---- suppression level: the element is a change event
-                            {
-                                "commit_id": "xxxx",
-                                "date": "xxx",
-                                "file_path": "xxx.py",
-                                "warning_type": "# pylint: disable=missing-module-docstring",
-                                "line_number": 1,
-                                "change_operation": "add"
-                            },
-                            {...}
-                        ]
-                    },
-                    {
-                        "# S1": [...]
-                    }
-                    ...
-                ]
-                '''
-                # key_continuous_int: the last number in key from history sequence
-                key_continuous_int = 0
-                if all_change_events_accumulator:
-                    # Only one key in .key(), as a suppression has one suppression ID.
-                    dict_keys_to_list = list(all_change_events_accumulator[-1].keys())
-                    key_continuous_int = int(dict_keys_to_list[0].replace("# S", ""))
-                
-                for suppression_level_dict in all_change_events_list_history_commit:
-                    old_key = list(suppression_level_dict.keys())[0]
-                    change_events_suppression_level = suppression_level_dict[old_key]
-                    for single_change_event in change_events_suppression_level:
-                        if str(single_change_event) not in str(all_change_events_accumulator):
-                            key_continuous_int += 1
-                            updated_key = "# S" + str(key_continuous_int)
-                            updated_suppression_level_dict = {updated_key : change_events_suppression_level}
-                            all_change_events_accumulator.append(updated_suppression_level_dict)
-                        break # If a single change event is new, all the change events for the same suppression will be new
-        
+                    [ ---- commit level: the element is a suppression level dict [suppression ID : change event(s)]
+                        {
+                            "# S0": [ ---- suppression level: the element is a change event
+                                {
+                                    "commit_id": "xxxx",
+                                    "date": "xxx",
+                                    "file_path": "xxx.py",
+                                    "warning_type": "# pylint: disable=missing-module-docstring",
+                                    "line_number": 1,
+                                    "change_operation": "add"
+                                },
+                                {...}
+                            ]
+                        },
+                        {
+                            "# S1": [...]
+                        }
+                        ...
+                    ]
+                    '''
+                    # key_continuous_int: the last number in key from history sequence
+                    key_continuous_int = 0
+                    if all_change_events_accumulator:
+                        # Only one key in .key(), as a suppression has one suppression ID.
+                        dict_keys_to_list = list(all_change_events_accumulator[-1].keys())
+                        key_continuous_int = int(dict_keys_to_list[0].replace("# S", ""))
+                    
+                    for suppression_level_dict in all_change_events_list_commit_level:
+                        old_key = list(suppression_level_dict.keys())[0]
+                        change_events_suppression_level = suppression_level_dict[old_key]
+                        check_exists = -1
+                        try:
+                            check_exists = all_change_events_accumulator.index(change_events_suppression_level)
+                        except:
+                            pass
+                        
+                        if check_exists == -1: # New events
+                            for single_change_event in change_events_suppression_level:
+                                # Totally new events
+                                if str(single_change_event) not in str(all_change_events_accumulator):
+                                    key_continuous_int += 1
+                                    updated_key = "# S" + str(key_continuous_int)
+                                    updated_suppression_level_dict = {updated_key : change_events_suppression_level}
+                                    all_change_events_accumulator.append(updated_suppression_level_dict)
+                                    break
+                                else:
+                                    for suppression_level_events in all_change_events_accumulator:
+                                        get_key = ""
+                                        if str(single_change_event) in str(suppression_level_events) \
+                                                and len(change_events_suppression_level) < len(suppression_level_events):
+                                            # Part new events, should update to new version
+                                            for key, value in all_change_events_accumulator[0].items():
+                                                if value == suppression_level_events:
+                                                    get_key = key
+                                                all_change_events_accumulator[0][get_key] = change_events_suppression_level
+                                                break 
+                                            
         with open(self.history_json_file.replace(".json", "_all.json"), "w", newline="\n") as ds:
             json.dump(all_change_events_accumulator, ds, indent=4, ensure_ascii=False)
 
@@ -245,4 +251,3 @@ if __name__=="__main__":
     executing_time = (end_time - start_time).seconds
     print("Executing time:", executing_time, "seconds")
     print("Done.")
-

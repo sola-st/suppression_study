@@ -39,7 +39,7 @@ class FunctionsCommon():
         otherwise, will miss to get all commits. --> useful on running tests.
         Here, the oldest commits locates the 1st line of the csv file. (with option --reverse)
         '''
-        commit_command = "git log --reverse --pretty=format:'\"%h\",\"%cd\"' --abbrev=8" 
+        commit_command = "git log --pretty=format:'\"%h\",\"%cd\"' --abbrev=8" 
         git_get_commits = subprocess.run(commit_command, cwd=repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         commits = git_get_commits.stdout 
 

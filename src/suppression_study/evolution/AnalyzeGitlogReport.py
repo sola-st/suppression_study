@@ -347,17 +347,23 @@ class AnalyzeGitlogReport():
             if change_events_file_level:
                 last_event = change_events_file_level[-1]
                 # Recognize different suppressions
-                if last_event["warning_type"] != change_event["warning_type"] or \
-                        (last_event["warning_type"] == change_event["warning_type"] \
-                                and "delete" not in last_event["change_operation"]): 
-                    # and last_event["line_number"] != change_event["line_number"]
+                if last_event["warning_type"] != change_event["warning_type"]: 
+                    delete_event = self.represent_to_json_string(change_event["commit_id"], change_event["date"], change_event["file_path"], 
+                            last_event["warning_type"], last_event["line_number"], "delete")
+                    change_events_file_level.append(delete_event)
                     self.all_change_events.append({"# S" + str(all_index) : change_events_file_level})
                     change_events_file_level = []
                     all_index+=1
                     change_events_file_level.append(change_event)
+                # delete connection
+                elif last_event["warning_type"] == change_event["warning_type"]: 
+                    if "delete" not in last_event["change_operation"] and "delete" in change_event["change_operation"]:
+                        change_events_file_level.append(change_event)
+                        self.all_change_events.append({"# S" + str(all_index) : change_events_file_level})
+                        change_events_file_level = []
+                        all_index+=1
                 else:
                     change_events_file_level.append(change_event)
             else:
                 change_events_file_level.append(change_event)
         return change_events_file_level, all_index
-
