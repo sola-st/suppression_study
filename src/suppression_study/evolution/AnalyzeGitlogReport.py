@@ -304,7 +304,7 @@ class AnalyzeGitlogReport():
                         for old_type_line, operation in zip(type_line_set, operation_set):
                             change_event = self.represent_to_json_string(commit_id, date, file_path, 
                                     old_type_line.warning_type, old_type_line.line_number, operation)
-                            # Avoid crossed suppression in changed hunk, step 1
+                            # Avoid crossed suppression in changed hunk
                             change_events_file_level, all_index = self.handle_suppression_crossed_hunk(change_event, 
                                     change_events_file_level, all_index)
                     elif operation_set.count("add") == operation_count or operation_set.count("file add") == operation_count:
@@ -330,7 +330,6 @@ class AnalyzeGitlogReport():
                                     type_line.warning_type, type_line.line_number, operation)
                             change_events_file_level, all_index = self.handle_suppression_crossed_hunk(change_event, 
                                     change_events_file_level, all_index)
-            # Avoid crossed suppression in changed hunk, step 2
             if change_events_file_level:
                 self.all_change_events.append({"# S" + str(all_index) : change_events_file_level})
                 all_index+=1

@@ -32,6 +32,9 @@ class ExtractHistory():
         self.log_result_folder = log_result_folder
         self.history_json_file = history_json_file
 
+        all_change_events_accumulator = []
+        self.all_change_events_accumulator = all_change_events_accumulator
+
     def read_suppression_files(self, specified_commit):
         '''
         Read the all_suppression_commit_level, and represent it as a class
@@ -50,26 +53,6 @@ class ExtractHistory():
                 suppression_info = SuppressionInfo(file_path, warning_type, line_number)
                 suppression_commit_level.append(suppression_info)
         return suppression_commit_level
-    
-    def get_gitlog_results_latest_commit(self):
-        '''
-        Run "git log" command to track histories based on all latest suppression, 
-        Return a log_result file for each suppression. --> to log_result_folder
-        '''
-        latest_commit = self.all_commits[0]
-        log_result_commit_folder = self.run_gitlog_command(latest_commit)
-
-        if not log_result_commit_folder:
-            return []
-
-        # Represent git log results to Json files (change histories of suppressions in latest commit)  
-        all_change_events_list_latest_commit = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
-        # write to a file for check at the first stage, may removed later
-        if all_change_events_list_latest_commit:
-            with open(self.history_json_file.replace(".json", "_" + latest_commit + "_latest.json"), "w", newline="\n") as ds:
-                json.dump(all_change_events_list_latest_commit, ds, indent=4, ensure_ascii=False)
-
-        return all_change_events_list_latest_commit
         
     def run_gitlog_command(self, current_commit):
         repo_base= Repo(self.repo_dir)
@@ -131,11 +114,10 @@ class ExtractHistory():
        
         return log_result_commit_folder
 
-    def track_back_history_commits(self, all_change_events_accumulator):
-        # all_change_events_accumulator comes from all_change_events_list_latest_commit
-        # Use it as a accumulator to get all histories (all commits)
+    def track_commits_backward(self):
+        # Use self.all_change_events_accumulator as a accumulator to get all histories (all commits)
         all_commits_num = len(self.all_commits)
-        for i in range(1, all_commits_num): # Except the latest commit
+        for i in range(0, all_commits_num): # Start from latest commit
             commit = self.all_commits[i]
             log_result_commit_folder = self.run_gitlog_command(commit)
             if log_result_commit_folder:
@@ -169,43 +151,44 @@ class ExtractHistory():
                     '''
                     # key_continuous_int: the last number in key from history sequence
                     key_continuous_int = 0
-                    if all_change_events_accumulator:
+                    check_exists = -1
+                    if self.all_change_events_accumulator:
                         # Only one key in .key(), as a suppression has one suppression ID.
-                        dict_keys_to_list = list(all_change_events_accumulator[-1].keys())
+                        dict_keys_to_list = list(self.all_change_events_accumulator[-1].keys())
                         key_continuous_int = int(dict_keys_to_list[0].replace("# S", ""))
+
+                        try:
+                            check_exists = self.all_change_events_accumulator.index(change_events_suppression_level)
+                        except:
+                            pass
                     
                     for suppression_level_dict in all_change_events_list_commit_level:
                         old_key = list(suppression_level_dict.keys())[0]
                         change_events_suppression_level = suppression_level_dict[old_key]
-                        check_exists = -1
-                        try:
-                            check_exists = all_change_events_accumulator.index(change_events_suppression_level)
-                        except:
-                            pass
                         
                         if check_exists == -1: # New events
                             for single_change_event in change_events_suppression_level:
                                 # Totally new events
-                                if str(single_change_event) not in str(all_change_events_accumulator):
+                                if str(single_change_event) not in str(self.all_change_events_accumulator):
                                     key_continuous_int += 1
                                     updated_key = "# S" + str(key_continuous_int)
                                     updated_suppression_level_dict = {updated_key : change_events_suppression_level}
-                                    all_change_events_accumulator.append(updated_suppression_level_dict)
+                                    self.all_change_events_accumulator.append(updated_suppression_level_dict)
                                     break
                                 else:
-                                    for suppression_level_events in all_change_events_accumulator:
+                                    for suppression_level_events in self.all_change_events_accumulator:
                                         get_key = ""
                                         if str(single_change_event) in str(suppression_level_events) \
                                                 and len(change_events_suppression_level) < len(suppression_level_events):
                                             # Part new events, should update to new version
-                                            for key, value in all_change_events_accumulator[0].items():
+                                            for key, value in self.all_change_events_accumulator[0].items():
                                                 if value == suppression_level_events:
                                                     get_key = key
-                                                all_change_events_accumulator[0][get_key] = change_events_suppression_level
+                                                self.all_change_events_accumulator[0][get_key] = change_events_suppression_level
                                                 break 
                                             
         with open(self.history_json_file.replace(".json", "_all.json"), "w", newline="\n") as ds:
-            json.dump(all_change_events_accumulator, ds, indent=4, ensure_ascii=False)
+            json.dump(self.all_change_events_accumulator, ds, indent=4, ensure_ascii=False)
 
 def main(repo_dir, commit_id, results_dir):
     # Get commit list and suppression for all the commits.
@@ -236,10 +219,9 @@ def main(repo_dir, commit_id, results_dir):
 
     # Get git log results for all the suppression in latest commit. results in log_result_folder
     init = ExtractHistory(repo_dir, all_commits, results_dir, log_result_folder, history_json_file)
-    all_change_events_list_latest_commit = init.get_gitlog_results_latest_commit()
 
-    # Check history commits and suppression to extract histories of all suppressions.
-    init.track_back_history_commits(all_change_events_list_latest_commit)
+    # Check commits and suppression to extract histories of all suppressions.
+    init.track_commits_backward()
 
     
 if __name__=="__main__":
