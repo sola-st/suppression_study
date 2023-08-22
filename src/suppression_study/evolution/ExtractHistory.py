@@ -122,8 +122,8 @@ class ExtractHistory():
             log_result_commit_folder = self.run_gitlog_command(commit)
             if log_result_commit_folder:
                 all_change_events_list_commit_level = AnalyzeGitlogReport(log_result_commit_folder).get_commit_block()
-                # Write for manual checking, may remove later
                 if all_change_events_list_commit_level:
+                    # Write for manual checking, may remove later
                     with open(self.history_json_file.replace(".json", "_" + commit + ".json"), "w", newline="\n") as ds:
                         json.dump(all_change_events_list_commit_level, ds, indent=4, ensure_ascii=False)
                     '''
@@ -150,7 +150,7 @@ class ExtractHistory():
                     ]
                     '''
                     # key_continuous_int: the last number in key from history sequence
-                    key_continuous_int = 0
+                    key_continuous_int = -1
                     check_exists = -1
                     if self.all_change_events_accumulator:
                         # Only one key in .key(), as a suppression has one suppression ID.
