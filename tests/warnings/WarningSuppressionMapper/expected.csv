@@ -1,0 +1,4 @@
+hello.py,# pylint: disable=import-error,1,hello.py,import-error,1
+hello.py,# pylint: disable=undefined-variable,5,hello.py,undefined-variable,8
+hello.py,# pylint: disable=undefined-variable,5,hello.py,undefined-variable,9
+hello.py,# pylint: disable=bad-except-order,10,,,
