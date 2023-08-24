@@ -44,21 +44,3 @@ class FunctionsCommon():
         with open(commit_id_csv, "w") as f:
             f.writelines(commits)
 
-    def get_commit_date_lists_future_version(repo_dir):
-        '''
-        Valid for the repository which the repo_dir point to is the latest commit status,
-        otherwise, will miss to get all commits. --> useful on running tests.
-        Here, the oldest commits locates the 1st line of the csv file. (with option --reverse)
-        '''
-        commit_command = "git log --pretty=format:'\"%h\",\"%cd\"' --abbrev=8" 
-        git_get_commits = subprocess.run(commit_command, cwd=repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-        commits_dates = git_get_commits.stdout 
-
-        all_commits = []
-        all_dates = []
-        for line in commits_dates:
-            tmp = line.split(",")
-            all_commits.append(tmp[0])
-            all_dates.append(tmp[1])
-
-        return all_commits, all_dates

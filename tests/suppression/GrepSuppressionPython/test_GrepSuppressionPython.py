@@ -14,14 +14,8 @@ def test_GrepSuppressionPython_mypy_commit_list():
         subprocess.run("git clone " + demo_repo_git_link, cwd=demo_path, shell=True)
         repo_dir = join(demo_path, demo_repo_name)
 
-        # commit_command = "git log --reverse --pretty=format:'\"%h\",\"%cd\"'"
-        # git_get_commits = subprocess.run(commit_command, cwd=join(demo_path,demo_repo_name), shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-        # commits = git_get_commits.stdout 
-        # with open(join(repo_dir, "check_commits_1000.csv"), "w") as f:
-        #     f.writelines(commits)
-
         commit_csv_file = join(repo_dir, "check_commits.csv")
-        FunctionsCommon.get_commit_csv(repo_dir, commit_csv_file)
+        FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_csv_file)
 
         subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
             "--repo_dir=" + repo_dir ,
