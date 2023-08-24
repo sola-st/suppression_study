@@ -31,8 +31,7 @@ class FunctionsCommon():
                 line = f.readline()
         return all_commits, all_dates
     
-    def get_commit_csv(repo_dir, commit_id_csv):
-        # Get commit file
+    def write_commit_info_to_csv(repo_dir, commit_id_csv):
         '''
         Valid for the repository which the repo_dir point to is the latest commit status,
         otherwise, will miss to get all commits. --> useful on running tests.

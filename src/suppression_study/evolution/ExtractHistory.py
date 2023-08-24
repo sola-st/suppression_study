@@ -152,7 +152,7 @@ class ExtractHistory():
 def main(repo_dir, commit_id_csv_list, results_dir):
     # Get commit list and suppression for all the commits.
     if not os.path.exists(commit_id_csv_list):
-        FunctionsCommon.get_commit_csv(repo_dir, commit_id_csv_list)
+        FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_id_csv_list) # commit_info: commit and date
     all_commits_list, all_dates_list = FunctionsCommon.get_commit_date_lists(commit_id_csv_list)
 
     # Get suppression
