@@ -1,5 +1,6 @@
 import tempfile
 import subprocess
+import json
 from os.path import join
 
 
@@ -18,13 +19,10 @@ def test_ExtractHistory_pylint():
             "--results_dir=" + demo_path])
 
         with open(expected_results, "r") as f:
-            expected_history = f.readlines()
-        expected_history.sort()
+            expected_history = json.load(f)
 
         with open(join(demo_path,"gitlog_history/histories_suppression_level_all.json"), "r") as f:
-            actual_history= f.readlines()
-        actual_history.sort()
+            actual_history = json.load(f)
         
         assert len(actual_history) == len(expected_history)
-        for actual, expected in zip(actual_history, expected_history):
-            assert actual == expected
+        assert actual_history == expected_history

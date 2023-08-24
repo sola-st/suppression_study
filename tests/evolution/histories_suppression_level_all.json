@@ -2,6 +2,18 @@
     {
         "# S0": [
             {
+                "commit_id": "2977797af18b6a74e72e6bb5d32d577016451311",
+                "date": "Tue Jul 4 11:02:36 2023 +0200",
+                "file_path": "foo.py",
+                "warning_type": "# pylint: disable=all",
+                "line_number": 2,
+                "change_operation": "add"
+            }
+        ]
+    },
+    {
+        "# S1": [
+            {
                 "commit_id": "b8c363dab2c08061876d71b926f3cd4b0a5dd3a7",
                 "date": "Tue Jul 4 10:53:28 2023 +0200",
                 "file_path": "foo.py",
@@ -16,18 +28,6 @@
                 "warning_type": "# pylint: disable=invalid-name",
                 "line_number": 1,
                 "change_operation": "delete"
-            }
-        ]
-    },
-    {
-        "# S1": [
-            {
-                "commit_id": "2977797af18b6a74e72e6bb5d32d577016451311",
-                "date": "Tue Jul 4 11:02:36 2023 +0200",
-                "file_path": "foo.py",
-                "warning_type": "# pylint: disable=all",
-                "line_number": 2,
-                "change_operation": "add"
             }
         ]
     },
