@@ -128,35 +128,42 @@ class AnalyzeGitlogReport():
                                 change_event = change_event_init.get_change_event_dict()
                             change_events_suppression_level, all_index = self.handle_suppression_crossed_hunk(change_event, \
                                     change_events_suppression_level, all_index)
-                            
-                    if tricky_mark:
-                        serializable_block = {}
-                        for key, value in block.__dict__.items():
-                            if isinstance(value, range):
-                                serializable_block[key] = list(value)
-                            else:
-                                serializable_block[key] = value
-
-                        tricky_recorder = join(self.log_result_folder, "tricky_recorder.txt")
-                        with open(tricky_recorder, "a") as f:
-                            json.dump(serializable_block, f, indent=4, ensure_ascii=False)
-                    
+                   
+                    self.record_tricky_cases(tricky_mark, block)
                     if change_events_suppression_level:
-                        delete_operation = ""
-                        if file_delete_mark:
-                            delete_operation = "file delete"
-                        elif self.tracked_suppression_deleted_mark:
-                            delete_operation = "delete"
-                        if delete_operation:
-                            last_event = change_events_suppression_level[-1]
-                            if "delete" not in last_event["change_operation"]:
-                                delete_change_event_init = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
-                                        last_event["file_path"], last_event["warning_type"], last_event["line_number"], "delete")
-                                delete_change_event = delete_change_event_init.get_change_event_dict()
-                                change_events_suppression_level.append(delete_change_event)
-                        self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
-                        all_index+=1
+                        # File delete and no suppression in the next commit
+                        change_events_suppression_level, all_index = self.handle_delete_cases(change_events_suppression_level, file_delete_mark, all_index) 
         return self.all_change_events_commit_level
+    
+    def record_tricky_cases(self, tricky_mark, block):
+        if tricky_mark:
+            serializable_block = {}
+            for key, value in block.__dict__.items():
+                if isinstance(value, range):
+                    serializable_block[key] = list(value)
+                else:
+                    serializable_block[key] = value
+
+            tricky_recorder = join(self.log_result_folder, "tricky_recorder.txt")
+            with open(tricky_recorder, "a") as f:
+                json.dump(serializable_block, f, indent=4, ensure_ascii=False)
+
+    def handle_delete_cases(self,change_events_suppression_level, file_delete_mark, all_index):
+        delete_operation = ""
+        if file_delete_mark:
+            delete_operation = "file delete"
+        elif self.tracked_suppression_deleted_mark:
+            delete_operation = "delete"
+        if delete_operation:
+            last_event = change_events_suppression_level[-1]
+            if "delete" not in last_event["change_operation"]:
+                delete_change_event_init = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
+                        last_event["file_path"], last_event["warning_type"], last_event["line_number"], "delete")
+                delete_change_event = delete_change_event_init.get_change_event_dict()
+                change_events_suppression_level.append(delete_change_event)
+        self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+        all_index+=1
+        return change_events_suppression_level, all_index
     
     def handle_suppression_crossed_hunk(self, change_event, change_events_suppression_level, all_index):
         '''

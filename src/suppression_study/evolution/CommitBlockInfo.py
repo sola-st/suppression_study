@@ -19,7 +19,7 @@ class CommitBlock():
         for line in self.commit_block:
             # Extract metadata from commit_block
             if line.startswith("commit "): # Commit
-                commit_id = line.split(" ")[1].strip()
+                commit_id = line.split(" ")[1].strip()[:8]
             elif line.startswith("Date:"): # Date
                 date = line.split(":", 1)[1].strip()
             elif line.startswith("--- /dev/null"): # File not exists in old commit

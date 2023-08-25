@@ -197,21 +197,13 @@ def main(repo_dir, commit_id_csv_list, results_dir):
     init.track_commits_backward()
 
     
-# if __name__=="__main__":
-#     args = parser.parse_args()
-#     print("Running...")
-#     start_time = datetime.datetime.now()
-#     main(args.repo_dir, args.commit_id_csv_list, args.results_dir)
-#     end_time = datetime.datetime.now()
-#     executing_time = (end_time - start_time).seconds
-#     print(f"Executing time: {executing_time} seconds")
-#     print("Done.")
-
 if __name__=="__main__":
-    repo_dir="/home/huimin/suppression_study/data/python/repositories/suppression-test-python-mypy/"
-    commit_id_csv_list="/home/huimin/suppression_study/data/python/repositories/suppression-test-python-mypy/check_commits_1000.csv" 
-    results_dir="/home/huimin/suppression_study/data/python/results/repositories/suppression-test-python-mypy/"
-   
-    main(repo_dir, commit_id_csv_list, results_dir)
-
+    args = parser.parse_args()
+    print("Running...")
+    start_time = datetime.datetime.now()
+    main(args.repo_dir, args.commit_id_csv_list, args.results_dir)
+    end_time = datetime.datetime.now()
+    executing_time = (end_time - start_time).seconds
+    print(f"Executing time: {executing_time} seconds")
     print("Done.")
+
