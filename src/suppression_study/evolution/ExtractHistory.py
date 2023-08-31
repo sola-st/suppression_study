@@ -1,4 +1,5 @@
 import argparse
+import json
 import subprocess
 import os
 from git.repo import Repo
@@ -43,14 +44,16 @@ class ExtractHistory():
     def run_gitlog_command(self, previous_commit, current_commit):
         log_results_info_list = []
         repo_base= Repo(self.repo_dir)
-
-        # Suppression in deleted_files(previous_commit) are deleted
-        deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
         suppression_csv = join(self.results_dir, "grep", current_commit + "_suppression.csv")
         all_suppression_commit_level = SuppressionInfo(current_commit, suppression_csv).read_suppression_files()
-        if not all_suppression_commit_level:
-            return log_results_info_list, deleted_files, ""
+        if not all_suppression_commit_level: # No suppression in current commit
+            # Return: log_results_info_list, deleted_files, log_result_commit_folder
+            # All suppressions in old commit were deleted 
+            return log_results_info_list, [], "" 
+        
+        # Suppression in deleted_files(previous_commit) are deleted
+        deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
         repo_base.git.checkout(current_commit)
         suppression_index = 0 
@@ -135,6 +138,9 @@ class ExtractHistory():
                     start_analyze = AnalyzeGitlogReport(log_results_info_list, tracked_deleted_files, tracked_delete_commit, \
                             tracked_delete_date, tracked_suppression_deleted_mark, log_result_commit_folder)
                     all_change_events_list_commit_level = start_analyze.from_gitlog_results_to_change_events()
+                    # Remove later
+                    with open(self.history_json_file.replace("all.json", f"{current_commit}.json"), "w", newline="\n") as ds:
+                        json.dump(all_change_events_list_commit_level, ds, indent=4, ensure_ascii=False)
                     # Add commit level histories to repository level histories.
                     SuppressionHistory(self.history_accumulator, all_change_events_list_commit_level, "").add_unique_history_to_accumulator()
                 else:
@@ -142,19 +148,19 @@ class ExtractHistory():
 
             if deleted_files:
                 tracked_deleted_files = deleted_files
-                tracked_delete_commit = current_commit
-                tracked_delete_date = self.all_dates_list[i]  
             else:
                 tracked_deleted_files = []
-                tracked_delete_commit = ""
-                tracked_delete_date = ""
 
             if suppression_deleted_mark:
-                tracked_suppression_deleted_mark = suppression_deleted_mark
-                tracked_delete_commit = current_commit
-                tracked_delete_date = self.all_dates_list[i]  
+                tracked_suppression_deleted_mark = suppression_deleted_mark # True
             else:
                 tracked_suppression_deleted_mark = False
+            
+            # To avoid these 2 marks make impacts on each other
+            if deleted_files or suppression_deleted_mark: 
+                tracked_delete_commit = current_commit
+                tracked_delete_date = self.all_dates_list[i]  
+            elif not (deleted_files and suppression_deleted_mark): # Both false
                 tracked_delete_commit = ""
                 tracked_delete_date = ""
 

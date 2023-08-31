@@ -40,7 +40,7 @@ class AnalyzeGitlogReport():
         '''
         commit_block_commit_level = []
         commit_block = []
-
+        
         for file_tmp in self.log_results_info_list:
             file = file_tmp.log_results
             # Read log_result, and separate all lines to several commit_block s
@@ -94,14 +94,17 @@ class AnalyzeGitlogReport():
 
             change_events_suppression_level = []
             for block in block_logfile_level.block:
-                type_line_set, operation_set, tricky_mark = IdentifyChangeOperation(block.old_source_code, block.old_hunk_line_range, \
-                        block.new_source_code, block.new_hunk_line_range, block.operation_helper).identify_change_operation() 
+                type_line_set, operation_set, tricky_mark = IdentifyChangeOperation(block).identify_change_operation() 
+
+                if tricky_mark:
+                    self.record_tricky_cases(block)
+                    return self.all_change_events_commit_level
      
                 # Get change event
                 change_event = ""
                 operation_count = len(operation_set)         
                 if operation_count > 0:
-                    if operation_set.count("delete") == operation_count:
+                    if operation_set.count("delete") == operation_count: # all delete
                         for old_type_line, operation in zip(type_line_set, operation_set):
                             change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
                                     old_type_line.warning_type, old_type_line.line_number, operation)
@@ -109,14 +112,14 @@ class AnalyzeGitlogReport():
                             # Avoid crossed suppression in changed hunk
                             change_events_suppression_level, all_index = self.handle_suppression_crossed_hunk(change_event, \
                                     change_events_suppression_level, all_index)
-                    elif operation_set.count("add") == operation_count or operation_set.count("file add") == operation_count:
+                    elif operation_set.count("add") == operation_count or operation_set.count("file add") == operation_count: # all add
                         for new_type_line, operation in zip(type_line_set, operation_set):
                             change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
                                     new_type_line.warning_type, new_type_line.line_number, operation)
                             change_event = change_event_init.get_change_event_dict()
                             change_events_suppression_level, all_index = self.handle_suppression_crossed_hunk(change_event, \
                                     change_events_suppression_level, all_index)
-                    else:
+                    else: # delete and add mixed
                         for type_line, operation in zip(type_line_set, operation_set):
                             if operation == "delete":
                                 change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
@@ -128,15 +131,14 @@ class AnalyzeGitlogReport():
                                 change_event = change_event_init.get_change_event_dict()
                             change_events_suppression_level, all_index = self.handle_suppression_crossed_hunk(change_event, \
                                     change_events_suppression_level, all_index)
-                   
-                    self.record_tricky_cases(tricky_mark, block)
-                    if change_events_suppression_level:
-                        # File delete and no suppression in the next commit
-                        change_events_suppression_level, all_index = self.handle_delete_cases(change_events_suppression_level, file_delete_mark, all_index) 
+
+            if change_events_suppression_level:
+                # File delete, current change_events_suppression_level will be deleted in the next commit
+                self.handle_delete_cases(change_events_suppression_level, file_delete_mark, all_index) 
+                change_events_suppression_level = []
         return self.all_change_events_commit_level
     
-    def record_tricky_cases(self, tricky_mark, block):
-        if tricky_mark:
+    def record_tricky_cases(self, block):
             serializable_block = {}
             for key, value in block.__dict__.items():
                 if isinstance(value, range):
@@ -149,21 +151,29 @@ class AnalyzeGitlogReport():
                 json.dump(serializable_block, f, indent=4, ensure_ascii=False)
 
     def handle_delete_cases(self,change_events_suppression_level, file_delete_mark, all_index):
+        '''
+        This function covers 3 different cases:
+        1) file delete happens in the next commit, the suppression in commit are all deleted.
+        2) no suppression in the next commit, the suppression in commit are all deleted.
+        3) above 1) and 2) didn't happened.
+        '''
         delete_operation = ""
         if file_delete_mark:
             delete_operation = "file delete"
         elif self.tracked_suppression_deleted_mark:
-            delete_operation = "delete"
+            delete_operation = "delete" # No suppression in new commit, but there are in old commit.
         if delete_operation:
             last_event = change_events_suppression_level[-1]
             if "delete" not in last_event["change_operation"]:
                 delete_change_event_init = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
-                        last_event["file_path"], last_event["warning_type"], last_event["line_number"], "delete")
+                        last_event["file_path"], last_event["warning_type"], last_event["line_number"], delete_operation)
                 delete_change_event = delete_change_event_init.get_change_event_dict()
                 change_events_suppression_level.append(delete_change_event)
-        self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
-        all_index+=1
-        return change_events_suppression_level, all_index
+                self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                change_events_suppression_level = []
+                all_index+=1
+        else: # No "file delete" and no "no suppression in the next commit"
+            self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
     
     def handle_suppression_crossed_hunk(self, change_event, change_events_suppression_level, all_index):
         '''
@@ -176,11 +186,18 @@ class AnalyzeGitlogReport():
                 last_event = change_events_suppression_level[-1]
                 # Warning type changed cases: recognize different suppressions
                 if last_event["warning_type"] == change_event["warning_type"]: 
-                    if "delete" in change_event["change_operation"]:
+                    if "delete" in change_event["change_operation"] and "delete" not in last_event["change_operation"]:
+                        # The history of current suppression are all collected, append it to commit level, start to check the next suppression
                         change_events_suppression_level.append(change_event)
                         self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
                         change_events_suppression_level = []
                         all_index+=1
+                else: # A new suppression was added
+                    # Append already exists suppression in all_change_events_commit_level
+                    self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                    # Start to check the next totally new suppression
+                    change_events_suppression_level = []
+                    change_events_suppression_level.append(change_event)
             else:
                 change_events_suppression_level.append(change_event)
         return change_events_suppression_level, all_index
