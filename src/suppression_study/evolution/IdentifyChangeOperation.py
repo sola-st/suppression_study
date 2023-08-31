@@ -33,15 +33,17 @@ class IdentifyChangeOperation():
         if old_suppression_count == 0: # no suppression in old commit
             if new_suppression_count > 0: 
                 if self.operation_helper: # if operation_helper exists, it's a file add case.
-                    operation_set.append(self.operation_helper)
+                    operation = self.operation_helper
                 else:
                     operation = "add"
+                for i in range(new_suppression_count):
                     operation_set.append(operation)
                 type_line_set = new_type_line_set
         else: # old_suppression_count > 0
             if new_suppression_count == 0:
                 operation = "delete"
-                operation_set.append(operation)
+                for i in range(old_suppression_count):
+                    operation_set.append(operation)
                 type_line_set = old_type_line_set
             else: # suppression in both old and new commit
                 if old_suppression_count == new_suppression_count: 
@@ -109,73 +111,37 @@ class IdentifyChangeOperation():
         # This function is called under condition - old_suppression_count != new_suppression_count
         type_line_set = []
         operation_set = []
-        old_suppression_in_new = []
-        new_suppression_in_old = []
         tricky_mark = False
+        # TODO Inline level, separate_multiple_warning_types
+        '''
+        Heuristic ground truth to map tricky cases:
+        (a 10 represents: type a line 10)
+        eg,. old warning types: a 10, b 11, c 14 
+                new warning types: a 10, a 11, d 16 
+            expected results:
+                a 10 -> a 10, no change (map the first a in new commit)
+                b 11 -> deleted
+                c 14 -> deleted
+                a 11 -> add
+                d 16 -> add
+        ''' 
         for old in old_type_line_set:
-            # if old.warning_type not in str(new_type_line_set): 
             found_instances_in_old = [instance for instance in new_type_line_set if old.warning_type in instance.warning_type]
             if not found_instances_in_old: # The old warning is not in the new warning set.
-                # If an old suppression in new suppressions:
-                # 1) no change to this suppression
-                # 2) tricky cases, 
-                # eg,. delete an old suppression with type A, 
-                #      add a new suppression(type A) for different code in the same changed hunk
                 operation = "delete"
                 operation_set.append(operation)
                 type_line_set.append(old)
             else:
-                old_suppression_in_new.append(old)
-
-        for new in new_type_line_set:
-            # if new.warning_type not in str(old_type_line_set): 
-            found_instances_in_new = [instance for instance in old_type_line_set if new.warning_type in instance.warning_type]
-            if not found_instances_in_new:
-                operation = "add"
-                operation_set.append(operation)
-                type_line_set.append(new)
-            else:
-                new_suppression_in_old.append(new)
-            
-        if old_suppression_in_new or new_suppression_in_old:
-            old_in_new_num = len(old_suppression_in_new)
-            new_in_old_num = len(new_suppression_in_old)
-            if old_in_new_num != new_in_old_num: # may tricky cases
-                smaller_set = []
-                bigger_set = []
-                operation = ""
-                opposite_operation = ""
-
-                gap_num = old_in_new_num - new_in_old_num
-                if gap_num > 0: # the number of old suppressions are more than new ones
-                    smaller_set = new_suppression_in_old
-                    bigger_set = old_suppression_in_new
-                    operation = "delete"
-                    opposite_operation = "add"
-                else:
-                    smaller_set = old_suppression_in_new
-                    bigger_set = new_suppression_in_old
+                # Always get the first one for mapping, heuristically set to 1:1
+                heuristic_selected_map = found_instances_in_old[0] 
+                new_type_line_set.remove(heuristic_selected_map)
+                tricky_mark = True # So far, just a symbol for record tricky information, using for analyzing later
+    
+        if new_type_line_set:
+            for new in new_type_line_set:
+                if new.warning_type not in str(old_type_line_set): 
                     operation = "add"
-                    opposite_operation = "delete"
-
-                for suppression in bigger_set:
-                    found_suppression_instance = None
-                    if smaller_set:
-                        for inst in smaller_set:
-                            if inst.warning_type == suppression.warning_type:
-                                found_suppression_instance = inst
-                                smaller_set.remove(inst)
-                                break
-                    
-                    if not found_suppression_instance:
-                        operation_set.append(operation)
-                        type_line_set.append(suppression)
-                    # else: it's a unchanged suppression
-
-                if smaller_set: # After mapping all the suppression in bigger_set, still elements in smaller_set
-                    for s in smaller_set:
-                        operation_set.append(opposite_operation)
-                        type_line_set.append(s)
-
-                tricky_mark = True
+                    operation_set.append(operation)
+                    type_line_set.append(new)
+       
         return type_line_set, operation_set, tricky_mark
