@@ -33,7 +33,7 @@ def test_LifetimeVisualization_toy_repo():
         for actual, expected in zip(actual_groups, expected_groups):
             assert actual == expected
 
-        restore()
+    restore()
 
 def restore(): 
     # Based on the design of LifetimeVisualization, here do additional deletions besides tempfile
