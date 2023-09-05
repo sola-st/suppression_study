@@ -25,6 +25,7 @@ class IdentifyChangeOperation():
         type_line_set = []
         operation_set = []
         tricky_mark = False
+        deleted_old_suppressions = []
         old_type_line_set = GetWarningTypeLine(self.old_source_code, self.old_hunk_line_range).get_warning_type_line()
         new_type_line_set = GetWarningTypeLine(self.new_source_code, self.new_hunk_line_range).get_warning_type_line()
         
@@ -56,8 +57,8 @@ class IdentifyChangeOperation():
                         type_line_set, operation_set = self.identify_inline_change_operation(old_multi_num, new_multi_num, \
                                 old, new, old_warning_types, new_warning_types)
                 else: # Include tricky cases, and some normal delete and add cases.
-                    type_line_set, operation_set, tricky_mark = self.identify_complex_change_operations(old_type_line_set, new_type_line_set)
-        return type_line_set, operation_set, tricky_mark   
+                    type_line_set, operation_set, tricky_mark, deleted_old_suppressions = self.identify_complex_change_operations(old_type_line_set, new_type_line_set)
+        return type_line_set, operation_set, tricky_mark, deleted_old_suppressions   
 
     def separate_multiple_warning_types(self, old, new):
         # Separate "# type: ignore[A, B]"" to "A" and "B", to handle multiple warning types in one suppression line
@@ -112,6 +113,7 @@ class IdentifyChangeOperation():
         type_line_set = []
         operation_set = []
         tricky_mark = False
+        deleted_old_suppressions = []
         # TODO Inline level, separate_multiple_warning_types
         '''
         Heuristic ground truth to map tricky cases:
@@ -131,12 +133,13 @@ class IdentifyChangeOperation():
                 operation = "delete"
                 operation_set.append(operation)
                 type_line_set.append(old)
+                deleted_old_suppressions.append(old)
             else:
                 # Always get the first one for mapping, heuristically set to 1:1
                 heuristic_selected_map = found_instances_in_old[0] 
                 new_type_line_set.remove(heuristic_selected_map)
                 tricky_mark = True # So far, just a symbol for record tricky information, using for analyzing later
-    
+
         if new_type_line_set:
             for new in new_type_line_set:
                 if new.warning_type not in str(old_type_line_set): 
@@ -144,4 +147,4 @@ class IdentifyChangeOperation():
                     operation_set.append(operation)
                     type_line_set.append(new)
        
-        return type_line_set, operation_set, tricky_mark
+        return type_line_set, operation_set, tricky_mark, deleted_old_suppressions
