@@ -26,5 +26,5 @@ class AccidentallySuppressedWarning:
 
 def write_accidentally_suppressed_warnings(accidentally_suppressed_warnings, output_file):
     with open(output_file, "w") as f:
-        list_of_dicts = [w.to_dict for w in accidentally_suppressed_warnings]
+        list_of_dicts = [w.to_dict() for w in accidentally_suppressed_warnings]
         json.dump(list_of_dicts, f, indent=4)

@@ -1,8 +1,8 @@
 [
     {
-        "first_commit": "082237369d27d0c35ad9d5c9a7b6d5b0f656ac6b",
+        "first_commit": "a4b3809a",
         "warning": {
-            "path": "src/a.py",
+            "path": "src/hello.py",
             "kind": "undefined-variable",
             "line": 8
         }

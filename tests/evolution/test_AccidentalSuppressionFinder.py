@@ -1,13 +1,13 @@
 import tempfile
 import subprocess
 from os.path import join
-from tests.TestUtils import sort_and_compare_files
+from tests.TestUtils import exactly_compare_files
 
 
 def test_AccidentalSuppressionFinder():
     with tempfile.TemporaryDirectory() as working_dir:
-        repo_name = "suppression-test-accidental"
-        repo_url = "https://github.com/michaelpradel/suppression-test-accidental.git"
+        repo_name = "suppression-test-accidental3"
+        repo_url = "https://github.com/michaelpradel/suppression-test-accidental3.git"
         subprocess.run("git clone " + repo_url,
                        cwd=working_dir, shell=True)
 
@@ -25,9 +25,10 @@ def test_AccidentalSuppressionFinder():
         repo_dir = join(working_dir, repo_name)
         subprocess.run(["python", "-m", "suppression_study.evolution.AccidentalSuppressionFinder",
                         "--repo_dir=" + repo_dir,
+                        "--commits_file=" + commit_csv_file,
                         "--history_file=" + history_file,
                         "--results_dir=" + working_dir])
         
         actual_result_file = join(working_dir, "accidentally_suppressed_warnings.json")
         expected_result_file = "tests/evolution/expected_accidentally_suppressed_warnings.json"
-        sort_and_compare_files(actual_result_file, expected_result_file)
+        exactly_compare_files(actual_result_file, expected_result_file)
