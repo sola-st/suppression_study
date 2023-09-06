@@ -1,6 +1,6 @@
 class ChangeEvent():
     def __init__(self, commit_id, date, file_path, warning_type, line_number, change_operation):
-        self.commit_id = commit_id
+        self.commit_id = commit_id[:8]  # limit commit hash length to 8 characters so we use the same length everywhere
         self.date = date
         self.file_path = file_path
         self.warning_type = warning_type
