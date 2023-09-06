@@ -64,11 +64,7 @@ class GetMypyWarnings(GetWarningsSuper):
         '''
         Write all reported warnings to a csv file.
         '''
-        if warnings:
-            super(GetMypyWarnings, self).write_warning_list(warnings, commit_results_dir)
-        else:
-            shutil.rmtree(commit_results_dir)
-            print("No reported warnings.")
+        super(GetMypyWarnings, self).write_warning_list(warnings, commit_results_dir)
 
 
 if __name__=="__main__":

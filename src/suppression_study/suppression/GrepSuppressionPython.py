@@ -27,10 +27,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         Run "Grep" command to find suppression in specified commit, return a .txt file 
         ''' 
         raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
-        if os.path.getsize(raw_suppression_results): # If no suppression, will be an empty file.
-            self.format_to_csv(raw_suppression_results)
-        else:
-            os.remove(raw_suppression_results)
+        self.format_to_csv(raw_suppression_results)
 
     def grep_suppression_for_all_commits(self):
         '''
