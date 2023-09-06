@@ -32,7 +32,7 @@ def load_data_from_csv(csv_filename):
 def visualize_lifetime(lifetime_group_output_csv):
     # Visualize data in lifetime_group_output_csv to output_png
     data = load_data_from_csv(lifetime_group_output_csv)
-    output_png = lifetime_group_output_csv.replace("_groups.csv", "_visualization.png")
+    output_png = lifetime_group_output_csv.replace("_groups.csv", "_visualization.pdf")
     
     plt.rcParams["figure.figsize"] = (12, 5)
     

@@ -11,7 +11,7 @@ class LifetimeCalculator():
         self.lifetime_output_csv = lifetime_output_csv
 
     def get_lifetime(self):
-        total_commits_num = self.all_commits.__len__()
+        total_commits_num = len(self.all_commits)
         default_start_date = self.all_dates[-1].strip().replace("\"", "")
         default_end_date = self.all_dates[0].strip().replace("\"", "")
         entire_lifetime = self.time_delta("", default_start_date, default_end_date)
@@ -24,7 +24,7 @@ class LifetimeCalculator():
                 self.calculate_lifetime_from_history(default_end_date, total_commits_num)
 
         to_write = ""
-        length = lifetime_days.__len__()
+        length = len(lifetime_days)
         for index in range(0, length): # Suppression id, day, commit, commit based rate
             to_write = f"{to_write}{lifetime_days[index]},{lifetime_commits[index]},{lasting_mark_set[index]}\n"
 
@@ -43,23 +43,23 @@ class LifetimeCalculator():
         with open(self.suppression_history_json_file, 'r') as jf:
             json_strs = json.load(jf)
 
-        right_range = json_strs.__len__()
+        right_range = len(json_strs)
         print(f"All Suppressions: {right_range}\n")
 
         for index_1 in range(0, right_range):
             key = "# S" + str(index_1)
             events = json_strs[index_1][key]
-            events_num = events.__len__()
+            events_num = len(events)
             end_commit = ""
             lasting_mark = 0  # 0->removed, 1->lasting
 
             start_date = json_strs[index_1][key][0]['date']
-            start_commit = json_strs[index_1][key][0]['commit_id']
+            start_commit = json_strs[index_1][key][0]['commit_id'][:8]
             expect_operation = json_strs[index_1][key][events_num - 1]['change_operation']
 
             if events_num > 1 and "delete" in expect_operation:  # multi change events(max 2), end of lifetime
                 end_date = json_strs[index_1][key][1]['date']
-                end_commit = json_strs[index_1][key][1]['commit_id']
+                end_commit = json_strs[index_1][key][1]['commit_id'][:8]
                 end_commit_index = self.all_commits.index(end_commit)
             else:
                 end_date = default_end_date
@@ -77,7 +77,7 @@ class LifetimeCalculator():
             start_commit_index = self.all_commits.index(start_commit)
             commit_delta = abs(end_commit_index - start_commit_index)
             rate = format(float(commit_delta / total_commits_num * 100), '.2f')
-            commit_and_rate = commit_delta.__str__() + "," + rate + "%"
+            commit_and_rate = f"{commit_delta},{rate}%"
             lifetime_commits.append(commit_and_rate)
         return lifetime_days, lifetime_commits, lasting_mark_set
 

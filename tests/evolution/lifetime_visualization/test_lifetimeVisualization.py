@@ -7,39 +7,49 @@ from suppression_study.utils.FunctionsCommon import FunctionsCommon
 
 
 def test_LifetimeVisualization_toy_repo():
-    expected_results = "tests/evolution/lifetime_visualization/lifetime_all_groups.csv"
+    # Check if the data for extracting the plot is correct
+    expected_results_data = "tests/evolution/lifetime_visualization/lifetime_all_groups.csv"
+
     with tempfile.TemporaryDirectory() as demo_path:
-        demo_repo_name = "suppression-test-python-mypy"
-        demo_repo_git_link = "https://github.com/Hhyemin/suppression-test-python-mypy.git"
+        demo_repo_name = "suppression-test-python-pylint"
+        demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
         subprocess.run("git clone " + demo_repo_git_link, cwd=demo_path, shell=True)
 
         repo_dir = join(demo_path, demo_repo_name)
         commit_csv_file = join(repo_dir, "check_commits.csv")
         FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_csv_file)
+
+        # results_dir includes:
+        # 1) extracted histories, {results_dir}/gitlog_history
+        # 2) visualization data (2 csv files) and pdf 
+
+        # "result" is used to avoid conflicts with the repository source: repo_dir
+        results_dir = join(demo_path, "result", demo_repo_name) 
+
+        # Get suppression histories
+        subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
+            "--repo_dir=" + repo_dir,
+            "--commit_id=" + commit_csv_file,
+            "--results_dir=" + results_dir])
         
-        output = "tests/evolution/lifetime_visualization/results/lifetime_all.csv"
+        # Start visualization
+        visualization_result_folder = join(demo_path, "result")
+        output = join(visualization_result_folder, "lifetime_all.csv")
         subprocess.run(["python", "-m", "suppression_study.evolution.lifetime_visualization.LifetimeVisualization",
             "--all_repositories_csv=tests/evolution/lifetime_visualization/all_repositories.csv", 
             f"--repo_parent_folder={demo_path}", 
             f"--lifetime_output_csv={output}"])
 
-        with open(expected_results, "r") as f:
+        with open(expected_results_data, "r") as f:
             expected_groups = f.readlines()
 
-        with open("tests/evolution/lifetime_visualization/results/lifetime_all_groups.csv", "r") as f:
+        with open(join(visualization_result_folder, "lifetime_all_groups.csv"), "r") as f:
             actual_groups = f.readlines()
         
         assert len(expected_groups) == len(actual_groups)
         for actual, expected in zip(actual_groups, expected_groups):
             assert actual == expected
 
-    restore()
-
-def restore(): 
-    # Based on the design of LifetimeVisualization, here do additional deletions besides tempfile
-    filepath = "tests/evolution/lifetime_visualization/results"
-    del_list = os.listdir(filepath)
-    for f in del_list:
-        file_path = os.path.join(filepath, f)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
+        # Check if the generated plot file has bytes
+        expected_results_plot_pdf = join(visualization_result_folder, "lifetime_all_visualization.pdf")
+        assert os.path.getsize(expected_results_plot_pdf) > 0
