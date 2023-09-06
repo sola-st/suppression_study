@@ -7,7 +7,7 @@ import datetime
 
 
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
-from suppression_study.evolution.SuppssionHistory import SuppressionHistory
+from suppression_study.evolution.SuppressionHistory import SuppressionHistory
 from suppression_study.utils.SuppressionInfo import SuppressionInfo
 from suppression_study.utils.FunctionsCommon import FunctionsCommon
 
