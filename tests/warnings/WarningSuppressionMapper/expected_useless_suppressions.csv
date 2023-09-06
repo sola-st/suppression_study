@@ -1,1 +1,1 @@
-hello.py,# pylint: disable=bad-except-orders,10
+hello.py,# pylint: disable=bad-except-order,10
