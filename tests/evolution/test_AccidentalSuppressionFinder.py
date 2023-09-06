@@ -1,0 +1,33 @@
+import tempfile
+import subprocess
+from os.path import join
+from tests.TestUtils import sort_and_compare_files
+
+
+def test_AccidentalSuppressionFinder():
+    with tempfile.TemporaryDirectory() as working_dir:
+        repo_name = "suppression-test-accidental"
+        repo_url = "https://github.com/michaelpradel/suppression-test-accidental.git"
+        subprocess.run("git clone " + repo_url,
+                       cwd=working_dir, shell=True)
+
+        # extract suppression histories, which are needed for the accidental suppression finder
+        repo_dir = join(working_dir, repo_name)
+        commit_csv_file = join(repo_dir, "check_commits.csv")
+        subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
+                        "--repo_dir=" + repo_dir,
+                        "--commit_id=" + commit_csv_file,
+                        "--results_dir=" + working_dir])
+
+        history_file = join(
+            working_dir, "gitlog_history/histories_suppression_level_all.json")
+
+        repo_dir = join(working_dir, repo_name)
+        subprocess.run(["python", "-m", "suppression_study.evolution.AccidentalSuppressionFinder",
+                        "--repo_dir=" + repo_dir,
+                        "--history_file=" + history_file,
+                        "--results_dir=" + working_dir])
+        
+        actual_result_file = join(working_dir, "accidentally_suppressed_warnings.json")
+        expected_result_file = "tests/evolution/expected_accidentally_suppressed_warnings.json"
+        sort_and_compare_files(actual_result_file, expected_result_file)

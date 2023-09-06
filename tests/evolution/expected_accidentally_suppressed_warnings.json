@@ -1,0 +1,10 @@
+[
+    {
+        "first_commit": "082237369d27d0c35ad9d5c9a7b6d5b0f656ac6b",
+        "warning": {
+            "path": "src/a.py",
+            "kind": "undefined-variable",
+            "line": 8
+        }
+    }
+]
