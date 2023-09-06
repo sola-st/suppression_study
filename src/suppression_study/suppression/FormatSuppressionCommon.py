@@ -1,3 +1,5 @@
+import csv
+
 '''
 These format steps can be used to format suppression from the following 3 checkers:
 For Python:
@@ -78,52 +80,50 @@ class FormatSuppressionCommon():
         --2 source code // or /* eslint (description or not)
         '''
 
-        csv_txt = ""
-
-        raw_suppression_dict_list =self.represent_to_dict()
-        for raw_suppression in raw_suppression_dict_list:
-            if "/lib" in raw_suppression['file_path']: # Hard code to exclude dir, need to manual check folder names.
-                continue
-            code_suppression = raw_suppression['code_suppression']
-            preprocessed_suppression = ""
- 
-            # Confirm suppressor
-            suppressor = ""
-            if "# pylint:" in code_suppression:
-                suppressor = "# pylint:"
-            elif "# type: ignore" in code_suppression:
-                suppressor = "# type: ignore"
-            else: 
-                suppressor = "eslint-disable"
-
-            if not code_suppression.startswith(suppressor): # mixed with source code or start with other comments.
-                if code_suppression.startswith(self.comment_symbol): # start with comment_symbol, but not start with suppressor
-                    pass # a comment contains suppress comment, suppress comment is suppressed in source code
-                else: # mixed with source code, source code comes first. may with another comment at the end.
-                    suppression_content = ""
-                    if self.comment_symbol:
-                        # what about comment symbol in source code? haven't found any cases yet
-                        if code_suppression.count(self.comment_symbol) >= 1: # 1 comment_symbol for suppression
-                            suppression_tmp = code_suppression.split(suppressor)[1]
-                            if self.comment_symbol in suppression_tmp: # comments come after suppression
-                                suppression_content = suppressor + suppression_tmp.split(self.comment_symbol, 1)[0]
-                            else: # self.comment_symbol == 1
-                                suppression_content = suppressor + suppression_tmp
-                        preprocessed_suppression =  "\"" + suppression_content + "\""
-                    else:
-                        preprocessed_suppression = "\"" + raw_suppression + "\""
-            else: # starts with suppressor
-                if code_suppression.count(self.comment_symbol) >= 2: # one for suppression
-                    content_filter2 = code_suppression.split(self.comment_symbol, 1)[1].strip()
-                    if content_filter2.startswith(suppressor): # only the first comment be suppression will work
-                        suppression_content = self.comment_symbol + " " + content_filter2
-                        preprocessed_suppression =  "\"" + suppression_content + "\""
-                else:
-                    preprocessed_suppression =  "\"" + code_suppression + "\""
-
-            # Reorder suppression keys and combined to a whole one
-            processed_info = raw_suppression['file_path'].replace("./", "", 1) + "," + preprocessed_suppression + "," + raw_suppression['line_number']
-            csv_txt = csv_txt + processed_info + "\n"
-
         with open(self.precessed_suppression_csv,"w") as d:
-            d.writelines(csv_txt)
+            writer = csv.writer(d)
+
+            raw_suppression_dict_list =self.represent_to_dict()
+            for raw_suppression in raw_suppression_dict_list:
+                if "/lib" in raw_suppression['file_path']: # Hard code to exclude dir, need to manual check folder names.
+                    continue
+                code_suppression = raw_suppression['code_suppression']
+                preprocessed_suppression = ""
+    
+                # Confirm suppressor
+                suppressor = ""
+                if "# pylint:" in code_suppression:
+                    suppressor = "# pylint:"
+                elif "# type: ignore" in code_suppression:
+                    suppressor = "# type: ignore"
+                else: 
+                    suppressor = "eslint-disable"
+
+                if not code_suppression.startswith(suppressor): # mixed with source code or start with other comments.
+                    if code_suppression.startswith(self.comment_symbol): # start with comment_symbol, but not start with suppressor
+                        pass # a comment contains suppress comment, suppress comment is suppressed in source code
+                    else: # mixed with source code, source code comes first. may with another comment at the end.
+                        suppression_content = ""
+                        if self.comment_symbol:
+                            # what about comment symbol in source code? haven't found any cases yet
+                            if code_suppression.count(self.comment_symbol) >= 1: # 1 comment_symbol for suppression
+                                suppression_tmp = code_suppression.split(suppressor)[1]
+                                if self.comment_symbol in suppression_tmp: # comments come after suppression
+                                    suppression_content = suppressor + suppression_tmp.split(self.comment_symbol, 1)[0]
+                                else: # self.comment_symbol == 1
+                                    suppression_content = suppressor + suppression_tmp
+                            preprocessed_suppression =  suppression_content
+                        else:
+                            preprocessed_suppression = raw_suppression
+                else: # starts with suppressor
+                    if code_suppression.count(self.comment_symbol) >= 2: # one for suppression
+                        content_filter2 = code_suppression.split(self.comment_symbol, 1)[1].strip()
+                        if content_filter2.startswith(suppressor): # only the first comment be suppression will work
+                            suppression_content = self.comment_symbol + " " + content_filter2
+                            preprocessed_suppression =  suppression_content
+                    else:
+                        preprocessed_suppression =  code_suppression
+
+                # Reorder suppression keys and combined to a whole one
+                file_path_info = raw_suppression['file_path'].replace("./", "", 1)
+                writer.writerow([file_path_info, preprocessed_suppression, raw_suppression["line_number"]])

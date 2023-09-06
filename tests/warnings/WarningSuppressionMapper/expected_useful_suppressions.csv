@@ -1,0 +1,2 @@
+hello.py,# pylint: disable=import-error,1
+hello.py,# pylint: disable=undefined-variable,5
