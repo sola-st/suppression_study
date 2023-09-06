@@ -39,6 +39,7 @@ Source = "https://github.com/sola-st/suppression-study"
 [tool.hatch.build.targets.wheel]
 packages = [
     "src/suppression_study",
+    "tests",
 ]
 
 [tool.hatch.envs.default]
