@@ -58,17 +58,6 @@ def find_relevant_range_of_commits(suppression_history, commits):
     return range_of_commits
 
 
-# TODO check if duplicated code with ExtractHistory.py
-def as_full_sequence_of_suppressions(suppression_history, commits):
-    """
-    Returns a list of suppressions, one for each commit,
-    even if the suppression hasn't changed at the commit.
-    """
-    result = []
-
-    return result
-
-
 def find_closest_change_event(commit, suppression_history: List[ChangeEvent]):
     """
     Find the ChangeEvent that is either at the commit or the latest before it.
