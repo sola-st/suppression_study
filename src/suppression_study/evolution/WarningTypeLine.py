@@ -34,7 +34,7 @@ class GetWarningTypeLine():
                             if source_line.count(comment_symbol) >= 1: # 1 of the comment_symbol s is for suppression
                                 suppression_tmp = source_line.split(the_suppressor)[1]
                                 if comment_symbol in suppression_tmp: # comments come after suppression
-                                    suppression_content = the_suppressor + suppression_tmp.split(self.comment_symbol, 1)[0]
+                                    suppression_content = the_suppressor + suppression_tmp.split(comment_symbol, 1)[0]
                                 else: 
                                     suppression_content = the_suppressor + suppression_tmp
                             '''

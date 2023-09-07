@@ -94,55 +94,25 @@ class AnalyzeGitlogReport():
 
             change_events_suppression_level = []
             for block in block_logfile_level.block:
-                type_line_set, operation_set, tricky_mark, deleted_old_suppressions = IdentifyChangeOperation(block).identify_change_operation() 
+                type_line_set, operation_set, tricky_mark = IdentifyChangeOperation(block).identify_change_operation() 
 
                 if tricky_mark:
                     self.record_tricky_cases(block)
 
-                change_event = ""       
                 if operation_set:
-                    deleted_num = len(deleted_old_suppressions)
-                    if deleted_num > 1:
-                        deleted_index = 0
-                        groupped_type_line = []
-                        groupped_operation = []
-                        for deleted in deleted_old_suppressions:
-                            if not groupped_type_line:
-                                for type_line, operation in zip(type_line_set, operation_set):
-                                    if type_line.warning_type == deleted.warning_type:
-                                        groupped_type_line.append(type_line)
-                                        groupped_operation.append(operation)
-                                        type_line_set.remove(type_line)
-                                        operation_set.remove(operation)
-                                deleted_index+=1
-
-                            for type_line, operation in zip(groupped_type_line, groupped_operation):
-                                change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
-                                        type_line.warning_type, type_line.line_number, operation)
-                                change_event = change_event_init.get_change_event_dict()
-                                change_events_suppression_level, all_index = self.handle_connection_between_change_events(change_event, \
-                                        change_events_suppression_level, all_index)
-                                
-                            if deleted_index + 1 == deleted_num:
-                                groupped_type_line = type_line_set
-                                groupped_operation = operation_set  
-                            else:
-                                groupped_type_line = []
-                                groupped_operation = []  
-                    else:
-                        for type_line, operation in zip(type_line_set, operation_set):
-                            change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
-                                    type_line.warning_type, type_line.line_number, operation)
-                            change_event = change_event_init.get_change_event_dict()
-                            change_events_suppression_level, all_index = self.handle_connection_between_change_events(change_event, \
-                                    change_events_suppression_level, all_index)
+                    for type_line, operation in zip(type_line_set, operation_set):
+                        change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
+                                type_line.warning_type, type_line.line_number, operation)
+                        change_event = change_event_init.get_change_event_dict()
+                        change_events_suppression_level, all_index = self.handle_connection_between_change_events(change_event, \
+                                change_events_suppression_level, all_index)
 
             if change_events_suppression_level:
                 # File delete, current change_events_suppression_level will be deleted in the next commit
                 all_index = self.handle_delete_cases(change_events_suppression_level, file_delete_mark, all_index) 
                 change_events_suppression_level = []
         return self.all_change_events_commit_level
-    
+
     def record_tricky_cases(self, block):
         serializable_block = {}
         for key, value in block.__dict__.items():
@@ -198,5 +168,13 @@ class AnalyzeGitlogReport():
                         change_events_suppression_level = []
                         all_index+=1
             else:
-                change_events_suppression_level.append(change_event)
+                if "delete" not in change_event["change_operation"]:
+                    change_events_suppression_level.append(change_event)
+                else: 
+                    # actual: misinformation due to tricky cases
+                    change_events_suppression_level.append(change_event)
+                    self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                    change_events_suppression_level = []
+                    all_index+=1
+
         return change_events_suppression_level, all_index

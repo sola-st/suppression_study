@@ -11,21 +11,20 @@ class SuppressionHistory():
     def add_unique_history_to_accumulator(self):
         if self.all_change_events_list_commit_level:
             key_continuous_int = -1 # the last number in key from history sequence
-            check_index = -1 # Default value -1, as actual index can be 0.
             if self.history_accumulator:
                 # Only 1 key in .key(), as a suppression has one suppression ID.
                 dict_keys_to_list = list(self.history_accumulator[-1].keys())
                 key_continuous_int = int(dict_keys_to_list[0].replace("# S", ""))
-                try:
-                    check_index = self.history_accumulator.index(change_events_suppression_level)
-                except:
-                    pass
             
             for suppression_level_dict in self.all_change_events_list_commit_level:
                 old_key = list(suppression_level_dict.keys())[0]
                 change_events_suppression_level = suppression_level_dict[old_key]
-                
-                if check_index == -1: # New events
+
+                try: # check duplicates
+                    self.history_accumulator.index(change_events_suppression_level)
+                except:
+                    # Current change_events_suppression_level is not in history_accumulator
+                    # New events
                     for single_change_event in change_events_suppression_level:
                         # Totally new events
                         if str(single_change_event) not in str(self.history_accumulator):
