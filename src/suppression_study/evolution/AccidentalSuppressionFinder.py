@@ -58,6 +58,7 @@ def find_relevant_range_of_commits(suppression_history, commits):
     return range_of_commits
 
 
+# TODO check if duplicated code with ExtractHistory.py
 def as_full_sequence_of_suppressions(suppression_history, commits):
     """
     Returns a list of suppressions, one for each commit,
