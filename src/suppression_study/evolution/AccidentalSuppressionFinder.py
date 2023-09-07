@@ -5,10 +5,12 @@ i.e., that are suppressed by a suppression that was added before the warning its
 
 import argparse
 from os.path import join
+from typing import List
 from suppression_study.evolution.SuppressionHistory import read_histories_from_json
 from suppression_study.utils.FunctionsCommon import FunctionsCommon
 from suppression_study.warnings.WarningSuppressionMapper import main as compute_warning_suppression_mapping, read_mapping_from_csv
 from suppression_study.evolution.AccidentallySuppressedWarning import AccidentallySuppressedWarning, write_accidentally_suppressed_warnings
+from suppression_study.evolution.ChangeEvent import ChangeEvent
 
 
 parser = argparse.ArgumentParser(
@@ -66,7 +68,7 @@ def as_full_sequence_of_suppressions(suppression_history, commits):
     return result
 
 
-def find_closest_change_event(commit, suppression_history):
+def find_closest_change_event(commit, suppression_history: List[ChangeEvent]):
     """
     Find the ChangeEvent that is either at the commit or the latest before it.
     """
