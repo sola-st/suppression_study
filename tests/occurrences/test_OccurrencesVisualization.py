@@ -8,7 +8,7 @@ from suppression_study.utils.FunctionsCommon import FunctionsCommon
 from tests.TestUtils import sort_and_compare_files
 
 
-def test_LifetimeVisualization_toy_repos():
+def test_OccurrencesVisualization_toy_repos():
     with tempfile.TemporaryDirectory() as demo_path:
         all_repositories_csv = "tests/occurrences/all_repositories.csv"
         csv_reader = csv.reader(open(all_repositories_csv))
