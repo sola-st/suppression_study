@@ -4,12 +4,10 @@ import subprocess
 from os.path import join
 
 from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
+from tests.TestUtils import sort_and_compare_files
 
 
 def test_LifetimeVisualization_toy_repo():
-    # Check if the data for extracting the plot is correct
-    expected_results_data = "tests/evolution/lifetime_visualization/lifetime_all_groups.csv"
-
     with tempfile.TemporaryDirectory() as demo_path:
         demo_repo_name = "suppression-test-python-pylint"
         demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
@@ -39,16 +37,10 @@ def test_LifetimeVisualization_toy_repo():
             "--all_repositories_csv=tests/evolution/lifetime_visualization/all_repositories.csv", 
             f"--repo_parent_folder={demo_path}", 
             f"--lifetime_output_csv={output}"])
-
-        with open(expected_results_data, "r") as f:
-            expected_groups = f.readlines()
-
-        with open(join(visualization_result_folder, "lifetime_all_groups.csv"), "r") as f:
-            actual_groups = f.readlines()
         
-        assert len(expected_groups) == len(actual_groups)
-        for actual, expected in zip(actual_groups, expected_groups):
-            assert actual == expected
+        expected_results_data = "tests/evolution/lifetime_visualization/lifetime_all_groups.csv"
+        actual_results = join(visualization_result_folder, "lifetime_all_groups.csv")
+        sort_and_compare_files(expected_results_data, actual_results)
 
         # Check if the generated plot file has bytes
         expected_results_plot_pdf = join(visualization_result_folder, "lifetime_all_visualization.pdf")

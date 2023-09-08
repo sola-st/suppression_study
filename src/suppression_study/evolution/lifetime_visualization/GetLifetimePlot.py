@@ -2,8 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 
+from suppression_study.utils.VisualizationLoadData import load_data_from_csv
 
-def load_data_from_csv(csv_filename):
+
+def visualize_lifetime(lifetime_group_output_csv):
+    # Visualize data in lifetime_group_output_csv to output_pdf
     '''
     Target file header = [
         "day_range",
@@ -17,22 +20,8 @@ def load_data_from_csv(csv_filename):
         "rate_group_num_lasting",
     ]
     '''
-
-    with open(csv_filename, 'r') as csv_file:
-        csv_reader = csv.reader(csv_file)
-        header = next(csv_reader)
-        data = {col: [] for col in header}
-        
-        for row in csv_reader:
-            for col, value in zip(header, row):
-                data[col].append(value)
-                
-    return data
-
-def visualize_lifetime(lifetime_group_output_csv):
-    # Visualize data in lifetime_group_output_csv to output_png
     data = load_data_from_csv(lifetime_group_output_csv)
-    output_png = lifetime_group_output_csv.replace("_groups.csv", "_visualization.pdf")
+    output_pdf = lifetime_group_output_csv.replace("_groups.csv", "_visualization.pdf")
     
     plt.rcParams["figure.figsize"] = (12, 5)
     
@@ -69,5 +58,5 @@ def visualize_lifetime(lifetime_group_output_csv):
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.9)
-    plt.savefig(output_png)
+    plt.savefig(output_pdf)
     print("Visualization done.")
