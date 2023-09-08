@@ -1,4 +1,5 @@
 import json
+from suppression_study.evolution.ChangeEvent import ChangeEvent
 
 
 class SuppressionHistory():
@@ -16,6 +17,10 @@ class SuppressionHistory():
                 # Only 1 key in .key(), as a suppression has one suppression ID.
                 dict_keys_to_list = list(self.history_accumulator[-1].keys())
                 key_continuous_int = int(dict_keys_to_list[0].replace("# S", ""))
+
+                # TODO: do we need this code?
+                # change_events_suppression_level is always undefined,
+                # and hence, there always is an exception that simply gets ignored
                 try:
                     check_index = self.history_accumulator.index(change_events_suppression_level)
                 except:
@@ -75,3 +80,20 @@ class SuppressionHistory():
         ...
     ]
     '''
+
+
+def read_histories_from_json(json_file):
+    """ Returns a list of lists of ChangeEvents. """
+    with open(json_file, "r") as f:
+        raw_histories = json.load(f)
+
+    histories = []
+    for raw_history_wrapper in raw_histories:
+        keys = list(raw_history_wrapper.keys())
+        assert len(keys) == 1 and keys[0].startswith("# S")
+        raw_history = raw_history_wrapper[keys[0]]
+        
+        change_events = [ChangeEvent(**raw_event) for raw_event in raw_history] 
+        histories.append(change_events)
+    
+    return histories

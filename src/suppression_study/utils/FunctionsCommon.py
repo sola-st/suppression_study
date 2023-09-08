@@ -1,5 +1,8 @@
 import subprocess
 
+# TODO: this shouldn't be a class but simply a module with functions
+# because the functions are all independent of each other
+
 class FunctionsCommon():
     
     def get_commit_list(commit_id_csv):

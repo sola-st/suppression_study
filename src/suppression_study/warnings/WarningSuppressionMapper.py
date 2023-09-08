@@ -9,8 +9,8 @@ from git.repo import Repo
 from suppression_study.suppression.GrepSuppressionPython import GrepSuppressionPython
 from suppression_study.checkers.GetPylintWarnings import main as get_pylint_warnings
 from suppression_study.suppression.SuppressionRemover import SuppressionRemover
-from suppression_study.warnings.Warning import read_warning_from_file
-from suppression_study.suppression.Suppression import read_suppressions_from_file
+from suppression_study.warnings.Warning import read_warning_from_file, Warning
+from suppression_study.suppression.Suppression import Suppression, read_suppressions_from_file
 
 
 parser = argparse.ArgumentParser(
@@ -61,6 +61,20 @@ def write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id):
             else:
                 writer.writerow([suppression.path, suppression.text,
                                 suppression.line, warning.path, warning.kind, warning.line])
+
+
+def read_mapping_from_csv(results_dir, commit_id):
+    pairs = []
+    with open(join(results_dir, f"{commit_id}_mapping.csv"), "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            suppression = Suppression(row[0], row[1], int(row[2]))
+            if row[3] == "": # no warning for this suppression
+                warning = None
+            else:
+                warning = Warning(row[3], row[4], int(row[5]))
+            pairs.append([suppression, warning])
+    return pairs
 
 
 def write_suppressed_warnings_to_csv(all_suppressed_warnings, results_dir, commit_id):
