@@ -1,0 +1,10 @@
+warning_type,occurrences
+invalid-name,8
+all,8
+missing-module-docstring,2
+return-value,5
+arg-type,6
+ignore,5
+misc,2
+assignment,2
+attr-defined,3

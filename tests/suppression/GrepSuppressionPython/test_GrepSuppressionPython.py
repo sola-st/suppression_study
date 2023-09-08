@@ -4,6 +4,7 @@ import os
 from os.path import join
 
 from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from tests.TestUtils import sort_and_compare_files
 
 
 def test_GrepSuppressionPython_mypy_commit_list():
@@ -25,18 +26,9 @@ def test_GrepSuppressionPython_mypy_commit_list():
         actual_outputs = os.listdir(grep_folder)
         for a in actual_outputs:
             if a.endswith(".csv"):
-                actual = join(demo_path, "grep", a)
-                with open(actual, "r") as f:
-                    actual_suppression = f.readlines()
-                actual_suppression.sort()
-
-                expected = join(grep_folder, a)
-                with open(expected, "r") as f:
-                    expected_suppression = f.readlines()
-                expected_suppression.sort()
-
-                for actual_sup, expected_sup in zip(actual_suppression, expected_suppression):
-                    assert actual_sup == expected_sup
+                expected_results = join(grep_folder, a)
+                actual_results = join(demo_path, "grep", a)
+                sort_and_compare_files(expected_results, actual_results)
 
 def test_GrepSuppressionPython_pylint_single_commit():
     expected_results = "tests/suppression/GrepSuppressionPython/PylintSuppression/a09fcfec_suppression.csv"
@@ -51,15 +43,6 @@ def test_GrepSuppressionPython_pylint_single_commit():
             "--commit_id=a09fcfec",
             "--results_dir=" + demo_path])
 
-        with open(expected_results, "r") as f:
-            expected_suppression = f.readlines()
-        expected_suppression.sort()
-
-        with open(join(demo_path,"grep/a09fcfec_suppression.csv"), "r") as f:
-            actual_suppression = f.readlines()
-        actual_suppression.sort()
-        
-        assert len(actual_suppression) == len(expected_suppression)
-        for actual_sup, expected_sup in zip(actual_suppression, expected_suppression):
-            assert actual_sup == expected_sup
+        actual_results = join(demo_path,"grep/a09fcfec_suppression.csv")
+        sort_and_compare_files(expected_results, actual_results)
 
