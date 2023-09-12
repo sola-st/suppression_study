@@ -13,14 +13,10 @@ def test_ExtractHistory_pylint():
 
         repo_dir = join(demo_path, demo_repo_name)
         commit_csv_file = join(repo_dir, "check_commits.csv")
-        # TODO remove printing of output after debugging
-        dbg_result = subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
+        subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
             "--repo_dir=" + repo_dir,
             "--commit_id=" + commit_csv_file,
-            "--results_dir=" + demo_path],
-            capture_output=True,
-            universal_newlines=True)
-        print(f"Output of ExtractHistory.py:\n {dbg_result.stdout}\n")
+            "--results_dir=" + demo_path])
 
         with open(expected_results, "r") as f:
             expected_history = json.load(f)
@@ -28,9 +24,5 @@ def test_ExtractHistory_pylint():
         with open(join(demo_path,"gitlog_history/histories_suppression_level_all.json"), "r") as f:
             actual_history = json.load(f)
         
-        # TODO remove after debugging
-        print(f"\nExpected history:\n {expected_history}\n\n")
-        print(f"Actual history:\n {actual_history}\n")
-
         assert len(actual_history) == len(expected_history)
         assert actual_history == expected_history
