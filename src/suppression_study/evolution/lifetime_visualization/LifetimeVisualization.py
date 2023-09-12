@@ -6,7 +6,7 @@ from suppression_study.evolution.lifetime_visualization.GetLifetimeGroupsInfo im
 from suppression_study.evolution.lifetime_visualization.LifetimeCalculator import LifetimeCalculator
 from suppression_study.evolution.lifetime_visualization.GetLifetimePlot import visualize_lifetime
 
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv, get_commit_date_lists
 
 
 parser = argparse.ArgumentParser(description="Calculate lifetime for all suppressions, and visualize the results") 
@@ -33,9 +33,9 @@ def main(all_repositories_csv, repo_parent_folder, lifetime_output_csv):
         repo_dir = f"{repo_parent_folder}/{repo_name}"
         all_commits_csv_file = f"{repo_dir}/check_commits.csv"
         if not os.path.exists(all_commits_csv_file):
-            FunctionsCommon.write_commit_info_to_csv(repo_dir, all_commits_csv_file)
+            write_commit_info_to_csv(repo_dir, all_commits_csv_file)
         # Read all_commits_csv_file, get 2 lists: all_commit, all_dates
-        all_commits, all_dates = FunctionsCommon.get_commit_date_lists(all_commits_csv_file)
+        all_commits, all_dates = get_commit_date_lists(all_commits_csv_file)
         suppression_history_json_file = f"{results_folder}/{repo_name}/gitlog_history/histories_suppression_level_all.json"
         # Start get lifetime
         # Write a file 'output_individual_repository', which records lifetime of all suppressions in current repository
