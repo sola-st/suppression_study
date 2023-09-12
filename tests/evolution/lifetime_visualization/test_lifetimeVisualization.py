@@ -3,7 +3,7 @@ import tempfile
 import subprocess
 from os.path import join
 
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 
 
 def test_LifetimeVisualization_toy_repo():
@@ -17,7 +17,7 @@ def test_LifetimeVisualization_toy_repo():
 
         repo_dir = join(demo_path, demo_repo_name)
         commit_csv_file = join(repo_dir, "check_commits.csv")
-        FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_csv_file)
+        write_commit_info_to_csv(repo_dir, commit_csv_file)
 
         # results_dir includes:
         # 1) extracted histories, {results_dir}/gitlog_history

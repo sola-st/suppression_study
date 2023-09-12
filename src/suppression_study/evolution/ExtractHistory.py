@@ -9,7 +9,7 @@ import datetime
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
 from suppression_study.evolution.SuppressionHistory import SuppressionHistory
 from suppression_study.utils.SuppressionInfo import SuppressionInfo
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv, get_commit_date_lists
 
 
 parser = argparse.ArgumentParser(description="Extract change histories of all suppressions at the repository level")
@@ -19,8 +19,7 @@ parser.add_argument("--results_dir", help="Directory where to put the results", 
 
 
 class LogResultsInfo():
-    # Run git log on a specified line of 'file', get the 'log_results'
-    # Here map 'log_results' and 'file'
+    # Run git log on a specified line of 'file', get the 'log_results', here map 'log_results' and 'file'
     def __init__(self, log_results, file):
         self.log_results = log_results
         self.file = file
@@ -44,20 +43,23 @@ class ExtractHistory():
     def run_gitlog_command(self, previous_commit, current_commit):
         log_results_info_list = []
         repo_base= Repo(self.repo_dir)
-
-        # Suppression in deleted_files(previous_commit) are deleted
-        deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
         suppression_csv = join(self.results_dir, "grep", current_commit + "_suppression.csv")
         all_suppression_commit_level = SuppressionInfo(current_commit, suppression_csv).read_suppression_files()
-        if not all_suppression_commit_level:
-            return log_results_info_list, deleted_files, ""
+        if not all_suppression_commit_level: # No suppression in current commit
+            # Return: log_results_info_list, deleted_files, log_result_commit_folder
+            # All suppressions in old commit were deleted 
+            return log_results_info_list, [], "" 
+        
+        # Suppression in deleted_files(previous_commit) are deleted
+        deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
         repo_base.git.checkout(current_commit)
         suppression_index = 0 
         for suppression in all_suppression_commit_level:
             suppression_index += 1
-            line_range_start_end = suppression.line_number
+            # Line start and end can be the same, eg,. [6,6] means line 6
+            line_range_start_end = suppression.line_number 
             line_range_str = str(line_range_start_end)
 
             current_file = suppression.file_path
@@ -73,8 +75,7 @@ class ExtractHistory():
                 current_file_parent_folder = current_file.split("/")[-2].strip()
             except:
                 pass
-            log_result_file_name = current_file_parent_folder + "_" + current_file_name_base + "_" \
-                    + str(suppression_index) + "_" + line_range_str + ".txt"
+            log_result_file_name = f"{current_file_parent_folder}_{current_file_name_base}_{suppression_index}_{line_range_str}.txt"
                         
             # Get the parent folder of log_result_file_name, which is log_result_commit_folder
             log_result_commit_folder = join(self.log_result_folder, current_commit)
@@ -93,7 +94,7 @@ class ExtractHistory():
 
             -C: cover copied files
             -M: cover renamed files
-            -L: [line_range_start, line_range_end)
+            -L: [line_range_start, line_range_end]
             --reverse: result starts from old history/ old commit
             '''
             command_line = "git log -C -M -L" + line_range_str + "," + line_range_str + ":" + current_file + " --reverse"
@@ -113,7 +114,10 @@ class ExtractHistory():
         deleted_files : current commit is commit_2, check which files was deleted
         tracked_deleted_files : current commit is commit_1, connect delete events to corresponding suppressions' histories 
         '''
-        tracked_deleted_files = []
+        extraction_start_time = datetime.datetime.now()
+
+        tracked_deleted_files = [] # Files
+        tracked_suppression_deleted_mark = False # Suppressions inside a file
         tracked_delete_commit = ""
         tracked_delete_date = ""
         all_commits_num = len(self.all_commits_list)
@@ -125,35 +129,54 @@ class ExtractHistory():
                 previous_commit = self.all_commits_list[i+1]
                 get_results = self.run_gitlog_command(previous_commit, current_commit)
 
+            if (i+1) % 100 == 0: # check running time every 100 commits
+                current_running_time = (datetime.datetime.now() - extraction_start_time).seconds
+                print(f"Current: commit #{i}, running time since starting extracting histories {current_running_time} s")
+
             log_results_info_list = []
             deleted_files= [] 
             log_result_commit_folder = ""
+            suppression_deleted_mark = False
             if get_results:
                 log_results_info_list, deleted_files, log_result_commit_folder = get_results
                 if log_result_commit_folder:
-                    start_analyze = AnalyzeGitlogReport(log_results_info_list, tracked_deleted_files, tracked_delete_commit, tracked_delete_date, log_result_commit_folder)
+                    start_analyze = AnalyzeGitlogReport(log_results_info_list, tracked_deleted_files, tracked_delete_commit, \
+                            tracked_delete_date, tracked_suppression_deleted_mark, log_result_commit_folder)
                     all_change_events_list_commit_level = start_analyze.from_gitlog_results_to_change_events()
                     # Add commit level histories to repository level histories.
                     SuppressionHistory(self.history_accumulator, all_change_events_list_commit_level, "").add_unique_history_to_accumulator()
-           
+                else:
+                    suppression_deleted_mark = True # No suppression in current commit_id
+
             if deleted_files:
                 tracked_deleted_files = deleted_files
-                tracked_delete_commit = current_commit
-                tracked_delete_date = self.all_dates_list[i]  
             else:
                 tracked_deleted_files = []
+
+            if suppression_deleted_mark:
+                tracked_suppression_deleted_mark = suppression_deleted_mark # True
+            else:
+                tracked_suppression_deleted_mark = False
+            
+            # To avoid these 2 marks make impacts on each other
+            if deleted_files or suppression_deleted_mark: 
+                tracked_delete_commit = current_commit
+                tracked_delete_date = self.all_dates_list[i]  
+            elif not (deleted_files and suppression_deleted_mark): # Both false
                 tracked_delete_commit = ""
                 tracked_delete_date = ""
 
         # Write repository level histories to a JSON file.
-        SuppressionHistory(self.history_accumulator, "", self.history_json_file).write_all_accumulated_histories_to_json()   
+        history = SuppressionHistory(self.history_accumulator, "", self.history_json_file)
+        history.sort_by_date()
+        history.write_all_accumulated_histories_to_json()   
 
 
 def main(repo_dir, commit_id_csv_list, results_dir):
     # Get commit list and suppression for all the commits.
     if not os.path.exists(commit_id_csv_list):
-        FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_id_csv_list) # commit_info: commit and date
-    all_commits_list, all_dates_list = FunctionsCommon.get_commit_date_lists(commit_id_csv_list)
+        write_commit_info_to_csv(repo_dir, commit_id_csv_list) # commit_info: commit and date
+    all_commits_list, all_dates_list = get_commit_date_lists(commit_id_csv_list)
 
     # Get suppression
     suppression_result = join(results_dir, "grep")
