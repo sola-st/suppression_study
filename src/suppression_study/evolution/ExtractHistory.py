@@ -42,9 +42,6 @@ class ExtractHistory():
         self.history_accumulator = []
         
     def run_gitlog_command(self, previous_commit, current_commit):
-        # TODO remove after debugging
-        print(f"Running git log command on {previous_commit} --> {current_commit}")
-
         log_results_info_list = []
         repo_base= Repo(self.repo_dir)
 
@@ -172,12 +169,6 @@ def main(repo_dir, commit_id_csv_list, results_dir):
         os.rmdir(suppression_result)
         print("No suppression found by running GrepSuppressionPython.")
         return
-
-    # TODO remove after debugging
-    print("Printing suppression results:")
-    for fn in os.listdir(suppression_result):
-        with open(join(suppression_result, fn), "r") as f:
-            print(f"\nSuppression result in {fn}:\n {f.read()}\n")
 
     # Create a folder for storing 'git log' results
     # with tempfile.TemporaryDirectory() as work_path:
