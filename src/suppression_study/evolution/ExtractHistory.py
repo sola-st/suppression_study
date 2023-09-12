@@ -167,7 +167,9 @@ class ExtractHistory():
                 tracked_delete_date = ""
 
         # Write repository level histories to a JSON file.
-        SuppressionHistory(self.history_accumulator, "", self.history_json_file).write_all_accumulated_histories_to_json()   
+        history = SuppressionHistory(self.history_accumulator, "", self.history_json_file)
+        history.sort_by_date()
+        history.write_all_accumulated_histories_to_json()   
 
 
 def main(repo_dir, commit_id_csv_list, results_dir):
