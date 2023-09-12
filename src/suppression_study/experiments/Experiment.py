@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from typing import List, Dict
 from os.path import join, exists, isdir
 from os import makedirs
 from git.repo import Repo
@@ -29,7 +30,7 @@ class Experiment(ABC):
         except:
             return False
 
-    def get_repo_dirs(self):
+    def get_repo_dirs(self) -> List[str]:
         """
         Returns a list with the directories of all repositories.
         If the repositories are not yet cloned, this method clones them first.
@@ -56,18 +57,24 @@ class Experiment(ABC):
         # return list of repo dirs
         return repo_dirs
 
-    def checkout_latest_commits(self):
+    def checkout_latest_commits(self) -> Dict[str, str]:
         """
         Checks out the latest commit of all repositories (where "latest" is 
         fixed to a specific data for reproducibility).
+
+        Returns a dictionary from repo directory to commit ID.
         """
+        repo_dir_to_commit = {}
         for repo_dir in self.get_repo_dirs():
             repo = Repo(repo_dir)
             branch = get_name_of_main_branch(repo)
             latest_commit = next(repo.iter_commits(branch, max_count=1,
                                                    until=self.latest_commit_date))
             repo.git.checkout(latest_commit)
-            print(f"Checked out commit {latest_commit.hexsha} of {repo_dir}")
+            commit_id = latest_commit.hexsha[:8]
+            repo_dir_to_commit[repo_dir] = commit_id
+            print(f"Checked out commit {commit_id} of {repo_dir}")
+        return repo_dir_to_commit
 
     @abstractmethod
     def run(self):
