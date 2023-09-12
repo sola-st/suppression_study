@@ -1,5 +1,6 @@
 import subprocess
-
+from os import makedirs
+from os.path import dirname
     
 def get_commit_list(commit_id_csv):
     '''Read given commit .csv file, return a commit list'''
@@ -43,6 +44,7 @@ def write_commit_info_to_csv(repo_dir, commit_id_csv, oldest_n_commits=None):
     if oldest_n_commits is not None:
         commits = "\n".join(commits.split("\n")[:oldest_n_commits])
 
+    makedirs(dirname(commit_id_csv), exist_ok=True)
     with open(commit_id_csv, "w") as f:
         f.writelines(commits)
 
