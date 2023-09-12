@@ -16,7 +16,7 @@ class ComputeSuppressionHistories(Experiment):
         commit_list_file = join(
             "data", "results", repo_name, "commit_id_list.csv")
         write_commit_info_to_csv(
-            repo_dir, commit_list_file, oldest_n_commits=5)  # TODO change to 1000
+            repo_dir, commit_list_file, oldest_n_commits=1000)
         return commit_list_file
 
     def run(self):
