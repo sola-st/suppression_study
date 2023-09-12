@@ -1,4 +1,5 @@
 import json
+from suppression_study.evolution.ChangeEvent import ChangeEvent
 
 
 class SuppressionHistory():
@@ -74,3 +75,20 @@ class SuppressionHistory():
         ...
     ]
     '''
+
+
+def read_histories_from_json(json_file):
+    """ Returns a list of lists of ChangeEvents. """
+    with open(json_file, "r") as f:
+        raw_histories = json.load(f)
+
+    histories = []
+    for raw_history_wrapper in raw_histories:
+        keys = list(raw_history_wrapper.keys())
+        assert len(keys) == 1 and keys[0].startswith("# S")
+        raw_history = raw_history_wrapper[keys[0]]
+        
+        change_events = [ChangeEvent(**raw_event) for raw_event in raw_history] 
+        histories.append(change_events)
+    
+    return histories

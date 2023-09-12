@@ -16,9 +16,8 @@ parser.add_argument("--results_dir", help="Directory where to put the results", 
 
 class GrepSuppressionPython(GrepSuppressionSuper):
 
-    def __init__(self, repo_name, repo_dir, commit_id, output_path):
+    def __init__(self, repo_dir, commit_id, output_path):
         super().__init__("*.py", "\#\ pylint:\|\#\ type:\ ignore")
-        self.repo_name = repo_name
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.output_path = output_path
@@ -28,10 +27,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         Run "Grep" command to find suppression in specified commit, return a .txt file 
         ''' 
         raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
-        if os.path.getsize(raw_suppression_results): # If no suppression, will be an empty file.
-            self.format_to_csv(raw_suppression_results)
-        else:
-            os.remove(raw_suppression_results)
+        self.format_to_csv(raw_suppression_results)
 
     def grep_suppression_for_all_commits(self):
         '''
@@ -57,10 +53,9 @@ if __name__=="__main__":
     commit_id = args.commit_id
     results_dir = args.results_dir
 
-    repo_name = repo_dir.split("/")[-2].strip()
     output_path = os.path.join(results_dir, "grep")
 
-    init = GrepSuppressionPython(repo_name, repo_dir, commit_id, output_path)
+    init = GrepSuppressionPython(repo_dir, commit_id, output_path)
 
     if os.path.exists(commit_id): # It's a file
         init.grep_suppression_for_all_commits()  

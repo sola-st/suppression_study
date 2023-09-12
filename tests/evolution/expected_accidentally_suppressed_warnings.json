@@ -1,0 +1,10 @@
+[
+    {
+        "first_commit": "a4b3809a",
+        "warning": {
+            "path": "src/hello.py",
+            "kind": "undefined-variable",
+            "line": 8
+        }
+    }
+]
