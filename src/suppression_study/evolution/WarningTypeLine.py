@@ -1,3 +1,4 @@
+# TODO check for redundancy wrt SuppressionInfoHelper
 class WarningTypeLine():
     def __init__(self, warning_type, line_number):
         self.warning_type = warning_type
