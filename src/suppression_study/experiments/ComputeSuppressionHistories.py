@@ -1,5 +1,5 @@
 from os.path import join
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from suppression_study.experiments.Experiment import Experiment
 from suppression_study.evolution.ExtractHistory import main as extract_history
 from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
@@ -36,11 +36,15 @@ class ComputeSuppressionHistories(Experiment):
             args_for_all_repos.append(args)
             
         # extract histories, in parallel on different repos
-        with Pool() as pool:
+        cores_to_use = cpu_count() - 1 # leave one core for other processes
+        print(f"Using {cores_to_use} cores to extract histories in parallel.")
+        with Pool(processes=cores_to_use) as pool:
             pool.map(extract_history_wrapper, args_for_all_repos)
 
 def extract_history_wrapper(args):
+    print(f"Starting history extraction on {args[0]}")
     extract_history(*args)
+    print(f"Done with history extraction on {args[0]}")
 
 if __name__ == "__main__":
     ComputeSuppressionHistories().run()
