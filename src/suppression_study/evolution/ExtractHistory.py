@@ -41,6 +41,9 @@ class ExtractHistory():
         self.history_accumulator = []
         
     def run_gitlog_command(self, previous_commit, current_commit):
+        # TODO remove after debugging
+        print(f"Running git log command on {previous_commit} --> {current_commit}")
+
         log_results_info_list = []
         repo_base= Repo(self.repo_dir)
         
