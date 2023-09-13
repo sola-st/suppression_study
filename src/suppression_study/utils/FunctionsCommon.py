@@ -35,14 +35,14 @@ def write_commit_info_to_csv(repo_dir, commit_id_csv, oldest_n_commits=None):
     '''
     Valid for the repository which the repo_dir point to is the latest commit status,
     otherwise, will miss to get all commits. --> useful on running tests.
-    Here, the oldest commits locates the 1st line of the csv file. (with option --reverse)
+    The newest commits will be the 1st line of the csv file.
     '''
     commit_command = "git log --pretty=format:'\"%h\",\"%cd\"' --abbrev=8" 
     git_get_commits = subprocess.run(commit_command, cwd=repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
     commits = git_get_commits.stdout 
 
     if oldest_n_commits is not None:
-        commits = "\n".join(commits.split("\n")[:oldest_n_commits])
+        commits = "\n".join(commits.split("\n")[-oldest_n_commits:])
 
     makedirs(dirname(commit_id_csv), exist_ok=True)
     with open(commit_id_csv, "w") as f:
