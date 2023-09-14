@@ -25,6 +25,8 @@ class SuppressionInfo():
     
 
 class SuppressionInfoHelper():
+    # TODO: This class and suppression_study.suppression.Suppression are very similar. We should merge them.
+
     '''Class for representing a single suppression'''
     def __init__(self, file_path, warning_type, line_number):
         self.file_path = file_path
