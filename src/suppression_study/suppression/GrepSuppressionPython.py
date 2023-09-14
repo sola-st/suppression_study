@@ -16,7 +16,7 @@ parser.add_argument("--results_dir", help="Directory where to put the results", 
 class GrepSuppressionPython(GrepSuppressionSuper):
 
     def __init__(self, repo_dir, commit_id, output_path):
-        super().__init__("*.py", "\#\ pylint:\|\#\ type:\ ignore")
+        super().__init__("*.py", "# pylint:|# type: ignore")
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.output_path = output_path

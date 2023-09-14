@@ -46,7 +46,7 @@ class SuppressionHistory():
                                         self.history_accumulator[0][get_key] = change_events_suppression_level
                                         break 
         return self.history_accumulator
-
+      
     def sort_by_date(self):
         self.history_accumulator.sort(key=lambda x: x[list(x.keys())[0]][0]["date"])
         for idx, x in enumerate(self.history_accumulator):
