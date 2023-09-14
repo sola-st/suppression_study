@@ -96,7 +96,7 @@ def write_suppression_to_csv(
 def main(repo_dir, commit_id, lang, checker, results_dir):
     # checkout the commit
     target_repo = Repo(repo_dir)
-    target_repo.git.checkout(commit_id)
+    target_repo.git.checkout(commit_id, force=True)
 
     # get all suppressions and warnings
     suppressions = get_all_suppressions(repo_dir, commit_id, lang, results_dir)

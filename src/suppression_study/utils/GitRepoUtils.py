@@ -24,3 +24,9 @@ def get_name_of_main_branch(repo: Repo):
 
 def repo_dir_to_name(repo_dir):
     return normpath(repo_dir).split(sep)[-1]
+
+
+def get_current_commit(repo_dir):
+    repo = Repo(repo_dir)
+    commit_id = repo.git.log("-1", "--pretty=format:%h", "--abbrev=8")
+    return commit_id

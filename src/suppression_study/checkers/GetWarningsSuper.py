@@ -6,6 +6,7 @@ import subprocess
 from git.repo import Repo
 import os
 from os.path import join
+from suppression_study.utils.GitRepoUtils import get_current_commit
 
 
 class GetWarningsSuper():
@@ -18,9 +19,14 @@ class GetWarningsSuper():
         Use the same output folder architecture for all the checkers and repositories,
         Only different in checkers and command_line 
         '''
-        target_repo = Repo(self.repo_dir)
-        target_repo.git.checkout(self.commit_id)
-        
+        # checkout the target commit, but only if we're not yet at this commit anyway
+        # (the check is needed because we may otherwise overwrite local changes,
+        # e.g., made by SuppressionRemover)
+        current_commit_id = get_current_commit(self.repo_dir)
+        if self.commit_id != current_commit_id:
+            target_repo = Repo(self.repo_dir)
+            target_repo.git.checkout(self.commit_id, force=True)
+
         commit_results_dir = join(self.results_dir, "checker_results", self.commit_id)
         if not os.path.exists(commit_results_dir):
             os.makedirs(commit_results_dir)

@@ -54,7 +54,7 @@ class ExtractHistory():
         # Suppression in deleted_files(previous_commit) are deleted
         deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
-        repo_base.git.checkout(current_commit)
+        repo_base.git.checkout(current_commit, force=True)
         suppression_index = 0 
         for suppression in all_suppression_commit_level:
             suppression_index += 1
