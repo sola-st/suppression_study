@@ -3,7 +3,7 @@ import subprocess
 import os
 from os.path import join
 
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 
 
 def test_GrepSuppressionPython_mypy_commit_list():
@@ -15,7 +15,7 @@ def test_GrepSuppressionPython_mypy_commit_list():
         repo_dir = join(demo_path, demo_repo_name)
 
         commit_csv_file = join(repo_dir, "check_commits.csv")
-        FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_csv_file)
+        write_commit_info_to_csv(repo_dir, commit_csv_file)
 
         subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
             "--repo_dir=" + repo_dir ,

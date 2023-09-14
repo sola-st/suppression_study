@@ -2,7 +2,7 @@ import subprocess
 from git.repo import Repo
 import os
 from os.path import join
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import get_commit_list
 
 
 class GrepSuppressionSuper():
@@ -57,7 +57,7 @@ class GrepSuppressionSuper():
     def grep_suppression_for_all_commits(self):
         output_txt_files = []
 
-        all_commits = FunctionsCommon.get_commit_list(self.commit_id)
+        all_commits = get_commit_list(self.commit_id)
         repo_base= Repo(self.repo_dir)
         for commit in all_commits:
             repo_base.git.checkout(commit)
