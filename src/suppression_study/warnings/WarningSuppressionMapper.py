@@ -19,19 +19,16 @@ parser.add_argument(
     "--repo_dir", help="Directory with the repository to analyze", required=True)
 parser.add_argument(
     "--commit_id", help="Commit hash to analyze", required=True)
-parser.add_argument("--lang", help="The programming language of the code to analyze",
-                    required=True, choices=["python"])
 parser.add_argument("--checker", help="The checker to run",
                     required=True, choices=["mypy", "pylint"])
 parser.add_argument(
     "--results_dir", help="Directory where to put the results", required=True)
 
 
-def get_all_suppressions(repo_dir, commit_id, lang, results_dir):
+def get_all_suppressions(repo_dir, commit_id, results_dir):
     # find suppressions
-    if lang == "python":
-        grep = GrepSuppressionPython(repo_dir, commit_id, results_dir)
-        grep.grep_suppression_for_specific_commit()
+    grep = GrepSuppressionPython(repo_dir, commit_id, results_dir)
+    grep.grep_suppression_for_specific_commit()
 
     # read them into a list
     suppression_file = join(results_dir, f"{commit_id}_suppression.csv")
@@ -93,13 +90,13 @@ def write_suppression_to_csv(
                 [suppression.path, suppression.text, suppression.line])
 
 
-def main(repo_dir, commit_id, lang, checker, results_dir):
+def main(repo_dir, commit_id, checker, results_dir):
     # checkout the commit
     target_repo = Repo(repo_dir)
     target_repo.git.checkout(commit_id, force=True)
 
     # get all suppressions and warnings
-    suppressions = get_all_suppressions(repo_dir, commit_id, lang, results_dir)
+    suppressions = get_all_suppressions(repo_dir, commit_id, results_dir)
     original_warnings = get_all_warnings(
         repo_dir, commit_id, checker, results_dir)
 
@@ -134,5 +131,4 @@ def main(repo_dir, commit_id, lang, checker, results_dir):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args.repo_dir, args.commit_id, args.lang,
-         args.checker, args.results_dir)
+    main(args.repo_dir, args.commit_id, args.checker, args.results_dir)

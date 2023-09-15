@@ -15,7 +15,6 @@ def test_mapping():
         subprocess.run(["python", "-m", "suppression_study.warnings.WarningSuppressionMapper",
                         "--repo_dir=" + repo_dir,
                         "--commit_id=7178e728",
-                        "--lang=python",
                         "--checker=pylint",
                         "--results_dir=" + working_dir])
 
