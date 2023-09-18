@@ -23,15 +23,15 @@ def test_GrepSuppressionPython_mypy_commit_list():
             "--commit_id=" + commit_csv_file,
             "--results_dir=" + demo_path])
         
-        actual_outputs = os.listdir(grep_folder)
-        for a in actual_outputs:
+        expected_csvs = os.listdir(grep_folder)
+        for a in expected_csvs:
             if a.endswith(".csv"):
+                actual_results = join(demo_path, "grep", a.replace("expected_", ""))
                 expected_results = join(grep_folder, a)
-                actual_results = join(demo_path, "grep", a)
-                sort_and_compare_files(expected_results, actual_results)
+                sort_and_compare_files(actual_results, expected_results)
 
 def test_GrepSuppressionPython_pylint_single_commit():
-    expected_results = "tests/suppression/GrepSuppressionPython/PylintSuppression/a09fcfec_suppression.csv"
+    expected_results = "tests/suppression/GrepSuppressionPython/PylintSuppression/expected_a09fcfec_suppression.csv"
     with tempfile.TemporaryDirectory() as demo_path:
         demo_repo_name = "suppression-test-python-pylint"
         demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
@@ -44,5 +44,5 @@ def test_GrepSuppressionPython_pylint_single_commit():
             "--results_dir=" + demo_path])
 
         actual_results = join(demo_path,"grep/a09fcfec_suppression.csv")
-        sort_and_compare_files(expected_results, actual_results)
+        sort_and_compare_files(actual_results, expected_results)
 
