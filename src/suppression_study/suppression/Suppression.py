@@ -13,6 +13,12 @@ class Suppression():
     def __eq__(self, __value: object) -> bool:
         return self.path == __value.path and self.text == __value.text and self.line == __value.line
     
+    def is_mypy(self):
+        return self.text.startswith("# type: ignore")
+    
+    def is_pylint(self):
+        return self.text.startswith("# pylint:")
+    
 
 def read_suppressions_from_file(csv_file):
     suppressions = set()
