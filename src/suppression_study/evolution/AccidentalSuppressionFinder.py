@@ -111,7 +111,7 @@ def main(repo_dir, commits_file, history_file, results_dir):
     for commit in commits:
         # TODO add support for mypy
         compute_warning_suppression_mapping(
-            repo_dir, commit, "python", "pylint", results_dir)
+            repo_dir, commit, "pylint", results_dir)
 
     # analyze each suppression history separately
     all_accidentally_suppressed_warnings = []
