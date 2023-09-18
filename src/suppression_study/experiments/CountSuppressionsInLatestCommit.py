@@ -1,5 +1,5 @@
-from os.path import join, normpath, getsize
-from os import makedirs, sep
+from os.path import join, getsize
+from os import makedirs
 from tempfile import TemporaryDirectory
 from shutil import move
 from suppression_study.experiments.Experiment import Experiment
@@ -21,7 +21,6 @@ class CountSuppressionsInLatestCommit(Experiment):
             tmp_out_file = join(tmp_dir, f"{commit}_suppression.csv")
 
             # move result file to expected location
-            # TODO: perhaps we should adapt GrepSuppressionPython to write to the expected location directly
             repo_name = repo_dir_to_name(repo_dir)
             output_dir = join("data", "results",
                               repo_name, "commits", commit)
