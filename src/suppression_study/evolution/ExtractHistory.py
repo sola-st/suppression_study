@@ -97,7 +97,7 @@ class ExtractHistory():
             -L: [line_range_start, line_range_end]
             --reverse: result starts from old history/ old commit
             '''
-            command_line = "git log -C -M -L" + line_range_str + "," + line_range_str + ":" + current_file + " --reverse"
+            command_line = "git log -C -M -L" + line_range_str + "," + line_range_str + ":'" + current_file + "' --reverse"
             result = subprocess.run(command_line, cwd=self.repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
             with open(log_result, "w") as f:
                 f.writelines(result.stdout) 
