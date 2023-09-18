@@ -38,9 +38,9 @@ def test_LifetimeVisualization_toy_repo():
             f"--repo_parent_folder={demo_path}", 
             f"--lifetime_output_csv={output}"])
         
-        expected_results_data = "tests/evolution/lifetime_visualization/lifetime_all_groups.csv"
         actual_results = join(visualization_result_folder, "lifetime_all_groups.csv")
-        sort_and_compare_files(expected_results_data, actual_results)
+        expected_results_data = "tests/evolution/lifetime_visualization/expected_lifetime_all_groups.csv"
+        sort_and_compare_files(actual_results, expected_results_data)
 
         # Check if the generated plot file has bytes
         expected_results_plot_pdf = join(visualization_result_folder, "lifetime_all_visualization.pdf")

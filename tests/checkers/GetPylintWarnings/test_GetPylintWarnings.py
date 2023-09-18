@@ -16,6 +16,6 @@ def test_GetPylintWarning():
             "--commit_id=a09fcfe",
             "--results_dir=" + demo_path])
 
-        expected_results = "tests/checkers/GetPylintWarnings/a09fcfe_warnings.csv"
         actual_results = join(demo_path, "checker_results/a09fcfe/a09fcfe_warnings.csv")
-        sort_and_compare_files(expected_results, actual_results)
+        expected_results = "tests/checkers/GetPylintWarnings/expected_a09fcfe_warnings.csv"
+        sort_and_compare_files(actual_results, expected_results)

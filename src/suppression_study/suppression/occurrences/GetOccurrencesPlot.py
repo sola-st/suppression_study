@@ -4,8 +4,9 @@ import numpy as np
 from suppression_study.utils.VisualizationLoadData import load_data_from_csv
 
 
-def visualization_occurrence(occurrences_csv):
+def visualization_occurrence(occurrences_csv, type_source):
     # Visualize data in occurrences_csv to output_pdf
+    # type_source: [suppressions, warnings], warning types from suppressions or warnings.
     '''
     Target file header = [
         "warning_type",
@@ -35,6 +36,6 @@ def visualization_occurrence(occurrences_csv):
     plt.xlabel("Warning types")
     plt.ylabel("# Occurrences")
     plt.subplots_adjust(left=0.2, right=0.9, bottom=0.3)
-    plt.title("Occurrences of different warning types")
+    plt.title(f"Occurrences of different warning types in {type_source}")
     plt.savefig(output_pdf)
     print("Visualization done.")

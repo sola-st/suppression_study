@@ -15,7 +15,7 @@ def test_GetMypyWarning():
             "--repo_dir=" + repo_dir,
             "--commit_id=06d4370",
             "--results_dir=" + demo_path])
-
-        expected_results = "tests/checkers/GetMypyWarnings/06d4370_warnings.csv"
+        
         actual_results = join(demo_path, "checker_results/06d4370/06d4370_warnings.csv")
-        sort_and_compare_files(expected_results, actual_results)
+        expected_results = "tests/checkers/GetMypyWarnings/expected_06d4370_warnings.csv"
+        sort_and_compare_files(actual_results, expected_results)
