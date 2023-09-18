@@ -94,7 +94,7 @@ def write_suppression_to_csv(
                 [suppression.path, suppression.text, suppression.line])
 
 
-def main(repo_dir, commit_id, checker, results_dir, suppressions_file, warnings_file):
+def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warnings_file=None):
     # checkout the commit
     target_repo = Repo(repo_dir)
     target_repo.git.checkout(commit_id, force=True)
@@ -104,6 +104,8 @@ def main(repo_dir, commit_id, checker, results_dir, suppressions_file, warnings_
         suppressions = get_all_suppressions(repo_dir, commit_id, results_dir)
     else:
         suppressions = read_suppressions_from_file(suppressions_file)
+    # keep only those suppressions that are for the current checker
+    suppressions = [s for s in suppressions if s.get_checker() == checker]
 
     if warnings_file is None:
         original_warnings = get_all_warnings(
@@ -143,4 +145,4 @@ def main(repo_dir, commit_id, checker, results_dir, suppressions_file, warnings_
 if __name__ == "__main__":
     args = parser.parse_args()
     main(args.repo_dir, args.commit_id, args.checker, args.results_dir,
-          args.suppressions_file, args.warnings_file)
+         args.suppressions_file, args.warnings_file)

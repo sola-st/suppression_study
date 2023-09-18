@@ -12,13 +12,15 @@ class Suppression():
 
     def __eq__(self, __value: object) -> bool:
         return self.path == __value.path and self.text == __value.text and self.line == __value.line
-    
-    def is_mypy(self):
-        return self.text.startswith("# type: ignore")
-    
-    def is_pylint(self):
-        return self.text.startswith("# pylint:")
-    
+
+    def get_checker(self):
+        if self.text.startswith("# type: ignore"):
+            return "mypy"
+        elif self.text.startswith("# pylint:"):
+            return "pylint"
+        else:
+            raise ValueError(f"Unknown suppression type: {self.text}")
+
 
 def read_suppressions_from_file(csv_file):
     suppressions = set()
