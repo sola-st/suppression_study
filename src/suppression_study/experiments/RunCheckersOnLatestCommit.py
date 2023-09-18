@@ -1,3 +1,4 @@
+from os import makedirs
 from os.path import join
 from shutil import move
 from multiprocessing import Pool, cpu_count
@@ -36,8 +37,8 @@ class RunCheckersOnLatestCommit(Experiment):
 def run_checker_on_repo(args):
     checker, repo_dir, commit_id = args
     repo_name = repo_dir_to_name(repo_dir)
-    target_path = join(
-        "data", "results", repo_name, "commits", commit_id, f"{checker}_warnings.csv")
+    target_dir = join("data", "results", repo_name, "commits", commit_id)
+    target_file = join(target_dir, f"{checker}_warnings.csv")
 
     with TemporaryDirectory() as tmp_result_dir:
         print(f"Running {checker} on {repo_name} at {commit_id}")
@@ -47,8 +48,9 @@ def run_checker_on_repo(args):
             get_mypy_warnings(repo_dir, commit_id, tmp_result_dir)
         tmp_path = join(
             tmp_result_dir, f"checker_results/{commit_id}/{commit_id}_warnings.csv")
-        move(tmp_path, target_path)
-        print(f"Have copied {checker} warnings into {target_path}")
+        makedirs(target_dir, exist_ok=True)
+        move(tmp_path, target_file)
+        print(f"Have copied {checker} warnings into {target_file}")
 
 
 if __name__ == "__main__":
