@@ -12,7 +12,7 @@ class ComputeWarningSuppressionMapsOnLatestCommit(Experiment):
     where "latest" is is the latest we consider in the study.
 
     Depends on:
-     * FindSuppressionsOnLatestCommit
+     * CountSuppressionsOnLatestCommit
      * RunCheckersOnLatestCommit
     """
 
