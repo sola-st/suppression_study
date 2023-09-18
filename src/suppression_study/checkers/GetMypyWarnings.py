@@ -78,8 +78,6 @@ def main(repo_dir, commit_id, results_dir):
     warnings = init.read_reports(report)
     init.write_warning_list(warnings, commit_results_dir)
 
-    print("Done.")
-
 
 if __name__=="__main__":
     args = parser.parse_args()
