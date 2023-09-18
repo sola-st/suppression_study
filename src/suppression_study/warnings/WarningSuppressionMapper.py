@@ -8,6 +8,7 @@ import csv
 from git.repo import Repo
 from suppression_study.suppression.GrepSuppressionPython import GrepSuppressionPython
 from suppression_study.checkers.GetPylintWarnings import main as get_pylint_warnings
+from suppression_study.checkers.GetMypyWarnings import main as get_mypy_warnings
 from suppression_study.suppression.SuppressionRemover import SuppressionRemover
 from suppression_study.warnings.Warning import read_warning_from_file, Warning
 from suppression_study.suppression.Suppression import Suppression, read_suppressions_from_file
@@ -43,7 +44,8 @@ def get_all_suppressions(repo_dir, commit_id, results_dir):
 def get_all_warnings(repo_dir, commit_id, checker, results_dir):
     if checker == "pylint":
         get_pylint_warnings(repo_dir, commit_id, results_dir)
-    # TODO: add mypy support
+    elif checker == "mypy":
+        get_mypy_warnings(repo_dir, commit_id, results_dir)
 
     # read them into a list
     warning_file = join(results_dir, "checker_results",
