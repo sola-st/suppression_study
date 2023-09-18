@@ -1,4 +1,5 @@
 import csv
+import re
 
 '''
 These format steps can be used to format suppression from the following 3 checkers:
@@ -116,13 +117,14 @@ class FormatSuppressionCommon():
                         else:
                             preprocessed_suppression = raw_suppression
                 else: # starts with suppressor
-                    if code_suppression.count(self.comment_symbol) >= 2: # one for suppression
-                        content_filter2 = code_suppression.split(self.comment_symbol, 1)[1].strip()
-                        if content_filter2.startswith(suppressor): # only the first comment be suppression will work
-                            suppression_content = self.comment_symbol + " " + content_filter2
-                            preprocessed_suppression =  suppression_content
+                    if code_suppression.count(self.comment_symbol) >= 2:
+                        # line has multiple comments --> ignore everything but the first one
+                        index_of_second_comment = [m.start() for m in re.finditer(self.comment_symbol, code_suppression)][1]
+                        preprocessed_suppression = code_suppression[:index_of_second_comment].strip()
                     else:
                         preprocessed_suppression =  code_suppression
+
+                assert preprocessed_suppression != ""
 
                 # Reorder suppression keys and combined to a whole one
                 file_path_info = raw_suppression['file_path'].replace("./", "", 1)
