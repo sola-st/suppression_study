@@ -214,4 +214,4 @@ if __name__=="__main__":
     end_time = datetime.datetime.now()
     executing_time = (end_time - start_time).seconds
     print(f"Executing time: {executing_time} seconds")
-    print("Done.")
+    print("Done with ExtractHistory.")
