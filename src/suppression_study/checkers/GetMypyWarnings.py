@@ -52,10 +52,15 @@ class GetMypyWarnings(GetWarningsSuper):
                         warning_type = line.split("[")[-1].replace("\n", "").replace("]", "").strip()
                     else:
                         warning_type = line.split(":")[-1].strip()
-                    warning_dict = {"file_path" : file_path,
-                            "warning_type" : warning_type,
-                            "line_number" : line_number}
-                    warnings.append(warning_dict)
+
+                    # TODO For some repos (e.g., autogluon at commit 0a00e065) mypy produces an error that doesn't have a line number,
+                    # which leads to an incorrect entry in the warnings csv.
+                    # The following is a temporary fix, which simply ignores such errors.
+                    if line_number.isdigit():
+                        warning_dict = {"file_path" : file_path,
+                                "warning_type" : warning_type,
+                                "line_number" : line_number}
+                        warnings.append(warning_dict)
                 line = f.readline()
 
         return warnings 
