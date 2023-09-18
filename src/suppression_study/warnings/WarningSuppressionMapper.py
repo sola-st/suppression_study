@@ -23,6 +23,10 @@ parser.add_argument("--checker", help="The checker to run",
                     required=True, choices=["mypy", "pylint"])
 parser.add_argument(
     "--results_dir", help="Directory where to put the results", required=True)
+parser.add_argument("--suppressions_file",
+                    help="File with suppressions to use (if not given, will compute it)")
+parser.add_argument(
+    "--warnings_file", help="File with warnings to use (if not given, will compute it)")
 
 
 def get_all_suppressions(repo_dir, commit_id, results_dir):
@@ -66,7 +70,7 @@ def read_mapping_from_csv(results_dir, commit_id):
         reader = csv.reader(f)
         for row in reader:
             suppression = Suppression(row[0], row[1], int(row[2]))
-            if row[3] == "": # no warning for this suppression
+            if row[3] == "":  # no warning for this suppression
                 warning = None
             else:
                 warning = Warning(row[3], row[4], int(row[5]))
@@ -90,15 +94,22 @@ def write_suppression_to_csv(
                 [suppression.path, suppression.text, suppression.line])
 
 
-def main(repo_dir, commit_id, checker, results_dir):
+def main(repo_dir, commit_id, checker, results_dir, suppressions_file, warnings_file):
     # checkout the commit
     target_repo = Repo(repo_dir)
     target_repo.git.checkout(commit_id, force=True)
 
     # get all suppressions and warnings
-    suppressions = get_all_suppressions(repo_dir, commit_id, results_dir)
-    original_warnings = get_all_warnings(
-        repo_dir, commit_id, checker, results_dir)
+    if suppressions_file is None:
+        suppressions = get_all_suppressions(repo_dir, commit_id, results_dir)
+    else:
+        suppressions = read_suppressions_from_file(suppressions_file)
+
+    if warnings_file is None:
+        original_warnings = get_all_warnings(
+            repo_dir, commit_id, checker, results_dir)
+    else:
+        original_warnings = read_warning_from_file(warnings_file)
 
     # remove one suppression at a time and run the checker,
     # to see what warning(s) the suppression suppresses
@@ -131,4 +142,5 @@ def main(repo_dir, commit_id, checker, results_dir):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args.repo_dir, args.commit_id, args.checker, args.results_dir)
+    main(args.repo_dir, args.commit_id, args.checker, args.results_dir,
+          args.suppressions_file, args.warnings_file)
