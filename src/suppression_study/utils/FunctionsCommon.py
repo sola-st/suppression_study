@@ -1,5 +1,6 @@
 import subprocess
-
+from os import makedirs
+from os.path import dirname
     
 def get_commit_list(commit_id_csv):
     '''Read given commit .csv file, return a commit list'''
@@ -29,8 +30,8 @@ def get_commit_date_lists(commit_id_csv):
             
             line = f.readline()
     return all_commits, all_dates
-
-def write_commit_info_to_csv(repo_dir, commit_id_csv):
+    
+def write_commit_info_to_csv(repo_dir, commit_id_csv, oldest_n_commits=None):
     '''
     Valid for the repository which the repo_dir point to is the latest commit status,
     otherwise, will miss to get all commits. --> useful on running tests.
@@ -40,6 +41,10 @@ def write_commit_info_to_csv(repo_dir, commit_id_csv):
     git_get_commits = subprocess.run(commit_command, cwd=repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
     commits = git_get_commits.stdout 
 
+    if oldest_n_commits is not None:
+        commits = "\n".join(commits.split("\n")[:oldest_n_commits])
+
+    makedirs(dirname(commit_id_csv), exist_ok=True)
     with open(commit_id_csv, "w") as f:
         f.writelines(commits)
 
