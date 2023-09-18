@@ -54,7 +54,7 @@ class ExtractHistory():
         # Suppression in deleted_files(previous_commit) are deleted
         deleted_files = repo_base.git.diff("--name-only", "--diff-filter=D", previous_commit, current_commit) 
         
-        repo_base.git.checkout(current_commit)
+        repo_base.git.checkout(current_commit, force=True)
         suppression_index = 0 
         for suppression in all_suppression_commit_level:
             suppression_index += 1
@@ -178,13 +178,12 @@ def main(repo_dir, commit_id_csv_list, results_dir):
         write_commit_info_to_csv(repo_dir, commit_id_csv_list) # commit_info: commit and date
     all_commits_list, all_dates_list = get_commit_date_lists(commit_id_csv_list)
 
-    # Get suppression
+    # Grep for suppressions in all relevant commits
     suppression_result = join(results_dir, "grep")
-    if not os.path.exists(suppression_result):
-        subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
-        "--repo_dir=" + repo_dir,
-        "--commit_id=" + commit_id_csv_list,
-        "--results_dir=" + results_dir])
+    subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
+    "--repo_dir=" + repo_dir,
+    "--commit_id=" + commit_id_csv_list,
+    "--results_dir=" + results_dir])
 
     if not os.listdir(suppression_result):
         os.rmdir(suppression_result)

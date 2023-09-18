@@ -14,25 +14,25 @@ def test_mapping():
 
         subprocess.run(["python", "-m", "suppression_study.warnings.WarningSuppressionMapper",
                         "--repo_dir=" + repo_dir,
-                        "--commit_id=7178e72",
+                        "--commit_id=7178e728",
                         "--lang=python",
                         "--checker=pylint",
                         "--results_dir=" + working_dir])
 
         # check that the mapping between suppressions and warnings is correct
-        mapping_actual = join(working_dir, "7178e72_mapping.csv")
+        mapping_actual = join(working_dir, "7178e728_mapping.csv")
         mapping_expected = "tests/warnings/WarningSuppressionMapper/expected_mapping.csv"
         sort_and_compare_files(mapping_actual, mapping_expected)
 
         # check that the lists of suppressed warnings are correct
-        mapping_actual = join(working_dir, "7178e72_suppressed_warnings.csv")
+        mapping_actual = join(working_dir, "7178e728_suppressed_warnings.csv")
         mapping_expected = "tests/warnings/WarningSuppressionMapper/expected_suppressed_warnings.csv"
         sort_and_compare_files(mapping_actual, mapping_expected)
 
         # check that the lists of useful and useless suppressions are correct
-        mapping_actual = join(working_dir, "7178e72_useful_suppressions.csv")
+        mapping_actual = join(working_dir, "7178e728_useful_suppressions.csv")
         mapping_expected = "tests/warnings/WarningSuppressionMapper/expected_useful_suppressions.csv"
         sort_and_compare_files(mapping_actual, mapping_expected)
-        mapping_actual = join(working_dir, "7178e72_useless_suppressions.csv")
+        mapping_actual = join(working_dir, "7178e728_useless_suppressions.csv")
         mapping_expected = "tests/warnings/WarningSuppressionMapper/expected_useless_suppressions.csv"
         sort_and_compare_files(mapping_actual, mapping_expected)

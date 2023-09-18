@@ -22,6 +22,7 @@ class ComputeSuppressionHistories(Experiment):
     def run(self):
         # prepare repositories
         repo_dirs = self.get_repo_dirs()
+        self.checkout_latest_commits()
         print(f"Found {len(repo_dirs)} repositories.")
 
         # compute commits to consider list and prepare args for running ExtractHistory in parallel

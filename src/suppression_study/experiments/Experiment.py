@@ -70,7 +70,7 @@ class Experiment(ABC):
             branch = get_name_of_main_branch(repo)
             latest_commit = next(repo.iter_commits(branch, max_count=1,
                                                    until=self.latest_commit_date))
-            repo.git.checkout(latest_commit)
+            repo.git.checkout(latest_commit, force=True)
             commit_id = latest_commit.hexsha[:8]
             repo_dir_to_commit[repo_dir] = commit_id
             print(f"Checked out commit {commit_id} of {repo_dir}")
