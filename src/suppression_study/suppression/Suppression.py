@@ -43,7 +43,7 @@ def get_suppression_text_from_file(csv_file):
 def get_raw_warning_type(csv_file):
     '''
     Get raw warning types from suppression_texts
-    eg,. only Suppression: # type: ignore[assignment]
+    eg,. Suppression text: # type: ignore[assignment]
          Raw warning type: assignment
     '''
     raw_warning_types = []
