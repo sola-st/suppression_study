@@ -2,7 +2,8 @@ import csv
 
 
 class Suppression():
-    def __init__(self, path, text, line):
+    def __init__(self, path: str, text: str, line: int):
+        assert type(line) == int
         self.path = path
         self.text = text
         self.line = line
