@@ -2,26 +2,35 @@ import json
 
 
 class AccidentallySuppressedWarning:
-    def __init__(self, first_commit, warning):
-        self.first_commit = first_commit
-        self.warning = warning
+    def __init__(self, commit, suppression, previous_warnings, warnings):
+        self.commit = commit
+        self.suppression = suppression
+        self.previous_warnings = previous_warnings
+        self.warnings = warnings
 
     def __lt__(self, other):
-        """Sort by first_commit, then by warning. Useful for getting a deterministic order when writing to a file."""
-        if self.first_commit != other.first_commit:
-            return self.first_commit < other.first_commit
+        """Sort based on attributes. Useful for getting a deterministic order when writing to a file."""
+        if self.commit != other.commit:
+            return self.commit < other.commit
+        elif self.suppression != other.suppression:
+            return self.suppression < other.suppression
+        elif self.previous_warnings != other.previous_warnings:
+            return self.previous_warnings < other.previous_warnings
         else:
-            return self.warning < other.warning
+            return self.warnings < other.warnings
 
     def to_dict(self):
-        return {
-            "first_commit": self.first_commit,
-            "warning": {
-                "path": self.warning.path,
-                "kind": self.warning.kind,
-                "line": self.warning.line
-            }
+        d = {
+            "commit": self.commit,
+            "suppression": {
+                "path": self.suppression.path,
+                "text": self.suppression.text,
+                "line": self.suppression.line
+            },
+            "previous_warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.previous_warnings)],
+            "warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.warnings)]
         }
+        return d
 
 
 def write_accidentally_suppressed_warnings(accidentally_suppressed_warnings, output_file):

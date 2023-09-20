@@ -74,6 +74,7 @@ def analyze_suppression_history(results_dir, suppression_history, all_commits):
     accidentally_suppressed_warnings = []
     commits = find_relevant_range_of_commits(suppression_history, all_commits)
 
+    previous_commit = None
     warnings_suppressed_at_previous_commit = None
     for commit in commits:
         event = find_closest_change_event(commit, suppression_history)
@@ -81,21 +82,26 @@ def analyze_suppression_history(results_dir, suppression_history, all_commits):
 
         # find warnings that the suppression suppresses at the current point in time
         warnings_suppressed_at_commit = []
+        suppression = None
         for s, w in suppression_warning_pairs:
             if s.path == event.file_path and s.text == event.warning_type and s.line == event.line_number:
+                suppression = s
                 if w is not None:
                     warnings_suppressed_at_commit.append(w)
 
         # if a new warning shows up that wasn't suppressed by this suppression
         # at the previous commit, create an AccidentallySuppressedWarning
         if warnings_suppressed_at_previous_commit is not None:
-            # TODO currently, we compare warnings exactly, but a warning may move to a different location
-            new_warnings = set(warnings_suppressed_at_commit) - \
-                set(warnings_suppressed_at_previous_commit)
-            for warning in new_warnings:
+            assert suppression is not None
+            if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
+                # there's a new warning suppressed by this suppression
                 accidentally_suppressed_warnings.append(
-                    AccidentallySuppressedWarning(commit, warning))
+                    AccidentallySuppressedWarning(commit,
+                                                  suppression,
+                                                  warnings_suppressed_at_previous_commit,
+                                                  warnings_suppressed_at_commit))
 
+        previous_commit = commit
         warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
 
     return accidentally_suppressed_warnings
