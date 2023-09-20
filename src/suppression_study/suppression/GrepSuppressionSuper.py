@@ -2,7 +2,7 @@ import subprocess
 from git.repo import Repo
 import os
 from os.path import join
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import get_commit_list
 
 
 class GrepSuppressionSuper():
@@ -17,16 +17,16 @@ class GrepSuppressionSuper():
         '''
 
         # Record relative path in results
-        find_command = "find . -name " + self.source_file_extension + " | xargs grep -E " + self.filter_keywords + " -n"
+        find_command = "find . -name '" + self.source_file_extension + "' -print0 | xargs -0 grep -E '" + self.filter_keywords + "' -n"
         result = subprocess.run(find_command, cwd=target_folder, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-        output_txt_lines = result.stdout # output_txt_lines : type: str
+        output_txt_lines: str = result.stdout
         '''
         In some cases, grep command does not show file_path in the results, as only 1 file related to searching keyword.
         If so, run the command with option "-l" to get the file_path, and update the result raw_suppression_results file.
         '''
         new_txt_lines = []
         if output_txt_lines.split(":", 1)[0].isdigit():
-            command = "find . -name " + self.source_file_extension + " | xargs grep -l -E " + self.filter_keywords + " -n"
+            command = "find . -name '" + self.source_file_extension + "' -print0 | xargs -0 grep -l -E '" + self.filter_keywords + "' -n"
             result = subprocess.run(command, cwd=target_folder, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
             file_path = result.stdout.strip() # should only with a file path
             output_txt_lines_list = output_txt_lines.strip().split("\n")
@@ -45,7 +45,7 @@ class GrepSuppressionSuper():
 
     def grep_suppression_for_specific_commit(self):
         repo_base= Repo(self.repo_dir)
-        repo_base.git.checkout(self.commit_id)
+        repo_base.git.checkout(self.commit_id, force=True)
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
         
@@ -57,10 +57,10 @@ class GrepSuppressionSuper():
     def grep_suppression_for_all_commits(self):
         output_txt_files = []
 
-        all_commits = FunctionsCommon.get_commit_list(self.commit_id)
+        all_commits = get_commit_list(self.commit_id)
         repo_base= Repo(self.repo_dir)
         for commit in all_commits:
-            repo_base.git.checkout(commit)
+            repo_base.git.checkout(commit, force=True)
             if not os.path.exists(self.output_path):
                 os.makedirs(self.output_path)
 

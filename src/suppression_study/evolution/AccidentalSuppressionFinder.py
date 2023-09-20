@@ -7,7 +7,7 @@ import argparse
 from os.path import join
 from typing import List
 from suppression_study.evolution.SuppressionHistory import read_histories_from_json
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import get_commit_list
 from suppression_study.warnings.WarningSuppressionMapper import main as compute_warning_suppression_mapping, read_mapping_from_csv
 from suppression_study.evolution.AccidentallySuppressedWarning import AccidentallySuppressedWarning, write_accidentally_suppressed_warnings
 from suppression_study.evolution.ChangeEvent import ChangeEvent
@@ -102,7 +102,7 @@ def analyze_suppression_history(results_dir, suppression_history, all_commits):
 
 def main(repo_dir, commits_file, history_file, results_dir):
     # read the list of commit ids
-    commits = FunctionsCommon.get_commit_list(commits_file)
+    commits = get_commit_list(commits_file)
 
     # read the suppression history
     histories = read_histories_from_json(history_file)
@@ -111,7 +111,7 @@ def main(repo_dir, commits_file, history_file, results_dir):
     for commit in commits:
         # TODO add support for mypy
         compute_warning_suppression_mapping(
-            repo_dir, commit, "python", "pylint", results_dir)
+            repo_dir, commit, "pylint", results_dir)
 
     # analyze each suppression history separately
     all_accidentally_suppressed_warnings = []
