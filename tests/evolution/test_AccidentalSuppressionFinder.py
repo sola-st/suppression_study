@@ -42,3 +42,8 @@ def test_AccidentalSuppressionFinder4():
     run_test_on_repo("suppression-test-accidental4",
                      "https://github.com/michaelpradel/suppression-test-accidental4.git",
                      "tests/evolution/expected_accidentally_suppressed_warnings4.json")
+
+def test_AccidentalSuppressionFinder5():
+    run_test_on_repo("suppression-test-accidental5",
+                     "https://github.com/michaelpradel/suppression-test-accidental5.git",
+                     "tests/evolution/expected_accidentally_suppressed_warnings5.json")
