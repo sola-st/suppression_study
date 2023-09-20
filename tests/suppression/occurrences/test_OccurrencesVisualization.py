@@ -4,7 +4,7 @@ import tempfile
 import subprocess
 from os.path import join
 
-from suppression_study.utils.FunctionsCommon import FunctionsCommon
+from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 from tests.TestUtils import sort_and_compare_files
 
 
@@ -19,7 +19,7 @@ def test_OccurrencesVisualization_in_suppressions():
 
             repo_dir = join(demo_path, repo_name) 
             commit_csv_file = join(repo_dir, "check_commits.csv")
-            FunctionsCommon.write_commit_info_to_csv(repo_dir, commit_csv_file)
+            write_commit_info_to_csv(repo_dir, commit_csv_file)
             
             suppression_results_dir = join(demo_path, repo_name)
             subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
