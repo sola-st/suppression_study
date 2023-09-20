@@ -74,7 +74,6 @@ def analyze_suppression_history(results_dir, suppression_history, all_commits):
     accidentally_suppressed_warnings = []
     commits = find_relevant_range_of_commits(suppression_history, all_commits)
 
-    previous_commit = None
     warnings_suppressed_at_previous_commit = None
     for commit in commits:
         event = find_closest_change_event(commit, suppression_history)
@@ -101,7 +100,6 @@ def analyze_suppression_history(results_dir, suppression_history, all_commits):
                                                   warnings_suppressed_at_previous_commit,
                                                   warnings_suppressed_at_commit))
 
-        previous_commit = commit
         warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
 
     return accidentally_suppressed_warnings
