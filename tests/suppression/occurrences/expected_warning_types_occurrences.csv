@@ -1,7 +1,7 @@
 warning_type,occurrences
 invalid-name,8
 all,8
-missing-module-docstring,2
+missing-module-docstring,5
 return-value,5
 arg-type,6
 ignore,5

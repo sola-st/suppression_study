@@ -41,6 +41,7 @@ def main(all_repositories_csv, results_repos_parent_folder, results_dir, type_so
     for repo in csv_reader:
         repo_name = repo[1]
         print(f"Repository: {repo_name}")
+        # future work: instead of from grep folder, get suppressions from history json file.
         grep_folder = join(results_repos_parent_folder, repo_name, "grep")
         warning_type_occurrences_repo_csv = warning_type_occurrences_csv.replace(".csv", f"_{repo_name}.csv")
         raw_warning_types_repo_level = get_warning_type_single_repository(
