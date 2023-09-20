@@ -5,7 +5,7 @@ from os.path import join
 
 
 def test_ExtractHistory_pylint():
-    expected_results = "tests/evolution/histories_suppression_level_all.json"
+    expected_results = "tests/evolution/expected_histories_suppression_level_all.json"
     with tempfile.TemporaryDirectory() as demo_path:
         demo_repo_name = "suppression-test-python-pylint"
         demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
