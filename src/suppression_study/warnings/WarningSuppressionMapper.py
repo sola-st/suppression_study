@@ -2,6 +2,7 @@
 For a given commit, computes a mapping between warnings and suppressions.
 '''
 
+from typing import List
 import argparse
 from os.path import join
 from git.repo import Repo
@@ -79,10 +80,10 @@ def compute_mapping_by_removing_suppressions(repo_dir, suppressions, original_wa
     return suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions
 
 
-def compute_mapping_via_pylint_support(repo_dir, suppressions, original_warnings, commit_id, results_dir):
+def compute_mapping_via_pylint_support(repo_dir, suppressions, commit_id, relevant_files, results_dir):
     # get suppression-warning pairs from Pylint
     suppression_warning_pairs = get_suppressed_pylint_warnings(
-        repo_dir, commit_id, results_dir)
+        repo_dir, commit_id, results_dir, relevant_files)
 
     # find useful suppressions and suppressed warnings
     all_suppressed_warnings = set()
@@ -101,7 +102,7 @@ def compute_mapping_via_pylint_support(repo_dir, suppressions, original_warnings
     return suppression_warning_pairs, list(all_suppressed_warnings), list(useful_suppressions), list(useless_suppressions)
 
 
-def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warnings_file=None):
+def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warnings_file=None, relevant_files: List[str] = None):
     # checkout the commit
     target_repo = Repo(repo_dir)
     target_repo.git.checkout(commit_id, force=True)
@@ -113,18 +114,22 @@ def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warn
         suppressions = read_suppressions_from_file(suppressions_file)
     # keep only those suppressions that are for the current checker
     suppressions = [s for s in suppressions if s.get_checker() == checker]
-
-    if warnings_file is None:
-        original_warnings = get_all_warnings(
-            repo_dir, commit_id, checker, results_dir)
-    else:
-        original_warnings = read_warning_from_file(warnings_file)
+    # keep only those suppressions that are in the relevant files
+    if relevant_files is not None:
+        suppressions = [s for s in suppressions if s.path in relevant_files]
 
     if checker == "pylint":
         suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions = compute_mapping_via_pylint_support(
-            repo_dir, suppressions, original_warnings, commit_id, results_dir)
+            repo_dir, suppressions, commit_id, relevant_files, results_dir)
     elif checker == "mypy":
         # TODO any way to avoid this slow approach for mypy?
+
+        if warnings_file is None:
+            original_warnings = get_all_warnings(
+                repo_dir, commit_id, checker, results_dir)
+        else:
+            original_warnings = read_warning_from_file(warnings_file)
+
         suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions = compute_mapping_by_removing_suppressions(
             repo_dir, suppressions, original_warnings, commit_id, checker, results_dir)
 

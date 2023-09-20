@@ -1,3 +1,4 @@
+from typing import List
 import argparse
 import re
 from suppression_study.checkers.GetPylintWarnings import GetPylintWarnings
@@ -22,14 +23,22 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
     which allows us to get the list of suppressed warnings.   
     """
 
-    def __init__(self, repo_dir, commit_id, results_dir):
+    def __init__(self, repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.results_dir = results_dir
+        self.relevant_files = relevant_files
 
     def run_checker(self):
         checker = "pylint"
-        command_line = "pylint --recursive=y --disable=I,R --enable=I0020 ./"
+
+        # if relevant files are given, run pylint only on those files (otherwise, run it on the whole repo)
+        if self.relevant_files is None:
+            command_line = "pylint --recursive=y --disable=I,R --enable=I0020 ./"
+        else:
+            command_line = f"pylint --recursive=y --disable=I,R --enable=I0020 {' '.join(self.relevant_files)}"
+
+        print(f"Running {command_line} on {self.commit_id}")
         report, commit_results_dir = super(
             GetPylintWarnings, self).run_checker(checker, command_line)
         return report, commit_results_dir
@@ -51,14 +60,15 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
 
                     suppression = Suppression(
                         file_path, f"# pylint: disable={warning_type}", int(suppression_line_number))
-                    warning = Warning(file_path, warning_type, int(line_number))
+                    warning = Warning(
+                        file_path, warning_type, int(line_number))
                     suppression_warning_pairs.append([suppression, warning])
 
         return suppression_warning_pairs
 
 
-def main(repo_dir, commit_id, results_dir):
-    tool = GetSuppressedPylintWarnings(repo_dir, commit_id, results_dir)
+def main(repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
+    tool = GetSuppressedPylintWarnings(repo_dir, commit_id, results_dir, relevant_files)
     report, _ = tool.run_checker()
     suppression_warning_pairs = tool.read_reports(report)
     write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)

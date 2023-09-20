@@ -95,10 +95,10 @@ def find_relevant_commits(repo_dir: str, history: List[ChangeEvent], commits: Li
     return result
 
 
-def get_suppression_warning_pairs(repo_dir, commit, results_dir):
+def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir):
     # TODO mypy support
     compute_warning_suppression_mapping(
-        repo_dir, commit, "pylint", results_dir)
+        repo_dir, commit, "pylint", results_dir, relevant_files=relevant_files)
     pairs = read_mapping_from_csv(results_dir, commit)
     return pairs
 
@@ -109,7 +109,7 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
     for commit in relevant_commits:
         event = find_closest_change_event(commit, history)
         suppression_warning_pairs = get_suppression_warning_pairs(
-            repo_dir, commit, results_dir)
+            repo_dir, commit, relevant_files, results_dir)
 
         # find warnings that the suppression suppresses at the current point in time
         warnings_suppressed_at_commit = []
@@ -149,7 +149,7 @@ def main(repo_dir, commits_file, history_file, results_dir):
 
     all_accidentally_suppressed_warnings = []
     # go through all suppression histories
-    for history in histories:
+    for history_idx, history in enumerate(histories):
         # find the files and commits that are relevant for the suppression
         relevant_files = find_files_in_history(history)
         relevant_commits = find_relevant_commits(repo_dir, history, commits)
@@ -159,6 +159,7 @@ def main(repo_dir, commits_file, history_file, results_dir):
             repo_dir, history, relevant_commits, relevant_files, results_dir)
         all_accidentally_suppressed_warnings.extend(
             accidentally_suppressed_warnings)
+        print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.")
 
     # write results to file
     output_file = join(results_dir, "accidentally_suppressed_warnings.json")
