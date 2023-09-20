@@ -91,14 +91,16 @@ def analyze_suppression_history(results_dir, suppression_history, all_commits):
         # if a new warning shows up that wasn't suppressed by this suppression
         # at the previous commit, create an AccidentallySuppressedWarning
         if warnings_suppressed_at_previous_commit is not None:
-            assert suppression is not None
-            if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
-                # there's a new warning suppressed by this suppression
-                accidentally_suppressed_warnings.append(
-                    AccidentallySuppressedWarning(commit,
-                                                  suppression,
-                                                  warnings_suppressed_at_previous_commit,
-                                                  warnings_suppressed_at_commit))
+            # TODO if we want to support "moving" suppressions, this check needs to be removed;
+            # see the currently disabled test_AccidentalSuppressionFinder6() 
+            if suppression is not None:
+                if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
+                    # there's a new warning suppressed by this suppression
+                    accidentally_suppressed_warnings.append(
+                        AccidentallySuppressedWarning(commit,
+                                                    suppression,
+                                                    warnings_suppressed_at_previous_commit,
+                                                    warnings_suppressed_at_commit))
 
         warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
 
