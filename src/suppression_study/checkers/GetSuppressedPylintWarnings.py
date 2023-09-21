@@ -1,6 +1,7 @@
 from typing import List
 import argparse
 import re
+from os.path import exists, join
 from suppression_study.checkers.GetPylintWarnings import GetPylintWarnings
 from suppression_study.suppression.Suppression import Suppression
 from suppression_study.warnings.Warning import Warning
@@ -36,7 +37,10 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
         if self.relevant_files is None:
             command_line = "pylint --recursive=y --disable=I,R --enable=I0020 ./"
         else:
-            command_line = f"pylint --recursive=y --disable=I,R --enable=I0020 {' '.join(self.relevant_files)}"
+            # analyze relevant files that exist in the current commit
+            files_to_analyze = [
+                f for f in self.relevant_files if exists(join(self.repo_dir, f))]
+            command_line = f"pylint --recursive=y --disable=I,R --enable=I0020 {' '.join(files_to_analyze)}"
 
         print(f"Running {command_line} on {self.commit_id}")
         report, commit_results_dir = super(
@@ -68,7 +72,8 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
 
 
 def main(repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
-    tool = GetSuppressedPylintWarnings(repo_dir, commit_id, results_dir, relevant_files)
+    tool = GetSuppressedPylintWarnings(
+        repo_dir, commit_id, results_dir, relevant_files)
     report, _ = tool.run_checker()
     suppression_warning_pairs = tool.read_reports(report)
     write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
