@@ -7,7 +7,7 @@ from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 from tests.TestUtils import sort_and_compare_files
 
 
-def test_ExtractHistory_pylint():
+def test_Select1000Commits():
     with tempfile.TemporaryDirectory() as demo_path:
         demo_repo_name = "suppression-test-python-pylint"
         demo_repo_git_link = "https://github.com/michaelpradel/suppression-test-python-pylint.git"
