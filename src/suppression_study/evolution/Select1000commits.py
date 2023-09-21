@@ -1,6 +1,7 @@
 import os
 from os.path import join
 from os import sep
+import shutil
 import subprocess
 import tempfile
 
@@ -35,7 +36,7 @@ def get_commits_first_use_suppression(repo_dir, all_commit_id_list_startsfrom_ol
             else: 
                 # suppression exists in grep results, but not real suppressions, 
                 # eg,. a suppression in a comment line
-                os.removedirs(grep_suppression_folder)
+                shutil.rmtree(grep_suppression_folder)
 
     return first_suppression_commit_index
 

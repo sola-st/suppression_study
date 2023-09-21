@@ -3,6 +3,7 @@ For a given commit, computes a mapping between warnings and suppressions.
 '''
 
 import argparse
+import os
 from os.path import join
 import csv
 from git.repo import Repo
@@ -36,8 +37,10 @@ def get_all_suppressions(repo_dir, commit_id, results_dir):
     grep.grep_suppression_for_specific_commit()
 
     # read them into a list
+    suppressions = set()
     suppression_file = join(results_dir, f"{commit_id}_suppression.csv")
-    suppressions = read_suppressions_from_file(suppression_file)
+    if os.path.exists(suppression_file):
+        suppressions = read_suppressions_from_file(suppression_file)
     return suppressions
 
 
