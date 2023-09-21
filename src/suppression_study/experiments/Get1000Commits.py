@@ -1,13 +1,13 @@
 import datetime
 from os.path import join
 from multiprocessing import Pool, cpu_count
-from suppression_study.evolution.Select1000commits import select_1000_commits
+from suppression_study.evolution.Select1000Commits import select_1000_commits
 from suppression_study.experiments.Experiment import Experiment
 from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
-class Get1000commits(Experiment):
+class Get1000Commits(Experiment):
     """
     Get 1000 commits for all repositories.
     """
@@ -31,8 +31,8 @@ class Get1000commits(Experiment):
             commit_list_file = self._compute_commit_id_list(repo_dir, repo_name)
             print(f"Computed commit list for {repo_name}.")
 
-            selected_1000_commits_dates = commit_list_file.replace(".csv", "_1000.csv")
-            args = [repo_dir, commit_list_file, selected_1000_commits_dates]
+            output_commit_list_file = commit_list_file.replace(".csv", "_1000.csv")
+            args = [repo_dir, commit_list_file, output_commit_list_file]
             args_for_all_repos.append(args)
             
         # start selecting 1000 commits, in parallel on different repos
@@ -51,4 +51,4 @@ def select_commits_wrapper(args):
     print(f"Done with commits selection on {args[0]}")
 
 if __name__ == "__main__":
-    Get1000commits().run()
+    Get1000Commits().run()

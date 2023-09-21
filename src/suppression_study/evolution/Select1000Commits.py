@@ -6,14 +6,15 @@ import subprocess
 import tempfile
 
 from suppression_study.utils.FunctionsCommon import get_commit_list
+from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
 def get_commits_first_use_suppression(repo_dir, all_commit_id_list_startsfrom_oldest, all_commit_num):
     first_suppression_commit_index = 0
     if repo_dir.endswith(sep):
-        repo_dir.strip(sep)
-    repo_info = repo_dir.rsplit(sep, 1)
-    repo_parent_folder, repo_name = repo_info
+        repo_dir = repo_dir.rstrip(sep)
+    repo_name = repo_dir_to_name(repo_dir)
+    repo_parent_folder = os.path.dirname(repo_dir)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         grep_suppression_folder = join(tmp_dir, "grep")
