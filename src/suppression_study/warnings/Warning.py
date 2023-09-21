@@ -2,7 +2,8 @@ import csv
 
 
 class Warning():
-    def __init__(self, path, kind, line):
+    def __init__(self, path: str, kind: str, line: int):
+        assert type(line) == int
         self.path = path
         self.kind = kind
         self.line = line

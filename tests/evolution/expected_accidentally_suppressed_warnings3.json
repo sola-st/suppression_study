@@ -1,0 +1,29 @@
+[
+    {
+        "commit": "a4b3809a",
+        "suppression": {
+            "path": "src/hello.py",
+            "text": "# pylint: disable=undefined-variable",
+            "line": 4
+        },
+        "previous_warnings": [
+            {
+                "path": "src/hello.py",
+                "kind": "undefined-variable",
+                "line": 6
+            }
+        ],
+        "warnings": [
+            {
+                "path": "src/hello.py",
+                "kind": "undefined-variable",
+                "line": 6
+            },
+            {
+                "path": "src/hello.py",
+                "kind": "undefined-variable",
+                "line": 8
+            }
+        ]
+    }
+]

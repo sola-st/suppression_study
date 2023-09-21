@@ -30,3 +30,8 @@ def get_current_commit(repo_dir):
     repo = Repo(repo_dir)
     commit_id = repo.git.log("-1", "--pretty=format:%h", "--abbrev=8")
     return commit_id
+
+
+def get_files_changed_by_commit(repo: Repo, commit: str):
+    files_dict = repo.commit(commit).stats.files
+    return list(files_dict.keys())

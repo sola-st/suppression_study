@@ -4,10 +4,8 @@ from os.path import join
 from tests.TestUtils import exactly_compare_files
 
 
-def test_AccidentalSuppressionFinder():
+def run_test_on_repo(repo_name, repo_url, expected_result_file):
     with tempfile.TemporaryDirectory() as working_dir:
-        repo_name = "suppression-test-accidental3"
-        repo_url = "https://github.com/michaelpradel/suppression-test-accidental3.git"
         subprocess.run("git clone " + repo_url,
                        cwd=working_dir, shell=True)
 
@@ -28,7 +26,31 @@ def test_AccidentalSuppressionFinder():
                         "--commits_file=" + commit_csv_file,
                         "--history_file=" + history_file,
                         "--results_dir=" + working_dir])
-        
-        actual_result_file = join(working_dir, "accidentally_suppressed_warnings.json")
-        expected_result_file = "tests/evolution/expected_accidentally_suppressed_warnings.json"
+
+        actual_result_file = join(
+            working_dir, "accidentally_suppressed_warnings.json")
         exactly_compare_files(actual_result_file, expected_result_file)
+
+
+def test_AccidentalSuppressionFinder3():
+    run_test_on_repo("suppression-test-accidental3",
+                     "https://github.com/michaelpradel/suppression-test-accidental3.git",
+                     "tests/evolution/expected_accidentally_suppressed_warnings3.json")
+
+
+def test_AccidentalSuppressionFinder4():
+    run_test_on_repo("suppression-test-accidental4",
+                     "https://github.com/michaelpradel/suppression-test-accidental4.git",
+                     "tests/evolution/expected_accidentally_suppressed_warnings4.json")
+
+def test_AccidentalSuppressionFinder5():
+    run_test_on_repo("suppression-test-accidental5",
+                     "https://github.com/michaelpradel/suppression-test-accidental5.git",
+                     "tests/evolution/expected_accidentally_suppressed_warnings5.json")
+    
+# TODO This test fails because the suppression histories do not (yet) include "move" events,
+# i.e., commits that move a suppression from one line to another in the same file.
+# def test_AccidentalSuppressionFinder6():
+#     run_test_on_repo("suppression-test-accidental6",
+#                      "https://github.com/michaelpradel/suppression-test-accidental6.git",
+#                      "tests/evolution/expected_accidentally_suppressed_warnings6.json")

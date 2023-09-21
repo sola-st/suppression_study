@@ -2,16 +2,18 @@
 For a given commit, computes a mapping between warnings and suppressions.
 '''
 
+from typing import List
 import argparse
 from os.path import join
-import csv
 from git.repo import Repo
 from suppression_study.suppression.GrepSuppressionPython import GrepSuppressionPython
 from suppression_study.checkers.GetPylintWarnings import main as get_pylint_warnings
 from suppression_study.checkers.GetMypyWarnings import main as get_mypy_warnings
 from suppression_study.suppression.SuppressionRemover import SuppressionRemover
-from suppression_study.warnings.Warning import read_warning_from_file, Warning
-from suppression_study.suppression.Suppression import Suppression, read_suppressions_from_file
+from suppression_study.warnings.Warning import read_warning_from_file
+from suppression_study.suppression.Suppression import read_suppressions_from_file
+from suppression_study.checkers.GetSuppressedPylintWarnings import main as get_suppressed_pylint_warnings
+from suppression_study.warnings.WarningSuppressionUtil import write_mapping_to_csv, write_suppressed_warnings_to_csv, write_suppression_to_csv
 
 
 parser = argparse.ArgumentParser(
@@ -54,67 +56,7 @@ def get_all_warnings(repo_dir, commit_id, checker, results_dir):
     return warnings
 
 
-def write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id):
-    with open(join(results_dir, f"{commit_id}_mapping.csv"), "w") as f:
-        writer = csv.writer(f)
-        for suppression, warning in suppression_warning_pairs:
-            if warning is None:
-                writer.writerow(
-                    [suppression.path, suppression.text, suppression.line, "", "", ""])
-            else:
-                writer.writerow([suppression.path, suppression.text,
-                                suppression.line, warning.path, warning.kind, warning.line])
-
-
-def read_mapping_from_csv(results_dir, commit_id):
-    pairs = []
-    with open(join(results_dir, f"{commit_id}_mapping.csv"), "r") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            suppression = Suppression(row[0], row[1], int(row[2]))
-            if row[3] == "":  # no warning for this suppression
-                warning = None
-            else:
-                warning = Warning(row[3], row[4], int(row[5]))
-            pairs.append([suppression, warning])
-    return pairs
-
-
-def write_suppressed_warnings_to_csv(all_suppressed_warnings, results_dir, commit_id):
-    with open(join(results_dir, f"{commit_id}_suppressed_warnings.csv"), "w") as f:
-        writer = csv.writer(f)
-        for warning in all_suppressed_warnings:
-            writer.writerow([warning.path, warning.kind, warning.line])
-
-
-def write_suppression_to_csv(
-        useless_suppressions, results_dir, commit_id, kind):
-    with open(join(results_dir, f"{commit_id}_{kind}_suppressions.csv"), "w") as f:
-        writer = csv.writer(f)
-        for suppression in useless_suppressions:
-            writer.writerow(
-                [suppression.path, suppression.text, suppression.line])
-
-
-def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warnings_file=None):
-    # checkout the commit
-    target_repo = Repo(repo_dir)
-    target_repo.git.checkout(commit_id, force=True)
-
-    # get all suppressions and warnings
-    if suppressions_file is None:
-        suppressions = get_all_suppressions(repo_dir, commit_id, results_dir)
-    else:
-        suppressions = read_suppressions_from_file(suppressions_file)
-    # keep only those suppressions that are for the current checker
-    suppressions = [s for s in suppressions if s.get_checker() == checker]
-
-    if warnings_file is None:
-        original_warnings = get_all_warnings(
-            repo_dir, commit_id, checker, results_dir)
-    else:
-        original_warnings = read_warning_from_file(warnings_file)
-
+def compute_mapping_by_removing_suppressions(repo_dir, suppressions, original_warnings, commit_id, checker, results_dir):
     # remove one suppression at a time and run the checker,
     # to see what warning(s) the suppression suppresses
     remover = SuppressionRemover(repo_dir)
@@ -135,6 +77,62 @@ def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warn
             useful_suppressions.append(suppression)
         all_suppressed_warnings.update(suppressed_warnings)
         remover.restore()
+    return suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions
+
+
+def compute_mapping_via_pylint_support(repo_dir, suppressions, commit_id, relevant_files, results_dir):
+    # get suppression-warning pairs from Pylint
+    suppression_warning_pairs = get_suppressed_pylint_warnings(
+        repo_dir, commit_id, results_dir, relevant_files)
+
+    # find useful suppressions and suppressed warnings
+    all_suppressed_warnings = set()
+    useful_suppressions = set()
+    for suppression, warning in suppression_warning_pairs:
+        useful_suppressions.add(suppression)
+        all_suppressed_warnings.add(warning)
+
+    # find useless suppressions
+    useless_suppressions = set()
+    for suppression in suppressions:
+        if suppression not in useful_suppressions:
+            useless_suppressions.add(suppression)
+            suppression_warning_pairs.append((suppression, None))
+
+    return suppression_warning_pairs, list(all_suppressed_warnings), list(useful_suppressions), list(useless_suppressions)
+
+
+def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warnings_file=None, relevant_files: List[str] = None):
+    # checkout the commit
+    target_repo = Repo(repo_dir)
+    target_repo.git.checkout(commit_id, force=True)
+
+    # get all suppressions and warnings
+    if suppressions_file is None:
+        suppressions = get_all_suppressions(repo_dir, commit_id, results_dir)
+    else:
+        suppressions = read_suppressions_from_file(suppressions_file)
+    # keep only those suppressions that are for the current checker
+    suppressions = [s for s in suppressions if s.get_checker() == checker]
+    # keep only those suppressions that are in the relevant files
+    if relevant_files is not None:
+        suppressions = [s for s in suppressions if s.path in relevant_files]
+
+    if checker == "pylint":
+        suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions = compute_mapping_via_pylint_support(
+            repo_dir, suppressions, commit_id, relevant_files, results_dir)
+    elif checker == "mypy":
+        # TODO any way to avoid this slow approach for mypy?
+
+        if warnings_file is None:
+            original_warnings = get_all_warnings(
+                repo_dir, commit_id, checker, results_dir)
+        else:
+            original_warnings = read_warning_from_file(warnings_file)
+
+        suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions = compute_mapping_by_removing_suppressions(
+            repo_dir, suppressions, original_warnings, commit_id, checker, results_dir)
+
     write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
     write_suppressed_warnings_to_csv(
         all_suppressed_warnings, results_dir, commit_id)

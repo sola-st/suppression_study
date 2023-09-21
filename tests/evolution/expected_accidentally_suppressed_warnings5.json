@@ -1,0 +1,29 @@
+[
+    {
+        "commit": "1247bcdd",
+        "suppression": {
+            "path": "hello.py",
+            "text": "# pylint: disable=missing-format-string-key",
+            "line": 7
+        },
+        "previous_warnings": [
+            {
+                "path": "hello.py",
+                "kind": "missing-format-string-key",
+                "line": 9
+            }
+        ],
+        "warnings": [
+            {
+                "path": "hello.py",
+                "kind": "missing-format-string-key",
+                "line": 10
+            },
+            {
+                "path": "hello.py",
+                "kind": "missing-format-string-key",
+                "line": 12
+            }
+        ]
+    }
+]
