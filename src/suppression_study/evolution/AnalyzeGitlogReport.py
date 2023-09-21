@@ -5,6 +5,8 @@ from suppression_study.evolution.ChangeEvent import ChangeEvent
 from suppression_study.evolution.CommitBlockInfo import AllCommitBlock, CommitBlock
 from suppression_study.evolution.IdentifyChangeOperation import IdentifyChangeOperation
 
+log_path_separator = "__xXx__"  # used in paths of log files
+
 
 class AnalyzeGitlogReport():
     def __init__(self, log_results_info_list, tracked_deleted_files, tracked_delete_commit, tracked_delete_date, \
@@ -48,7 +50,7 @@ class AnalyzeGitlogReport():
                 with open(file, "r") as f:
                     lines = f.readlines()
 
-                file_delete_check_tmp = file.split("/")[-1].split("_")[:2]
+                file_delete_check_tmp = file.split("/")[-1].split(log_path_separator)[:2]
                 file_delete_check = "/".join(file_delete_check_tmp)
                 start_count = 0
                 all_commit_block_file_level = []
