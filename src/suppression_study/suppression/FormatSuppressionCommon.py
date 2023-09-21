@@ -6,8 +6,8 @@ These format steps can be used to format suppression from the following 3 checke
 For Python:
     1) Pylint
     2) Mypy
-For JavaScript:
-    3) ESLint
+# For JavaScript:
+#     3) ESLint
 '''
 class FormatSuppressionCommon():
 
@@ -69,16 +69,6 @@ class FormatSuppressionCommon():
         Mypy:
         --1 source code # type: 
         --1 source code # type: # other comments (eg,. # noqa)
-
-
-        JavaScript:
-        1) comments start with "//" or "/*"
-        2) can follow with natural language description (relatively complicated to format)
-        3) Flow cannot mixed with source code
-        Has 2 representation ways:
-        eslint:
-        --1 // or /* eslint (description or not)
-        --2 source code // or /* eslint (description or not)
         '''
 
         with open(self.precessed_suppression_csv,"w") as d:

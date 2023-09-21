@@ -25,8 +25,11 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         '''
         Run "Grep" command to find suppression in specified commit, return a .txt file 
         ''' 
-        raw_suppression_results= super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
-        self.format_to_csv(raw_suppression_results)
+        raw_suppression_results = super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
+        if os.path.getsize(raw_suppression_results):
+            format_to_csv(raw_suppression_results)
+        else:
+            os.remove(raw_suppression_results)
 
     def grep_suppression_for_all_commits(self):
         '''
@@ -36,14 +39,15 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits()
         for raw_suppression_results in output_txt_files:
             if os.path.getsize(raw_suppression_results):
-                self.format_to_csv(raw_suppression_results)
+                format_to_csv(raw_suppression_results)
             else:
                 os.remove(raw_suppression_results)
 
-    def format_to_csv(self, raw_suppression_results): 
-        comment_symbol = "#" 
-        preprocessed_suppression_csv = raw_suppression_results.replace(".txt", "_suppression.csv")
-        FormatSuppressionCommon(comment_symbol, raw_suppression_results, preprocessed_suppression_csv).format_suppression_common()
+
+def format_to_csv(raw_suppression_results): 
+    comment_symbol = "#" 
+    preprocessed_suppression_csv = raw_suppression_results.replace(".txt", "_suppression.csv")
+    FormatSuppressionCommon(comment_symbol, raw_suppression_results, preprocessed_suppression_csv).format_suppression_common()
 
         
 if __name__=="__main__":
