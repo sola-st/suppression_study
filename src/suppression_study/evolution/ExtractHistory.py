@@ -6,7 +6,7 @@ from os.path import join
 import datetime
 
 
-from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
+from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport, log_path_separator as sep
 from suppression_study.evolution.SuppressionHistory import SuppressionHistory
 from suppression_study.utils.SuppressionInfo import SuppressionInfo
 from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv, get_commit_date_lists
@@ -75,7 +75,7 @@ class ExtractHistory():
                 current_file_parent_folder = current_file.split("/")[-2].strip()
             except:
                 pass
-            log_result_file_name = f"{current_file_parent_folder}_{current_file_name_base}_{suppression_index}_{line_range_str}.txt"
+            log_result_file_name = f"{current_file_parent_folder}{sep}{current_file_name_base}{sep}{suppression_index}{sep}{line_range_str}.txt"
                         
             # Get the parent folder of log_result_file_name, which is log_result_commit_folder
             log_result_commit_folder = join(self.log_result_folder, current_commit)
