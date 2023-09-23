@@ -17,7 +17,7 @@ class LaTeXTable:
         self.rows.append("SEPARATOR")
 
     def to_latex(self):
-        latex = "\\begin{tabular}{\n"
+        latex = "\\begin{tabular}{}\n"
         latex += "\\toprule\n"
         latex += " & ".join(self.column_names) + "\\\\\n"
         latex += "\\midrule\n"
