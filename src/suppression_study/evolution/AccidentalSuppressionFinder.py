@@ -99,7 +99,7 @@ def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir)
     # TODO mypy support
     compute_warning_suppression_mapping(
         repo_dir, commit, "pylint", results_dir, relevant_files=relevant_files)
-    pairs = read_mapping_from_csv(results_dir, commit)
+    pairs = read_mapping_from_csv(results_dir=results_dir, commit_id=commit)
     return pairs
 
 
