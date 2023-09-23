@@ -17,9 +17,9 @@ class GrepSuppressionPython(GrepSuppressionSuper):
 
     def __init__(self, repo_dir, commit_id, output_path, checker=None):
         if checker == None:
-            super().__init__("*.py", "# pylint:|# type: ignore")
+            super().__init__("*.py", "# pylint: *disable|# type: ignore")
         elif checker == "pylint":
-            super().__init__("*.py", "# pylint:")
+            super().__init__("*.py", "# pylint: *disable")
         elif checker == "mypy":
             super().__init__("*.py", "# type: ignore")
         else:
