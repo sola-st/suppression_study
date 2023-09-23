@@ -1,0 +1,50 @@
+from typing import List
+from os.path import join
+import matplotlib.pyplot as plt
+from collections import Counter
+from suppression_study.experiments.CountSuppressionsOnLatestCommit import CountSuppressionsOnLatestCommit
+from suppression_study.suppression.Suppression import Suppression, read_suppressions_from_file
+
+
+class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
+    """
+    Experiment that plots a distribution of the most common
+    kinds of problems suppressed by all suppressions in the 
+    "latest" commit of the studied repositories.
+    """
+
+    def _plot_distribution(self, suppressions: List[Suppression]):
+        kinds = []
+        for s in suppressions:
+            kinds.extend(s.get_short_names())
+
+        kind_to_count = Counter(kinds)
+        output_file = join("data", "results", "suppression_histogram.pdf")
+        top_kind_to_count = dict(kind_to_count.most_common(10))
+        print(top_kind_to_count)
+        plt.bar(top_kind_to_count.keys(), top_kind_to_count.values())
+        plt.xticks(rotation=45)
+        plt.xlabel("Kind of suppression")
+        plt.ylabel("Number of suppressions")
+        plt.tight_layout()
+        plt.savefig(output_file)
+        print(f"Saved histogram to {output_file}")
+
+    def run(self):
+        # prepare repositories
+        self.get_repo_dirs()
+        repo_dir_to_commit = self.checkout_latest_commits()
+
+        # get suppressions
+        all_suppressions = []
+        for repo_dir, commit in repo_dir_to_commit.items():
+            suppressions_file = super()._find_suppressions(repo_dir, commit)
+            suppressions = read_suppressions_from_file(suppressions_file)
+            all_suppressions.extend(suppressions)
+
+        # compute and plot distribution
+        self._plot_distribution(all_suppressions)
+
+
+if __name__ == "__main__":
+    DistributionOfSuppressionOnLatestCommit().run()
