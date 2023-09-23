@@ -16,7 +16,7 @@ class CountSuppressionsInLatestCommit(Experiment):
                 f"Grepping for suppressions in {repo_dir} at commit {commit}")
 
             # run grep to find suppression in the latest commit
-            grep = GrepSuppressionPython(repo_dir, commit, tmp_dir)
+            grep = GrepSuppressionPython(repo_dir, commit, tmp_dir, checker="pylint")
             grep.grep_suppression_for_specific_commit()
             tmp_out_file = join(tmp_dir, f"{commit}_suppression.csv")
 

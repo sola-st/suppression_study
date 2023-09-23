@@ -15,8 +15,15 @@ parser.add_argument("--results_dir", help="Directory where to put the results", 
 
 class GrepSuppressionPython(GrepSuppressionSuper):
 
-    def __init__(self, repo_dir, commit_id, output_path):
-        super().__init__("*.py", "# pylint:|# type: ignore")
+    def __init__(self, repo_dir, commit_id, output_path, checker=None):
+        if checker == None:
+            super().__init__("*.py", "# pylint:|# type: ignore")
+        elif checker == "pylint":
+            super().__init__("*.py", "# pylint:")
+        elif checker == "mypy":
+            super().__init__("*.py", "# type: ignore")
+        else:
+            raise ValueError("Checker must be 'pylint', 'mypy', or None")
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.output_path = output_path
