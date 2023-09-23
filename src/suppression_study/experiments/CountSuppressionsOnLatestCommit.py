@@ -11,7 +11,7 @@ from suppression_study.utils.LaTeXUtils import LaTeXTable
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
-class CountSuppressionsInLatestCommit(Experiment):
+class CountSuppressionsOnLatestCommit(Experiment):
     def _find_suppressions(self, repo_dir, commit):
         with TemporaryDirectory() as tmp_dir:
             print(
@@ -95,4 +95,4 @@ class CountSuppressionsInLatestCommit(Experiment):
 
 
 if __name__ == "__main__":
-    CountSuppressionsInLatestCommit().run()
+    CountSuppressionsOnLatestCommit().run()
