@@ -1,6 +1,6 @@
 import csv
 import re
-from typing import List, Union
+from typing import List
 
 
 class Suppression():
@@ -38,13 +38,18 @@ class Suppression():
                 m = re.match(r"# type: ignore\[(.*)\].*", self.text)
                 if m:
                     return [f"{m.groups()[0]} (M)"]
-        elif self.text.startswith("# pylint: disable="):
+        elif self.text.startswith("# pylint:"):
             # pylint
-            if "," not in self.text:
-                return [f"{self.text[len('# pylint: disable='):]} (P)"]
+            m = re.match(r"# pylint: *disable=(.*)", self.text)
+            if m:
+                kind_text = m.groups()[0]
+                if "," not in kind_text:
+                    return [kind_text]
+                else:
+                    parts = kind_text.split(",")
+                    return [f"{part.strip().rstrip()}" for part in parts]
             else:
-                parts = self.text[len("# pylint: disable="):].split(",")
-                return [f"{part.strip().rstrip()} (P)" for part in parts]
+                print(f"Unknown pylint suppression: {self.text}")
 
         return [self.text]
 

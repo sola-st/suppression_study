@@ -1,4 +1,4 @@
-from os.path import join, getsize
+from os.path import join, getsize, exists
 from os import makedirs
 from tempfile import TemporaryDirectory
 from shutil import move
@@ -18,7 +18,8 @@ class CountSuppressionsOnLatestCommit(Experiment):
                 f"Grepping for suppressions in {repo_dir} at commit {commit}")
 
             # run grep to find suppression in the latest commit
-            grep = GrepSuppressionPython(repo_dir, commit, tmp_dir)
+            grep = GrepSuppressionPython(
+                repo_dir, commit, tmp_dir, checker="pylint")
             grep.grep_suppression_for_specific_commit()
             tmp_out_file = join(tmp_dir, f"{commit}_suppression.csv")
 
@@ -28,11 +29,12 @@ class CountSuppressionsOnLatestCommit(Experiment):
                               repo_name, "commits", commit)
             makedirs(output_dir, exist_ok=True)
             out_file = join(output_dir, "suppressions.csv")
-            move(tmp_out_file, out_file)
-
-            if getsize(out_file) == 0:
+            if not exists(tmp_out_file):
                 print(
                     f"WARNING: no suppressions found in {repo_dir} at commit {commit}")
+                # create an empty file to indicate that no suppressions were found
+                open(tmp_out_file, 'a').close()
+            move(tmp_out_file, out_file)
 
             return out_file
 
