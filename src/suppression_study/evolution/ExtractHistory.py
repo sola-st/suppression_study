@@ -7,14 +7,15 @@ import datetime
 
 
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport, log_path_separator as sep
+from suppression_study.evolution.Select1000Commits import select_1000_commits
 from suppression_study.evolution.SuppressionHistory import SuppressionHistory
 from suppression_study.utils.SuppressionInfo import SuppressionInfo
-from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv, get_commit_date_lists
+from suppression_study.utils.FunctionsCommon import get_commit_date_lists
 
 
 parser = argparse.ArgumentParser(description="Extract change histories of all suppressions at the repository level")
 parser.add_argument("--repo_dir", help="Directory with the repository to check", required=True)
-parser.add_argument("--commit_id_csv_list", help=".csv file which stores a list of commit IDs", required=True)
+parser.add_argument("--selected_1000_commits_csv", help="Expected .csv file, which stores selected commit IDs", required=True)
 parser.add_argument("--results_dir", help="Directory where to put the results", required=True)
 
 
@@ -31,10 +32,10 @@ class ExtractHistory():
     run "git log" command to check histories related to suppressions, 
     return a JSON file with suppression level change events.
     '''
-    def __init__(self, repo_dir, all_commits_list, all_dates_list, results_dir, log_result_folder, history_json_file):
+    def __init__(self, repo_dir, selected_1000_commits_list, selected_1000_dates_list, results_dir, log_result_folder, history_json_file):
         self.repo_dir = repo_dir
-        self.all_commits_list = all_commits_list
-        self.all_dates_list = all_dates_list
+        self.selected_1000_commits_list = selected_1000_commits_list
+        self.selected_1000_dates_list = selected_1000_dates_list
         self.results_dir = results_dir
         self.log_result_folder = log_result_folder
         self.history_json_file = history_json_file
@@ -120,13 +121,13 @@ class ExtractHistory():
         tracked_suppression_deleted_mark = False # Suppressions inside a file
         tracked_delete_commit = ""
         tracked_delete_date = ""
-        all_commits_num = len(self.all_commits_list)
+        all_commits_num = len(self.selected_1000_commits_list)
         for i in range(0, all_commits_num): # Start from latest commit
             previous_commit = ""
             get_results = ""
-            current_commit = self.all_commits_list[i]
+            current_commit = self.selected_1000_commits_list[i]
             if i+1 < all_commits_num:
-                previous_commit = self.all_commits_list[i+1]
+                previous_commit = self.selected_1000_commits_list[i+1]
                 get_results = self.run_gitlog_command(previous_commit, current_commit)
 
             if (i+1) % 100 == 0: # check running time every 100 commits
@@ -161,7 +162,7 @@ class ExtractHistory():
             # To avoid these 2 marks make impacts on each other
             if deleted_files or suppression_deleted_mark: 
                 tracked_delete_commit = current_commit
-                tracked_delete_date = self.all_dates_list[i]  
+                tracked_delete_date = self.selected_1000_dates_list[i]  
             elif not (deleted_files and suppression_deleted_mark): # Both false
                 tracked_delete_commit = ""
                 tracked_delete_date = ""
@@ -172,24 +173,24 @@ class ExtractHistory():
         history.write_all_accumulated_histories_to_json()   
 
 
-def main(repo_dir, commit_id_csv_list, results_dir):
-    # Get commit list and suppression for all the commits.
-    if not os.path.exists(commit_id_csv_list):
-        write_commit_info_to_csv(repo_dir, commit_id_csv_list) # commit_info: commit and date
-    all_commits_list, all_dates_list = get_commit_date_lists(commit_id_csv_list)
-
+def main(repo_dir, selected_1000_commits_csv, results_dir):
+    # Get commit list and suppression for selected commits.
+    if not os.path.exists(selected_1000_commits_csv):
+        select_1000_commits(repo_dir, selected_1000_commits_csv)
+    selected_1000_commits_list, selected_1000_dates_list = get_commit_date_lists(selected_1000_commits_csv)
     # Grep for suppressions in all relevant commits
     suppression_result = join(results_dir, "grep")
-    subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
-    "--repo_dir=" + repo_dir,
-    "--commit_id=" + commit_id_csv_list,
-    "--results_dir=" + results_dir])
+    if not os.path.exists(suppression_result):
+        subprocess.run(["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
+        "--repo_dir=" + repo_dir,
+        "--commit_id=" + selected_1000_commits_csv,
+        "--results_dir=" + results_dir])
 
     if not os.listdir(suppression_result):
         os.rmdir(suppression_result)
         print("No suppression found by running GrepSuppressionPython.")
         return
-
+    
     # Create a folder for storing 'git log' results
     # with tempfile.TemporaryDirectory() as work_path:
     log_result_folder = join(results_dir, "gitlog_history")
@@ -200,7 +201,7 @@ def main(repo_dir, commit_id_csv_list, results_dir):
     history_json_file = join(log_result_folder, "histories_suppression_level_all.json")
 
     # Get git log results for all the suppression in latest commit. results in log_result_folder
-    init = ExtractHistory(repo_dir, all_commits_list, all_dates_list, results_dir, log_result_folder, history_json_file)
+    init = ExtractHistory(repo_dir, selected_1000_commits_list, selected_1000_dates_list, results_dir, log_result_folder, history_json_file)
 
     # Check commits and suppression to extract histories of all suppressions.
     init.track_commits_backward()
@@ -210,7 +211,7 @@ if __name__=="__main__":
     args = parser.parse_args()
     print("Running...")
     start_time = datetime.datetime.now()
-    main(args.repo_dir, args.commit_id_csv_list, args.results_dir)
+    main(args.repo_dir, args.selected_1000_commits_csv, args.results_dir)
     end_time = datetime.datetime.now()
     executing_time = (end_time - start_time).seconds
     print(f"Executing time: {executing_time} seconds")

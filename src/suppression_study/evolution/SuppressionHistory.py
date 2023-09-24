@@ -25,26 +25,23 @@ class SuppressionHistory():
                     self.history_accumulator.index(change_events_suppression_level)
                 except:
                     # Current change_events_suppression_level is not in history_accumulator
-                    # New events
-                    for single_change_event in change_events_suppression_level:
-                        # Totally new events
-                        if str(single_change_event) not in str(self.history_accumulator):
-                            key_continuous_int += 1
-                            updated_key = "# S" + str(key_continuous_int)
-                            updated_suppression_level_dict = {updated_key : change_events_suppression_level}
-                            self.history_accumulator.append(updated_suppression_level_dict)
+                    # New events: 2 categories
+                    start_change_event = change_events_suppression_level[0]
+                    # 1. Totally new events
+                    if str(start_change_event) not in str(self.history_accumulator):
+                        key_continuous_int += 1
+                        updated_key = "# S" + str(key_continuous_int)
+                        updated_suppression_level_dict = {updated_key : change_events_suppression_level}
+                        self.history_accumulator.append(updated_suppression_level_dict)
+                    else: # 2. Part new events, should update to new version if needed
+                        for suppression_level_events in self.history_accumulator:
+                            if str(start_change_event) in str(suppression_level_events) \
+                                    and len(change_events_suppression_level) > len(suppression_level_events):
+                                for key, value in self.history_accumulator[0].items():
+                                    if value == suppression_level_events[key]:
+                                        self.history_accumulator[0].update({key: change_events_suppression_level})
+                                        break
                             break
-                        else:
-                            for suppression_level_events in self.history_accumulator:
-                                get_key = ""
-                                if str(single_change_event) in str(suppression_level_events) \
-                                        and len(change_events_suppression_level) < len(suppression_level_events):
-                                    # Part new events, should update to new version
-                                    for key, value in self.history_accumulator[0].items():
-                                        if value == suppression_level_events:
-                                            get_key = key
-                                        self.history_accumulator[0][get_key] = change_events_suppression_level
-                                        break 
         return self.history_accumulator
       
     def sort_by_date(self):

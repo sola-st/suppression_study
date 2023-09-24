@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 
-from suppression_study.utils.FunctionsCommon import get_commit_list
+from suppression_study.utils.FunctionsCommon import get_commit_list, write_commit_info_to_csv
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
@@ -42,7 +42,7 @@ def get_commits_first_use_suppression(repo_dir, all_commit_id_list_startsfrom_ol
     return first_suppression_commit_index
 
 
-def select_1000_commits(repo_dir, all_commit_id_csv, selected_1000_commits_csv):
+def select_1000_commits(repo_dir, selected_1000_commits_csv):
     '''
     Select 1000 commits for each repository:
     start from the commit that first introduces suppressions (Assume it called "first_suppression_commit")
@@ -59,6 +59,10 @@ def select_1000_commits(repo_dir, all_commit_id_csv, selected_1000_commits_csv):
 
     expected_select_commits_num = 1000
     selected_1000_commits_dates = []
+
+    all_commit_id_csv = selected_1000_commits_csv.replace("_1000", "")
+    if not os.path.exists(all_commit_id_csv):
+        write_commit_info_to_csv(repo_dir, all_commit_id_csv) # commit_info: commit and date
 
     all_commit_id_list = get_commit_list(all_commit_id_csv)
     all_commit_num = len(all_commit_id_list)
