@@ -40,7 +40,7 @@ class Suppression():
                     return [f"{m.groups()[0]} (M)"]
         elif self.text.startswith("# pylint:"):
             # pylint
-            m = re.match(r"# pylint: *disable=(.*)", self.text)
+            m = re.match(r"# pylint: *disable.*=(.*)", self.text)
             if m:
                 kind_text = m.groups()[0]
                 if "," not in kind_text:
