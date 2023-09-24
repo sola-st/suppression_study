@@ -2,7 +2,6 @@ import tempfile
 import subprocess
 from os.path import join
 from suppression_study.evolution.Select1000Commits import select_1000_commits
-from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 
 from tests.TestUtils import sort_and_compare_files
 
