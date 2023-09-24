@@ -1,4 +1,6 @@
 import csv
+import re
+from typing import List
 
 
 class Suppression():
@@ -22,6 +24,35 @@ class Suppression():
         else:
             raise ValueError(f"Unknown suppression type: {self.text}")
 
+    def get_short_names(self) -> List[str]:
+        """
+        Heuristically extracts a short description of the kind(s) of 
+        suppressed warnings. Returns a list of strings, which will contain
+        multiple short names if the suppression is for multiple kinds of warnings.
+        """
+        if self.text.startswith("# type: ignore"):
+            # mypy
+            if self.text == "# type: ignore":
+                return ["all (M)"]
+            elif "ignore[" in self.text:
+                m = re.match(r"# type: ignore\[(.*)\].*", self.text)
+                if m:
+                    return [f"{m.groups()[0]} (M)"]
+        elif self.text.startswith("# pylint:"):
+            # pylint
+            m = re.match(r"# pylint: *disable=(.*)", self.text)
+            if m:
+                kind_text = m.groups()[0]
+                if "," not in kind_text:
+                    return [kind_text]
+                else:
+                    parts = kind_text.split(",")
+                    return [f"{part.strip().rstrip()}" for part in parts]
+            else:
+                print(f"Unknown pylint suppression: {self.text}")
+
+        return [self.text]
+
 
 def read_suppressions_from_file(csv_file):
     suppressions = set()
@@ -31,8 +62,9 @@ def read_suppressions_from_file(csv_file):
             suppressions.add(Suppression(s[0], s[1], int(s[2])))
     return suppressions
 
+
 def get_suppression_text_from_file(csv_file):
-     with open(csv_file, "r") as f:
+    with open(csv_file, "r") as f:
         reader = csv.reader(f)
         # Line format: [path, suppression, line number]
         # eg,. src/flask/globals.py	# type: ignore[assignment]	48
@@ -40,6 +72,7 @@ def get_suppression_text_from_file(csv_file):
         # eg,. suppression["text"] : "# type: ignore[assignment]"
         suppression_texts = [row[1] for row in reader]
         return suppression_texts
+
 
 def get_raw_warning_type(csv_file):
     '''
@@ -57,13 +90,16 @@ def get_raw_warning_type(csv_file):
         '''
         if "=" in suppression_text:  # Pylint
             raw_warning_type = suppression_text.split("=")[1]
-            raw_warning_types = raw_warning_types_accumulator(raw_warning_type, raw_warning_types)
+            raw_warning_types = raw_warning_types_accumulator(
+                raw_warning_type, raw_warning_types)
         elif "(" in suppression_text:  # Mypy
             raw_warning_type = suppression_text.split("(")[1].replace(")", "")
-            raw_warning_types = raw_warning_types_accumulator(raw_warning_type, raw_warning_types)
+            raw_warning_types = raw_warning_types_accumulator(
+                raw_warning_type, raw_warning_types)
         elif "[" in suppression_text:  # Mypy
             raw_warning_type = suppression_text.split("[")[1].replace("]", "")
-            raw_warning_types = raw_warning_types_accumulator(raw_warning_type, raw_warning_types)
+            raw_warning_types = raw_warning_types_accumulator(
+                raw_warning_type, raw_warning_types)
         else:
             # Could be: # type: ignore
             if suppression_text == "# type: ignore":
@@ -72,11 +108,13 @@ def get_raw_warning_type(csv_file):
 
     return raw_warning_types  # all raw warning type in specified csv_file
 
+
 def raw_warning_types_accumulator(raw_warning_type, raw_warning_types):
     # Add extracted warning types to raw_warning_types
     if "," in raw_warning_type:  # multiple types
         multi_raw_warning_type_tmp = raw_warning_type.split(",")
-        multi_raw_warning_type = [warning_type.strip() for warning_type in multi_raw_warning_type_tmp]
+        multi_raw_warning_type = [warning_type.strip()
+                                  for warning_type in multi_raw_warning_type_tmp]
         raw_warning_types.extend(multi_raw_warning_type)
     else:
         raw_warning_types.append(raw_warning_type)
