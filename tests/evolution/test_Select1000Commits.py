@@ -14,10 +14,8 @@ def test_Select1000Commits():
         subprocess.run("git clone " + demo_repo_git_link, cwd=demo_path, shell=True)
 
         repo_dir = join(demo_path, demo_repo_name)
-        commit_csv_file = join(repo_dir, "check_commits.csv")
-        write_commit_info_to_csv(repo_dir, commit_csv_file)
-        actual_result_file = join(repo_dir, "selected_1000_commits.csv")
-        select_1000_commits(repo_dir, commit_csv_file, actual_result_file)
+        actual_result_file = join(repo_dir, "check_commits_1000.csv")
+        select_1000_commits(repo_dir, actual_result_file)
         
         expected_results_file = "tests/evolution/expected_selected_1000_commits.csv"
         sort_and_compare_files(actual_result_file, expected_results_file)

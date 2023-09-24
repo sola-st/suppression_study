@@ -1,6 +1,7 @@
 import tempfile
 import subprocess
 from os.path import join
+from suppression_study.evolution.Select1000Commits import select_1000_commits
 from tests.TestUtils import exactly_compare_files
 
 
@@ -11,10 +12,11 @@ def run_test_on_repo(repo_name, repo_url, expected_result_file):
 
         # extract suppression histories, which are needed for the accidental suppression finder
         repo_dir = join(working_dir, repo_name)
-        commit_csv_file = join(repo_dir, "check_commits.csv")
+        selected_1000_commits_csv = join(repo_dir, "check_commits_1000.csv")
+        select_1000_commits(repo_dir, selected_1000_commits_csv)
         subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
                         "--repo_dir=" + repo_dir,
-                        "--commit_id=" + commit_csv_file,
+                        "--selected_1000_commits_csv=" + selected_1000_commits_csv,
                         "--results_dir=" + working_dir])
 
         history_file = join(
@@ -23,7 +25,7 @@ def run_test_on_repo(repo_name, repo_url, expected_result_file):
         repo_dir = join(working_dir, repo_name)
         subprocess.run(["python", "-m", "suppression_study.evolution.AccidentalSuppressionFinder",
                         "--repo_dir=" + repo_dir,
-                        "--commits_file=" + commit_csv_file,
+                        "--commits_file=" + selected_1000_commits_csv,
                         "--history_file=" + history_file,
                         "--results_dir=" + working_dir])
 
