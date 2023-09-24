@@ -115,6 +115,7 @@ class ExtractHistory():
         deleted_files : current commit is commit_2, check which files was deleted
         tracked_deleted_files : current commit is commit_1, connect delete events to corresponding suppressions' histories 
         '''
+        previous_commit_suppression_deleted_mark = False
         extraction_start_time = datetime.datetime.now()
 
         tracked_deleted_files = [] # Files
@@ -140,7 +141,7 @@ class ExtractHistory():
             suppression_deleted_mark = False
             if get_results:
                 log_results_info_list, deleted_files, log_result_commit_folder = get_results
-                if log_result_commit_folder:
+                if log_result_commit_folder and os.listdir(log_result_commit_folder):
                     start_analyze = AnalyzeGitlogReport(log_results_info_list, tracked_deleted_files, tracked_delete_commit, \
                             tracked_delete_date, tracked_suppression_deleted_mark, log_result_commit_folder)
                     all_change_events_list_commit_level = start_analyze.from_gitlog_results_to_change_events()
@@ -154,10 +155,12 @@ class ExtractHistory():
             else:
                 tracked_deleted_files = []
 
-            if suppression_deleted_mark:
+            if suppression_deleted_mark == False and previous_commit_suppression_deleted_mark == True:
                 tracked_suppression_deleted_mark = suppression_deleted_mark # True
             else:
                 tracked_suppression_deleted_mark = False
+
+            previous_commit_suppression_deleted_mark = suppression_deleted_mark
             
             # To avoid these 2 marks make impacts on each other
             if deleted_files or suppression_deleted_mark: 
