@@ -2,6 +2,7 @@ import os
 import tempfile
 import subprocess
 from os.path import join
+from suppression_study.evolution.Select1000Commits import select_1000_commits
 
 from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 from tests.TestUtils import sort_and_compare_files
@@ -14,8 +15,8 @@ def test_LifetimeVisualization_toy_repo():
         subprocess.run("git clone " + demo_repo_git_link, cwd=demo_path, shell=True)
 
         repo_dir = join(demo_path, demo_repo_name)
-        commit_csv_file = join(repo_dir, "check_commits.csv")
-        write_commit_info_to_csv(repo_dir, commit_csv_file)
+        selected_1000_commits_csv = join(repo_dir, "check_commits_1000.csv")
+        select_1000_commits(repo_dir, selected_1000_commits_csv)
 
         # results_dir includes:
         # 1) extracted histories, {results_dir}/gitlog_history
@@ -27,7 +28,7 @@ def test_LifetimeVisualization_toy_repo():
         # Get suppression histories
         subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
             "--repo_dir=" + repo_dir,
-            "--commit_id=" + commit_csv_file,
+            "--commit_id=" + selected_1000_commits_csv,
             "--results_dir=" + results_dir])
         
         # Start visualization
