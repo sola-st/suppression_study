@@ -21,7 +21,7 @@ class Experiment(ABC):
     """
 
     def __init__(self):
-        self.latest_commit_date = "2023-09-01"
+        self.latest_commit_date = "2023-09-01T00:00:00-00:00"
 
     def _is_repo(self, repo_dir):
         try:
