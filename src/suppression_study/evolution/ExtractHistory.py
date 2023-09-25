@@ -39,7 +39,7 @@ class ExtractHistory():
         self.results_dir = results_dir
         self.log_result_folder = log_result_folder
         self.history_json_file = history_json_file
-        self.history_accumulator = []
+        self.history_accumulator : dict = {}
         
     def run_gitlog_command(self, previous_commit, current_commit):
         log_results_info_list = []
@@ -115,7 +115,6 @@ class ExtractHistory():
         deleted_files : current commit is commit_2, check which files was deleted
         tracked_deleted_files : current commit is commit_1, connect delete events to corresponding suppressions' histories 
         '''
-        previous_commit_suppression_deleted_mark = False
         extraction_start_time = datetime.datetime.now()
 
         tracked_deleted_files = [] # Files
@@ -138,7 +137,7 @@ class ExtractHistory():
             log_results_info_list = []
             deleted_files= [] 
             log_result_commit_folder = ""
-            suppression_deleted_mark = False
+            no_suppression_mark = False
             if get_results:
                 log_results_info_list, deleted_files, log_result_commit_folder = get_results
                 if log_result_commit_folder and os.listdir(log_result_commit_folder):
@@ -148,30 +147,29 @@ class ExtractHistory():
                     # Add commit level histories to repository level histories.
                     SuppressionHistory(self.history_accumulator, all_change_events_list_commit_level, "").add_unique_history_to_accumulator()
                 else:
-                    suppression_deleted_mark = True # No suppression in current commit_id
+                    no_suppression_mark = True # No suppression in current commit_id
 
             if deleted_files:
                 tracked_deleted_files = deleted_files
             else:
                 tracked_deleted_files = []
 
-            if suppression_deleted_mark == False and previous_commit_suppression_deleted_mark == True:
-                tracked_suppression_deleted_mark = suppression_deleted_mark # True
+            if no_suppression_mark:
+                tracked_suppression_deleted_mark = no_suppression_mark # True
             else:
                 tracked_suppression_deleted_mark = False
-
-            previous_commit_suppression_deleted_mark = suppression_deleted_mark
             
             # To avoid these 2 marks make impacts on each other
-            if deleted_files or suppression_deleted_mark: 
+            if deleted_files or no_suppression_mark: 
                 tracked_delete_commit = current_commit
                 tracked_delete_date = self.selected_1000_dates_list[i]  
-            elif not (deleted_files and suppression_deleted_mark): # Both false
+            elif not (deleted_files and no_suppression_mark): # Both false
                 tracked_delete_commit = ""
                 tracked_delete_date = ""
 
         # Write repository level histories to a JSON file.
         history = SuppressionHistory(self.history_accumulator, "", self.history_json_file)
+        history.get_history_accumulator_list() # let histories able to sort and dump to json string
         history.sort_by_date()
         history.write_all_accumulated_histories_to_json()   
 
