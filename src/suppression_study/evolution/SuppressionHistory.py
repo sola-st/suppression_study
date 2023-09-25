@@ -18,25 +18,18 @@ class SuppressionHistory():
                 last_key = list(self.history_accumulator)[-1]
                 key_continuous_int = int(last_key.replace("# S", ""))
             
-            for suppression_level_dict in self.all_change_events_list_commit_level:
-                old_key = list(suppression_level_dict.keys())[0]
-                change_events_suppression_level = suppression_level_dict[old_key]
+            for key, change_events_suppression_level in self.all_change_events_list_commit_level.items():
                 # Current change_events_suppression_level is not in history_accumulator
                 # New events: 2 categories
                 exists_in_accumulator = False
                 start_change_event = change_events_suppression_level[0]
                 update_key = None
                 for key, suppression_level_change_events in self.history_accumulator.items():
-                    if isinstance(suppression_level_change_events, list):
-                        for change_event in suppression_level_change_events:
-                            # Expected: if exists, should be equals to add change event
-                            if change_event == start_change_event:
-                                exists_in_accumulator = True
-                                update_key = key
-                                break
-                    else:
-                        if suppression_level_change_events == change_event:
+                    for change_event in suppression_level_change_events:
+                        # Expected: if exists, should be equals to add change event
+                        if change_event == start_change_event:
                             exists_in_accumulator = True
+                            update_key = key
                             break
 
                 if exists_in_accumulator == False: # 1. Totally new events
@@ -53,15 +46,11 @@ class SuppressionHistory():
 
     def get_history_accumulator_list(self):
         for key, value in self.history_accumulator.items():
-            if isinstance(value, list):
-                change_events_list = []
-                for change_event_object in value:
-                    change_events_dict = get_change_event_dict(change_event_object) 
-                    change_events_list.append(change_events_dict)
-                self.history_accumulator_list.append({key: change_events_list})
-            else:
-                change_events_dict = get_change_event_dict(value) 
-                self.history_accumulator_list.append({key: change_events_dict})  
+            change_events_list = []
+            for change_event_object in value:
+                change_events_dict = get_change_event_dict(change_event_object) 
+                change_events_list.append(change_events_dict)
+            self.history_accumulator_list.append({key: change_events_list})
 
     def sort_by_date(self):
 

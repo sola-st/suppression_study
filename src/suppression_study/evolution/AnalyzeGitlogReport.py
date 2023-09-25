@@ -17,7 +17,7 @@ class AnalyzeGitlogReport():
         self.tracked_delete_date = tracked_delete_date
         self.tracked_suppression_deleted_mark = tracked_suppression_deleted_mark
         self.log_result_folder = log_result_folder
-        self.all_change_events_commit_level = []
+        self.all_change_events_commit_level = {}
 
     def from_gitlog_results_to_change_events(self): # Start point of this class
         '''
@@ -144,10 +144,10 @@ class AnalyzeGitlogReport():
                 delete_change_event_object = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
                         last_event.file_path, last_event.warning_type, last_event.line_number, delete_operation)
                 change_events_suppression_level.append(delete_change_event_object)
-                self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
+                self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
                 all_index+=1
         else: # No "file delete" and no "no suppression in the next commit"
-            self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
+            self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
             all_index+=1
         return all_index
     
@@ -156,7 +156,7 @@ class AnalyzeGitlogReport():
         Handle the connections between different change events, to see if they are related to the same suppression or a new one.
         '''
         exists_in_commit_level = False
-        for suppression_level_change_events in self.all_change_events_commit_level:
+        for key, suppression_level_change_events in self.all_change_events_commit_level.items():
             for change_event in suppression_level_change_events:
                 # Expected: if exists, should be equals to add change event
                 if change_event == change_event_object:
@@ -172,7 +172,7 @@ class AnalyzeGitlogReport():
                         # The history of current suppression are all collected
                         # append it to commit level, start to check the next suppression
                         change_events_suppression_level.append(change_event_object)
-                        self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
+                        self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
                         change_events_suppression_level = []
                         all_index+=1
             else:
@@ -181,7 +181,7 @@ class AnalyzeGitlogReport():
                 else: 
                     # actual: misinformation due to tricky cases
                     change_events_suppression_level.append(change_event_object)
-                    self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
+                    self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
                     change_events_suppression_level = []
                     all_index+=1
 
