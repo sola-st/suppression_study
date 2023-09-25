@@ -17,7 +17,7 @@ class AnalyzeGitlogReport():
         self.tracked_delete_date = tracked_delete_date
         self.tracked_suppression_deleted_mark = tracked_suppression_deleted_mark
         self.log_result_folder = log_result_folder
-        self.all_change_events_commit_level = []
+        self.all_change_events_commit_level = {}
 
     def from_gitlog_results_to_change_events(self): # Start point of this class
         '''
@@ -94,7 +94,7 @@ class AnalyzeGitlogReport():
             if block_logfile_level.delete_check in str(self.tracked_deleted_files):
                 file_delete_mark = True
 
-            change_events_suppression_level = []
+            change_events_suppression_level = [] # Expected as a list of changeEvent objects
             for block in block_logfile_level.block:
                 type_line_set, operation_set, tricky_mark = IdentifyChangeOperation(block).identify_change_operation() 
 
@@ -103,10 +103,9 @@ class AnalyzeGitlogReport():
 
                 if operation_set:
                     for type_line, operation in zip(type_line_set, operation_set):
-                        change_event_init = ChangeEvent(block.commit_id, block.date, block.file_path, 
+                        change_event_object = ChangeEvent(block.commit_id, block.date, block.file_path, 
                                 type_line.warning_type, type_line.line_number, operation)
-                        change_event = change_event_init.get_change_event_dict()
-                        change_events_suppression_level, all_index = self.handle_connection_between_change_events(change_event, \
+                        change_events_suppression_level, all_index = self.handle_connection_between_change_events(change_event_object, \
                                 change_events_suppression_level, all_index)
 
             if change_events_suppression_level:
@@ -141,41 +140,48 @@ class AnalyzeGitlogReport():
             delete_operation = "delete" # No suppression in new commit, but there are in old commit.
         if delete_operation:
             last_event = change_events_suppression_level[-1]
-            if "delete" not in last_event["change_operation"]:
-                delete_change_event_init = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
-                        last_event["file_path"], last_event["warning_type"], last_event["line_number"], delete_operation)
-                delete_change_event = delete_change_event_init.get_change_event_dict()
-                change_events_suppression_level.append(delete_change_event)
-                self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+            if "delete" not in last_event.change_operation:
+                delete_change_event_object = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
+                        last_event.file_path, last_event.warning_type, last_event.line_number, delete_operation)
+                change_events_suppression_level.append(delete_change_event_object)
+                self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
                 all_index+=1
         else: # No "file delete" and no "no suppression in the next commit"
-            self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+            self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
             all_index+=1
         return all_index
     
-    def handle_connection_between_change_events(self, change_event, change_events_suppression_level, all_index):
+    def handle_connection_between_change_events(self, change_event_object, change_events_suppression_level, all_index):
         '''
         Handle the connections between different change events, to see if they are related to the same suppression or a new one.
         '''
-        if str(change_event) not in str(self.all_change_events_commit_level):
+        exists_in_commit_level = False
+        for key, suppression_level_change_events in self.all_change_events_commit_level.items():
+            for change_event in suppression_level_change_events:
+                # Expected: if exists, should be equals to add change event
+                if change_event == change_event_object:
+                    exists_in_commit_level = True
+                    break
+        
+        if exists_in_commit_level == False:
             if change_events_suppression_level:
                 last_event = change_events_suppression_level[-1]
-                if last_event["warning_type"] == change_event["warning_type"]: 
+                if last_event.warning_type == change_event_object.warning_type: 
                     # Connection for delete cases
-                    if "delete" in change_event["change_operation"] and "delete" not in last_event["change_operation"]:
+                    if "delete" in change_event_object.change_operation and "delete" not in last_event.change_operation:
                         # The history of current suppression are all collected
                         # append it to commit level, start to check the next suppression
-                        change_events_suppression_level.append(change_event)
-                        self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                        change_events_suppression_level.append(change_event_object)
+                        self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
                         change_events_suppression_level = []
                         all_index+=1
             else:
-                if "delete" not in change_event["change_operation"]:
-                    change_events_suppression_level.append(change_event)
+                if "delete" not in change_event_object.change_operation:
+                    change_events_suppression_level.append(change_event_object)
                 else: 
                     # actual: misinformation due to tricky cases
-                    change_events_suppression_level.append(change_event)
-                    self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                    change_events_suppression_level.append(change_event_object)
+                    self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
                     change_events_suppression_level = []
                     all_index+=1
 

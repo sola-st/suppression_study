@@ -1,5 +1,5 @@
 import json
-from suppression_study.evolution.ChangeEvent import ChangeEvent
+from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
 
 
 class SuppressionHistory():
@@ -8,48 +8,54 @@ class SuppressionHistory():
         self.history_accumulator = history_accumulator
         self.all_change_events_list_commit_level = all_change_events_list_commit_level
         self.history_json_file = history_json_file
+        self.history_accumulator_list = []
 
     def add_unique_history_to_accumulator(self):
         if self.all_change_events_list_commit_level:
             key_continuous_int = -1 # the last number in key from history sequence
             if self.history_accumulator:
                 # Only 1 key in .key(), as a suppression has one suppression ID.
-                dict_keys_to_list = list(self.history_accumulator[-1].keys())
-                key_continuous_int = int(dict_keys_to_list[0].replace("# S", ""))
+                last_key = list(self.history_accumulator)[-1]
+                key_continuous_int = int(last_key.replace("# S", ""))
             
-            for suppression_level_dict in self.all_change_events_list_commit_level:
-                old_key = list(suppression_level_dict.keys())[0]
-                change_events_suppression_level = suppression_level_dict[old_key]
-
-                try: # check duplicates
-                    self.history_accumulator.index(change_events_suppression_level)
-                except:
-                    # Current change_events_suppression_level is not in history_accumulator
-                    # New events
-                    for single_change_event in change_events_suppression_level:
-                        # Totally new events
-                        if str(single_change_event) not in str(self.history_accumulator):
-                            key_continuous_int += 1
-                            updated_key = "# S" + str(key_continuous_int)
-                            updated_suppression_level_dict = {updated_key : change_events_suppression_level}
-                            self.history_accumulator.append(updated_suppression_level_dict)
+            for key, change_events_suppression_level in self.all_change_events_list_commit_level.items():
+                # Current change_events_suppression_level is not in history_accumulator
+                # New events: 2 categories
+                exists_in_accumulator = False
+                start_change_event = change_events_suppression_level[0]
+                update_key = None
+                for key, suppression_level_change_events in self.history_accumulator.items():
+                    for change_event in suppression_level_change_events:
+                        # Expected: if exists, should be equals to add change event
+                        if change_event == start_change_event:
+                            exists_in_accumulator = True
+                            update_key = key
                             break
-                        else:
-                            for suppression_level_events in self.history_accumulator:
-                                get_key = ""
-                                if str(single_change_event) in str(suppression_level_events) \
-                                        and len(change_events_suppression_level) < len(suppression_level_events):
-                                    # Part new events, should update to new version
-                                    for key, value in self.history_accumulator[0].items():
-                                        if value == suppression_level_events:
-                                            get_key = key
-                                        self.history_accumulator[0][get_key] = change_events_suppression_level
-                                        break 
+
+                if exists_in_accumulator == False: # 1. Totally new events
+                    key_continuous_int += 1
+                    update_key = "# S" + str(key_continuous_int)
+                    self.history_accumulator[update_key] = change_events_suppression_level
+                else: # 2. Part new events, should update to new version if needed
+                    if update_key:
+                        found_suppression_level_events = self.history_accumulator[update_key]
+                        if len(change_events_suppression_level) > len(found_suppression_level_events):
+                            # eg,. replace only add event with add-delete events 
+                            self.history_accumulator.update({update_key: change_events_suppression_level})
         return self.history_accumulator
-      
+
+    def get_history_accumulator_list(self):
+        for key, value in self.history_accumulator.items():
+            change_events_list = []
+            for change_event_object in value:
+                change_events_dict = get_change_event_dict(change_event_object) 
+                change_events_list.append(change_events_dict)
+            self.history_accumulator_list.append({key: change_events_list})
+
     def sort_by_date(self):
-        self.history_accumulator.sort(key=lambda x: x[list(x.keys())[0]][0]["date"])
-        for idx, x in enumerate(self.history_accumulator):
+
+        self.history_accumulator_list.sort(key=lambda x: x[list(x.keys())[0]][0]["date"])
+        for idx, x in enumerate(self.history_accumulator_list):
             assert len(x) == 1
             old_suppression_id = list(x.keys())[0]
             new_suppression_id = "# S" + str(idx)
@@ -58,9 +64,9 @@ class SuppressionHistory():
             x[new_suppression_id] = val
 
     # Write all extracted suppression level histories to a JSON file.
-    def write_all_accumulated_histories_to_json(self):                                
+    def write_all_accumulated_histories_to_json(self):  
         with open(self.history_json_file, "w", newline="\n") as ds:
-            json.dump(self.history_accumulator, ds, indent=4, ensure_ascii=False)
+            json.dump(self.history_accumulator_list, ds, indent=4, ensure_ascii=False)
 
     '''
     The format of all_change_events_list_commit_level:

@@ -32,7 +32,7 @@ class Get1000Commits(Experiment):
             print(f"Computed commit list for {repo_name}.")
 
             output_commit_list_file = commit_list_file.replace(".csv", "_1000.csv")
-            args = [repo_dir, commit_list_file, output_commit_list_file]
+            args = [repo_dir, output_commit_list_file]
             args_for_all_repos.append(args)
             
         # start selecting 1000 commits, in parallel on different repos

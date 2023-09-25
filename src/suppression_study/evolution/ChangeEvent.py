@@ -1,28 +1,29 @@
-class ChangeEvent():
+class ChangeEvent:
     def __init__(self, commit_id, date, file_path, warning_type, line_number, change_operation):
-        self.commit_id = commit_id[:8]  # limit commit hash length to 8 characters so we use the same length everywhere
+        # limit commit hash length to 8 characters so we use the same length everywhere
+        self.commit_id = commit_id[:8]  
         self.date = date
         self.file_path = file_path
         self.warning_type = warning_type
         self.line_number = line_number
         self.change_operation = change_operation
 
-    def get_change_event_dict(self):
-        change_event = {
-            "commit_id" : self.commit_id,
-            "date" : self.date,
-            "file_path" : self.file_path,
-            "warning_type" : self.warning_type,
-            "line_number" : self.line_number,
-            "change_operation" : self.change_operation,
-        }
-        # change_event_instance = ChangeEventHelper(change_event)
-        # return change_event_instance
-        return change_event
-    
+    def __hash__(self):
+        return hash((self.commit_id, self.date, self.file_path, 
+                self.warning_type, self.line_number, self.change_operation))
 
+    def __eq__(self, __value: object) -> bool:
+        return self.commit_id == __value.commit_id and self.date == __value.date \
+                and self.file_path == __value.file_path and self.warning_type == __value.warning_type \
+                and self.line_number == __value.line_number and self.change_operation == __value.change_operation
 
-# class ChangeEventHelper():
-#     def __init__(self, change_event):
-#         for key, value in change_event.items():
-#             setattr(self, key, value)
+def get_change_event_dict(given_object):
+    change_event = {
+        "commit_id": given_object.commit_id,
+        "date": given_object.date,
+        "file_path": given_object.file_path,
+        "warning_type": given_object.warning_type,
+        "line_number": given_object.line_number,
+        "change_operation": given_object.change_operation,
+    }
+    return change_event
