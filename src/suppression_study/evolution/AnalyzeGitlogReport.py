@@ -144,10 +144,10 @@ class AnalyzeGitlogReport():
                 delete_change_event_object = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
                         last_event.file_path, last_event.warning_type, last_event.line_number, delete_operation)
                 change_events_suppression_level.append(delete_change_event_object)
-                self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
                 all_index+=1
         else: # No "file delete" and no "no suppression in the next commit"
-            self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+            self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
             all_index+=1
         return all_index
     
@@ -177,7 +177,7 @@ class AnalyzeGitlogReport():
                         # The history of current suppression are all collected
                         # append it to commit level, start to check the next suppression
                         change_events_suppression_level.append(change_event_object)
-                        self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                        self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
                         change_events_suppression_level = []
                         all_index+=1
             else:
@@ -186,7 +186,7 @@ class AnalyzeGitlogReport():
                 else: 
                     # actual: misinformation due to tricky cases
                     change_events_suppression_level.append(change_event_object)
-                    self.all_change_events_commit_level.append({"# S" + str(all_index) : change_events_suppression_level})
+                    self.all_change_events_commit_level.append({f"# S {all_index}" : change_events_suppression_level})
                     change_events_suppression_level = []
                     all_index+=1
 

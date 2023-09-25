@@ -9,7 +9,7 @@ import datetime
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport, log_path_separator as sep
 from suppression_study.evolution.Select1000Commits import select_1000_commits
 from suppression_study.evolution.SuppressionHistory import SuppressionHistory
-from suppression_study.utils.SuppressionInfo import SuppressionInfo
+from suppression_study.suppression.Suppression import read_suppressions_from_file
 from suppression_study.utils.FunctionsCommon import get_commit_date_lists
 
 
@@ -46,7 +46,9 @@ class ExtractHistory():
         repo_base= Repo(self.repo_dir)
         
         suppression_csv = join(self.results_dir, "grep", current_commit + "_suppression.csv")
-        all_suppression_commit_level = SuppressionInfo(current_commit, suppression_csv).read_suppression_files()
+        all_suppression_commit_level = ""
+        if os.path.exists(suppression_csv):
+            all_suppression_commit_level = read_suppressions_from_file(suppression_csv)
         if not all_suppression_commit_level: # No suppression in current commit
             # Return: log_results_info_list, deleted_files, log_result_commit_folder
             # All suppressions in old commit were deleted 
@@ -60,10 +62,10 @@ class ExtractHistory():
         for suppression in all_suppression_commit_level:
             suppression_index += 1
             # Line start and end can be the same, eg,. [6,6] means line 6
-            line_range_start_end = suppression.line_number 
+            line_range_start_end = suppression.line 
             line_range_str = str(line_range_start_end)
 
-            current_file = suppression.file_path
+            current_file = suppression.path
             current_file_name = current_file.split("/")[-1].strip() # eg,. 'example.py'
             current_file_name_base = current_file_name.split(".")[0] # eg,. 'example'
             # To avoid duplicated source file names, include the parent folder for easier manual checking

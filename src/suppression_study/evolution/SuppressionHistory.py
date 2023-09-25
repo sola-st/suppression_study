@@ -21,38 +21,34 @@ class SuppressionHistory():
             for suppression_level_dict in self.all_change_events_list_commit_level:
                 old_key = list(suppression_level_dict.keys())[0]
                 change_events_suppression_level = suppression_level_dict[old_key]
-
-                try: # check duplicates
-                    self.history_accumulator.index(change_events_suppression_level)
-                except:
-                    # Current change_events_suppression_level is not in history_accumulator
-                    # New events: 2 categories
-                    exists_in_accumulator = False
-                    start_change_event = change_events_suppression_level[0]
-                    update_key = None
-                    for key, suppression_level_change_events in self.history_accumulator.items():
-                        if isinstance(suppression_level_change_events, list):
-                            for change_event in suppression_level_change_events:
-                                # Expected: if exists, should be equals to add change event
-                                if change_event == start_change_event:
-                                    exists_in_accumulator = True
-                                    update_key = key
-                                    break
-                        else:
-                            if suppression_level_change_events == change_event:
+                # Current change_events_suppression_level is not in history_accumulator
+                # New events: 2 categories
+                exists_in_accumulator = False
+                start_change_event = change_events_suppression_level[0]
+                update_key = None
+                for key, suppression_level_change_events in self.history_accumulator.items():
+                    if isinstance(suppression_level_change_events, list):
+                        for change_event in suppression_level_change_events:
+                            # Expected: if exists, should be equals to add change event
+                            if change_event == start_change_event:
                                 exists_in_accumulator = True
+                                update_key = key
                                 break
+                    else:
+                        if suppression_level_change_events == change_event:
+                            exists_in_accumulator = True
+                            break
 
-                    if exists_in_accumulator == False: # 1. Totally new events
-                        key_continuous_int += 1
-                        update_key = "# S" + str(key_continuous_int)
-                        self.history_accumulator[update_key] = change_events_suppression_level
-                    else: # 2. Part new events, should update to new version if needed
-                        if update_key:
-                            found_suppression_level_events = self.history_accumulator[update_key]
-                            if len(change_events_suppression_level) > len(found_suppression_level_events):
-                                # eg,. replace only add event with add-delete events 
-                                self.history_accumulator.update({update_key: change_events_suppression_level})
+                if exists_in_accumulator == False: # 1. Totally new events
+                    key_continuous_int += 1
+                    update_key = "# S" + str(key_continuous_int)
+                    self.history_accumulator[update_key] = change_events_suppression_level
+                else: # 2. Part new events, should update to new version if needed
+                    if update_key:
+                        found_suppression_level_events = self.history_accumulator[update_key]
+                        if len(change_events_suppression_level) > len(found_suppression_level_events):
+                            # eg,. replace only add event with add-delete events 
+                            self.history_accumulator.update({update_key: change_events_suppression_level})
         return self.history_accumulator
 
     def get_history_accumulator_list(self):
