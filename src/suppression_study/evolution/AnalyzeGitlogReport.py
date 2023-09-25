@@ -157,16 +157,11 @@ class AnalyzeGitlogReport():
         '''
         exists_in_commit_level = False
         for suppression_level_change_events in self.all_change_events_commit_level:
-            if isinstance(suppression_level_change_events, list):
-                for change_event in suppression_level_change_events:
-                    # Expected: if exists, should be equals to add change event
-                    if change_event == change_event_object:
-                        exists_in_commit_level = True
-                        break
-                else:
-                    if suppression_level_change_events == change_event_object:
-                        exists_in_commit_level = True
-                        break
+            for change_event in suppression_level_change_events:
+                # Expected: if exists, should be equals to add change event
+                if change_event == change_event_object:
+                    exists_in_commit_level = True
+                    break
         
         if exists_in_commit_level == False:
             if change_events_suppression_level:
