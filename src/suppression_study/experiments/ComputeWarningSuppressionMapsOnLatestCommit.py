@@ -36,7 +36,9 @@ class ComputeWarningSuppressionMapsOnLatestCommit(Experiment):
 
 def run_on_repo(args):
     repo_dir, commit = args
-    for checker in ["mypy", "pylint"]:
+    # TODO bring back mypy support
+    # for checker in ["mypy", "pylint"]:
+    for checker in ["pylint"]:
         print(
             f"Computing warning suppression map for {repo_dir} at commit {commit} with checker {checker}")
         run_for_checker(checker, repo_dir, commit)

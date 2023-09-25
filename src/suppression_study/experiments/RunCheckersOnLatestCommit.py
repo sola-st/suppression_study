@@ -25,8 +25,10 @@ class RunCheckersOnLatestCommit(Experiment):
         args_for_all_repos = []
         for repo_dir, commit_id in repo_dir_to_commit_id.items():
             args_pylint = ["pylint", repo_dir, commit_id]
-            args_mypy = ["mypy", repo_dir, commit_id]
-            args_for_all_repos.extend([args_pylint, args_mypy])
+            # TODO bring back mypy support
+            # args_mypy = ["mypy", repo_dir, commit_id]
+            # args_for_all_repos.extend([args_pylint, args_mypy])
+            args_for_all_repos.extend([args_pylint])
 
         cores_to_use = cpu_count() - 1  # leave one core for other processes
         print(f"Using {cores_to_use} cores to extract histories in parallel.")

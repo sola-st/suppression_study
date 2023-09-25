@@ -21,9 +21,12 @@ def write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id):
                                 suppression.line, warning.path, warning.kind, warning.line])
 
 
-def read_mapping_from_csv(results_dir, commit_id):
+def read_mapping_from_csv(file: str = None, results_dir=None, commit_id=None):
+    if file is None:
+        file = join(results_dir, f"{commit_id}_mapping.csv")
+
     pairs = []
-    with open(join(results_dir, f"{commit_id}_mapping.csv"), "r") as f:
+    with open(file, "r") as f:
         reader = csv.reader(f)
         for row in reader:
             suppression = Suppression(row[0], row[1], int(row[2]))
