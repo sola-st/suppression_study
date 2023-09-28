@@ -90,8 +90,25 @@ class FormatSuppressionCommon():
                 else: 
                     suppressor = "eslint-disable"
 
+                '''
+                special preprocess to control the suppression "#noqa" from another tool, flake8
+                # 2 big catagories of possible order of these suppressions and other codes 
+                # 1) noqa, pylint --> need to separate this 2 comments
+                # 2) pylint, noqa --> noqa will regarded as a normal comment, and been truncated
+                * also can mixed with other normal comments
+                  only consider the cases that the normal comment comes at the end of code_suppression
+                  otherwise, the suppression itself was "suppressed" by the normal comment
+                ''' 
+                if code_suppression.startswith("# noqa"): 
+                    tmp_check = code_suppression.split("#")
+                    noqa_comment = f"#{tmp_check[1]}" # 0 is an empty split
+                    code_suppression = code_suppression.replace(noqa_comment, "")
+                    # then start the following normal format steps
+
+                suppressed_suppression_mark = False # the target suppression is "suppressed" by a normal comment
                 if not code_suppression.startswith(suppressor): # mixed with source code or start with other comments.
                     if code_suppression.startswith(self.comment_symbol): # start with comment_symbol, but not start with suppressor
+                        suppressed_suppression_mark = True
                         pass # a comment contains suppress comment, suppress comment is suppressed in source code
                     else: # mixed with source code, source code comes first. may with another comment at the end.
                         suppression_content = ""
@@ -114,7 +131,8 @@ class FormatSuppressionCommon():
                     else:
                         preprocessed_suppression =  code_suppression
 
-                assert preprocessed_suppression != ""
+                if suppressed_suppression_mark == False:
+                    assert preprocessed_suppression != ""
 
                 # Reorder suppression keys and combined to a whole one
                 file_path_info = raw_suppression['file_path'].replace("./", "", 1)
