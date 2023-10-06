@@ -1,6 +1,5 @@
 import argparse
 from suppression_study.checkers.GetWarningsSuper import GetWarningsSuper
-import shutil
 
 
 parser = argparse.ArgumentParser(description="Gather all Mypy warnings in a specific commit")

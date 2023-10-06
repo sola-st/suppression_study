@@ -6,8 +6,6 @@ These format steps can be used to format suppression from the following 3 checke
 For Python:
     1) Pylint
     2) Mypy
-# For JavaScript:
-#     3) ESLint
 '''
 class FormatSuppressionCommon():
 
@@ -74,48 +72,125 @@ class FormatSuppressionCommon():
         with open(self.precessed_suppression_csv,"w") as d:
             writer = csv.writer(d)
 
-            raw_suppression_dict_list =self.represent_to_dict()
+            raw_suppression_dict_list = self.represent_to_dict()
             for raw_suppression in raw_suppression_dict_list:
                 if "/lib" in raw_suppression['file_path']: # Hard code to exclude dir, need to manual check folder names.
                     continue
                 code_suppression = raw_suppression['code_suppression']
-                preprocessed_suppression = ""
-    
-                # Confirm suppressor
-                suppressor = ""
-                if "# pylint:" in code_suppression:
-                    suppressor = "# pylint:"
-                elif "# type: ignore" in code_suppression:
-                    suppressor = "# type: ignore"
-                else: 
-                    suppressor = "eslint-disable"
-
-                if not code_suppression.startswith(suppressor): # mixed with source code or start with other comments.
-                    if code_suppression.startswith(self.comment_symbol): # start with comment_symbol, but not start with suppressor
-                        pass # a comment contains suppress comment, suppress comment is suppressed in source code
-                    else: # mixed with source code, source code comes first. may with another comment at the end.
-                        suppression_content = ""
-                        if self.comment_symbol:
-                            # what about comment symbol in source code? haven't found any cases yet
-                            if code_suppression.count(self.comment_symbol) >= 1: # 1 comment_symbol for suppression
-                                suppression_tmp = code_suppression.split(suppressor)[1]
-                                if self.comment_symbol in suppression_tmp: # comments come after suppression
-                                    suppression_content = suppressor + suppression_tmp.split(self.comment_symbol, 1)[0]
-                                else: # self.comment_symbol == 1
-                                    suppression_content = suppressor + suppression_tmp
-                            preprocessed_suppression =  suppression_content
-                        else:
-                            preprocessed_suppression = raw_suppression
-                else: # starts with suppressor
-                    if code_suppression.count(self.comment_symbol) >= 2:
-                        # line has multiple comments --> ignore everything but the first one
-                        index_of_second_comment = [m.start() for m in re.finditer(self.comment_symbol, code_suppression)][1]
-                        preprocessed_suppression = code_suppression[:index_of_second_comment].strip()
-                    else:
-                        preprocessed_suppression =  code_suppression
-
-                assert preprocessed_suppression != ""
-
+                preprocessed_suppression_texts = get_suppression_from_source_code(self.comment_symbol, code_suppression)
                 # Reorder suppression keys and combined to a whole one
                 file_path_info = raw_suppression['file_path'].replace("./", "", 1)
-                writer.writerow([file_path_info, preprocessed_suppression, raw_suppression["line_number"]])
+                for suppression_text in preprocessed_suppression_texts:
+                    writer.writerow([file_path_info, suppression_text, raw_suppression["line_number"]])
+                
+def get_suppression_from_source_code(comment_symbol, code_suppression):
+    '''
+    Give a code_suppression, 
+    eg,. def log_message(self, fmt, *args):  # pylint: disable=arguments-differ
+    Return the preprocessed_suppression:  # pylint: disable=arguments-differ
+    '''
+    preprocessed_suppression = ""
+
+    # Confirm suppressor
+    suppressor = ""
+    if "# pylint:" in code_suppression and "disable" in code_suppression:
+        suppressor = "# pylint:"
+    elif "# type: ignore" in code_suppression:
+        suppressor = "# type: ignore"
+
+    '''
+    Avoid impacts from # noqa, a suppression from checker flake8
+    It can be mixed with pylint and mypy, 
+    that is, when the two suppressions appear on the same line, both suppressions can work normally.
+    eg,. # noqa # pylint: disable= no-member
+        in this case, # pylint: disable= no-member still work as designed.
+    
+    To prevent subsequent processing from treating it as a regular comment, 
+        a regular comment will invalidate pylint suppression.
+    Here remove # noqa suppression.
+    '''
+    if code_suppression.startswith("# noqa"): 
+        tmp_check = code_suppression.split("#")
+        noqa_comment = f"#{tmp_check[1]}" # 0 is an empty split
+        code_suppression = code_suppression.replace(noqa_comment, "")
+        # then start the following normal format steps
+
+    suppressed_suppression_mark = False # the target suppression is "suppressed" by a normal comment
+    if not code_suppression.startswith(suppressor): # mixed with source code or start with other comments.
+        if code_suppression.startswith(comment_symbol): # start with comment_symbol, but not start with suppressor
+            suppressed_suppression_mark = True
+            pass # a comment contains suppress comment, suppress comment is suppressed in source code
+        else: # mixed with source code, source code comes first. may with another comment at the end.
+            suppression_content = ""
+            if comment_symbol in code_suppression:
+                if code_suppression.count(comment_symbol) >= 1: # 1 comment_symbol for suppression
+                    suppression_tmp = code_suppression.split(suppressor)[1]
+                    if comment_symbol in suppression_tmp: # comments come after suppression
+                        suppression_content = suppressor + suppression_tmp.split(comment_symbol, 1)[0]
+                    else: # count(self.comment_symbol) == 1
+                        suppression_content = suppressor + suppression_tmp
+                preprocessed_suppression = suppression_content
+            else:
+                preprocessed_suppression = None 
+
+    else: # starts with suppressor
+        if code_suppression.count(comment_symbol) >= 2:
+            # line has multiple comments --> ignore everything but the first one
+            index_of_second_comment = [m.start() for m in re.finditer(comment_symbol, code_suppression)][1]
+            preprocessed_suppression = code_suppression[:index_of_second_comment].strip()
+        else:
+            preprocessed_suppression = code_suppression
+
+    if suppressed_suppression_mark == False:
+        assert preprocessed_suppression != ""
+    
+    # further format steps, separate multiple warning types into single ones
+    preprocessed_suppression_texts = []
+    if "," in preprocessed_suppression: # multiple warning types
+        preprocessed_suppression_texts = get_separated_suppressions(preprocessed_suppression)
+    else:
+        preprocessed_suppression_texts.append(preprocessed_suppression)
+
+    return preprocessed_suppression_texts
+
+def get_separated_suppressions(suppression_text):
+    '''
+    Suppression examples:
+    # pylint: disable= no-member, arguments-differ, invalid-name
+    # type: ignore[assignment]
+
+    For the example for Pylint:
+        [inputs]
+        suppression_text: # pylint: disable= no-member, arguments-differ, invalid-name
+
+        [return]
+        # pylint: disable=no-member
+        # pylint: disable=arguments-differ
+        # pylint: disable=invalid-name
+    '''
+    preprocessed_suppression_texts = []
+    separator = ""
+
+    if "=" in suppression_text:  # Pylint
+        separator = "="
+    elif "(" in suppression_text:  # Mypy
+        separator = "("
+    elif "[" in suppression_text:  # Mypy
+        separator = "["
+
+    tmp = suppression_text.split(separator)
+    suppressor_part = tmp[0] # eg,. # pylint: disable
+    raw_warning_type = tmp[1] # eg,. no-member, arguments-differ, invalid-name
+    
+    multi_raw_warning_type_tmp = raw_warning_type.split(",")
+    multi_raw_warning_type = [warning_type.strip() for warning_type in multi_raw_warning_type_tmp]
+
+    # let raw warning types back to suppression format
+    for t in multi_raw_warning_type:
+        if "# pylint:" in suppressor_part:
+            suppression_text = f"{suppressor_part}={t}"
+        else: # suppressor: type: ignore from mypy
+            suppression_text = f"{suppressor_part}[{t}]"
+        preprocessed_suppression_texts.append(suppression_text)
+
+    return preprocessed_suppression_texts

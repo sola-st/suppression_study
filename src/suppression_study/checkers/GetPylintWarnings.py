@@ -1,7 +1,6 @@
 import argparse
 from suppression_study.checkers.GetWarningsSuper import GetWarningsSuper
 import os
-import shutil
 
 
 parser = argparse.ArgumentParser(description="Gather all Pylint warnings in a specific commit")
