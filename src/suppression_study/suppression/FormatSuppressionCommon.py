@@ -180,7 +180,7 @@ def get_separated_suppressions(suppression_text):
 
     tmp = suppression_text.split(separator)
     suppressor_part = tmp[0] # eg,. # pylint: disable
-    raw_warning_type = tmp[1] # eg,. no-member, arguments-differ, invalid-name
+    raw_warning_type = tmp[1].replace("]", "", 1) # eg,. no-member, arguments-differ, invalid-name
     
     multi_raw_warning_type_tmp = raw_warning_type.split(",")
     multi_raw_warning_type = [warning_type.strip() for warning_type in multi_raw_warning_type_tmp]

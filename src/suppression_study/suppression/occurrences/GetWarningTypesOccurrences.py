@@ -23,6 +23,8 @@ def write_warning_types_occurrences(warning_type_occurrences_csv, raw_warning_ty
     to_write = ""
     # Iterate through the Counter object and print the counts
     for element, count in element_count.items():
+        if element == "# type: ignore":
+            element = "ignore"
         to_write = f"{to_write}{element},{count}\n"
 
     with open(warning_type_occurrences_csv, "w") as f:
