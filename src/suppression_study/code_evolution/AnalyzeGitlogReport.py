@@ -1,11 +1,13 @@
+import json
 from suppression_study.code_evolution.CommitBlock import CommitBlock
 
 
 class AnalyzeGitlogReport:
-    def __init__(self, log_result, suppressor, raw_warning_type):
+    def __init__(self, log_result, suppressor, raw_warning_type, current_file):
         self.log_result = log_result
         self.suppressor = suppressor
         self.raw_warning_type = raw_warning_type
+        self.current_file = current_file
 
     def from_gitlog_results_to_change_events(self):
         '''
@@ -30,6 +32,9 @@ class AnalyzeGitlogReport:
         '''
         commit_block = []
         lines = self.log_result.split("\n")
+        # if the changes before merge commit is not related to the suppression,
+        # the current merge commit can be the first commit that introduces the suppression
+        backup_add_events = ""
 
         start_count = 0
         lines_len = len(lines)
@@ -41,10 +46,14 @@ class AnalyzeGitlogReport:
                     start_count += 1  # found the start point of a commit_block
                     if start_count == 2:  # basic setting: one commit block has one start
                         add_events = CommitBlock(
-                            commit_block, self.suppressor, self.raw_warning_type
-                        ).from_commit_block_to_add_event()
+                            commit_block, self.suppressor, self.raw_warning_type, self.current_file
+                        ).from_single_commit_block_to_add_event()
                         if add_events != None:
-                            return add_events
+                            if len(add_events.keys()) == 6: # not merge commit
+                                return add_events
+                            else:
+                                add_events.pop("backup")
+                                backup_add_events = add_events
                         else:
                             commit_block = []
                             start_count = 1
@@ -52,9 +61,14 @@ class AnalyzeGitlogReport:
                 if start_count == 1:
                     commit_block.append(line)
 
-            if line_count == lines_max:
+            if line_count == lines_max: # the last(oldest) commit block of current git log history results
+                last_commit_block_mark = True
                 add_events = CommitBlock(
-                    commit_block, self.suppressor, self.raw_warning_type
-                ).from_commit_block_to_add_event()
+                    commit_block, self.suppressor, self.raw_warning_type, self.current_file
+                ).from_single_commit_block_to_add_event(last_commit_block_mark)
+                if add_events == None:
+                   add_events =  backup_add_events
+                
                 assert add_events != None  # always has an add event for all suppressions
+                assert add_events != ""
                 return add_events

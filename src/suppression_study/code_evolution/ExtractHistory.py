@@ -47,20 +47,13 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
             ["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
             "--repo_dir=" + repo_dir,
             "--commit_id=" + selected_1000_commits_csv,
-            "--results_dir=" + results_dir,
-            ]
-        )
+            "--results_dir=" + results_dir])
 
     if not os.listdir(suppression_result):
         os.rmdir(suppression_result)
         print("No suppression found in this repository by running GrepSuppressionPython.")
         return
-
-    # get delete events, return delete events and the corresponding suppressions
-    delete_event_and_suppression_list, suppression_final_commits_list = GetSuppressionDeleteHistories(
-        repo_dir, selected_1000_commits_list, selected_1000_dates_list, suppression_result
-    ).track_commits_forward()
-
+    
     # get never removed suppressions
     # in theory, last_commit_with_suppression should be the newest commit
     never_removed_suppressions = ""
@@ -75,17 +68,25 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     assert never_removed_suppressions != ""
     assert last_commit_with_suppression != ""
 
+    # get delete events, return delete events and the corresponding suppressions, commit
+    delete_event_suppression_commit_list = GetSuppressionDeleteHistories(
+        repo_dir, selected_1000_commits_list, selected_1000_dates_list, suppression_result
+    ).track_commits_forward()
+
     # get add events (for both delete and never removed suppressions)
     # finally get the histories: 1) add event 2) add delete events
-    evolution_init = GitLogFromFinalStatus(repo_dir, never_removed_suppressions, delete_event_and_suppression_list)
+    evolution_init = GitLogFromFinalStatus(repo_dir, never_removed_suppressions, delete_event_suppression_commit_list)
     only_add_event_histories = evolution_init.git_log_never_removed_suppression(last_commit_with_suppression)
-    add_delete_histories = evolution_init.git_log_deleted_suppression(suppression_final_commits_list)
+    add_delete_histories = evolution_init.git_log_deleted_suppression()
 
     all_histories = []
-    all_histories.extend(only_add_event_histories)
-    all_histories.extend(add_delete_histories)
+    history_index = 0
+    for suppression_history in (only_add_event_histories + add_delete_histories):
+        all_histories.append({f"# S{history_index}" : suppression_history})
+        history_index+=1
 
     # Write all extracted suppression level histories to a JSON file.
+    sort_by_date(all_histories)
     history_json_file = join(results_dir, "histories_suppression_level_all.json")
     write_all_histories_to_json(history_json_file, all_histories)
 

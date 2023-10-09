@@ -37,7 +37,7 @@ def write_commit_info_to_csv(repo_dir, commit_id_csv, oldest_n_commits=None):
     otherwise, will miss to get all commits. --> useful on running tests.
     The newest commits will be the 1st line of the csv file.
     '''
-    commit_command = "git log --pretty=format:'\"%h\",\"%cd\"' --abbrev=8" 
+    commit_command = "git log --pretty=format:'\"%h\",\"%cd\"' --abbrev=8 --first-parent" 
     git_get_commits = subprocess.run(commit_command, cwd=repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
     commits = git_get_commits.stdout 
 
