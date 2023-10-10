@@ -1,7 +1,7 @@
 import os
 import subprocess
-from suppression_study.code_evolution.ChangeEvent import ChangeEvent, get_change_event_dict
-from suppression_study.code_evolution.DiffBlock import DiffBlock
+from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
+from suppression_study.evolution.DiffBlock import DiffBlock
 from os.path import join
 
 from suppression_study.suppression.Suppression import (
@@ -35,7 +35,6 @@ class GetSuppressionDeleteHistories:
         '''
         delete_event_suppression_commit_list = []
 
-        self.selected_1000_commits_list.reverse()
         max_commits_num = len(self.selected_1000_commits_list) - 1
         for i in range(0, max_commits_num):  # Start from  oldest
             current_commit = self.selected_1000_commits_list[i]

@@ -1,4 +1,4 @@
-from suppression_study.code_evolution.ChangeEvent import ChangeEvent, get_change_event_dict
+from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
 from suppression_study.suppression.FormatSuppressionCommon import get_suppression_from_source_code
 
 

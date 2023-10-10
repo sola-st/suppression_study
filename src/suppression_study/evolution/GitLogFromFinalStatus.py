@@ -1,6 +1,6 @@
 import subprocess
 
-from suppression_study.code_evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
+from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
 from suppression_study.suppression.Suppression import get_raw_warning_type_from_formatted_suppression_text
 from git.repo import Repo
 
@@ -51,7 +51,7 @@ class GitLogFromFinalStatus():
             command_line = "git log -C -M -L" + line_range_str + "," + line_range_str + ":'" + current_file + "' --first-parent"
             result = subprocess.run(command_line, cwd=self.repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
             log_result = result.stdout
-
+            
         expected_add_event = AnalyzeGitlogReport(log_result, suppressor, raw_warning_type, current_file).from_gitlog_results_to_change_events()
 
         return expected_add_event, log_result

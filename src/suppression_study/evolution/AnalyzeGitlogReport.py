@@ -1,30 +1,19 @@
-import json
-from os.path import join
-
-from suppression_study.evolution.ChangeEvent import ChangeEvent
-from suppression_study.evolution.CommitBlockInfo import AllCommitBlock, CommitBlock
-from suppression_study.evolution.IdentifyChangeOperation import IdentifyChangeOperation
-
-log_path_separator = "__xXx__"  # used in paths of log files
+from suppression_study.evolution.CommitBlock import CommitBlock
 
 
-class AnalyzeGitlogReport():
-    def __init__(self, log_results_info_list, tracked_deleted_files, tracked_delete_commit, tracked_delete_date, \
-                tracked_suppression_deleted_mark, log_result_folder):
-        self.log_results_info_list = log_results_info_list
-        self.tracked_deleted_files = tracked_deleted_files
-        self.tracked_delete_commit = tracked_delete_commit
-        self.tracked_delete_date = tracked_delete_date
-        self.tracked_suppression_deleted_mark = tracked_suppression_deleted_mark
-        self.log_result_folder = log_result_folder
-        self.all_change_events_commit_level = {}
+class AnalyzeGitlogReport:
+    def __init__(self, log_result, suppressor, raw_warning_type, current_file):
+        self.log_result = log_result
+        self.suppressor = suppressor
+        self.raw_warning_type = raw_warning_type
+        self.current_file = current_file
 
-    def from_gitlog_results_to_change_events(self): # Start point of this class
+    def from_gitlog_results_to_change_events(self):
         '''
         Read git log results files, get commit blocks, and represent these commit blocks to change events.
         Return a list of change events at the commit level.
-        
-        An example of how information are recorded in log_result, which is defined as commit_block: 
+
+        An example of how information are recorded in log_result, which is defined as commit_block:
             commit b8bxxx38xxx73533f98784700xx656b1780d
             Author: xxx xxx
             Date:   Tue Jul 4 10:50:41 2023 +0200
@@ -40,149 +29,45 @@ class AnalyzeGitlogReport():
             \ No newline at end of file
         A 'git log' result contains one or more commit block(s).
         '''
-        commit_block_commit_level = []
         commit_block = []
+        lines = self.log_result.split("\n")
+        # if the changes before merge commit is not related to the suppression,
+        # the current merge commit can be the first commit that introduces the suppression
+        backup_add_events = ""
 
-        for file_tmp in self.log_results_info_list:
-            file = file_tmp.log_results
-            # Read log_result, and separate all lines to several commit_block s
-            if file.endswith(".txt"):
-                with open(file, "r") as f:
-                    lines = f.readlines()
+        start_count = 0
+        lines_len = len(lines)
+        lines_max = lines_len - 1
+        for line, line_count in zip(lines, range(lines_len)):  # There are empty lines in "lines"
+            line = line.replace("\n", "").strip()
+            if line:
+                if line.startswith("commit "):
+                    start_count += 1  # found the start point of a commit_block
+                    if start_count == 2:  # basic setting: one commit block has one start
+                        add_events = CommitBlock(
+                            commit_block, self.suppressor, self.raw_warning_type, self.current_file
+                        ).from_single_commit_block_to_add_event()
+                        if add_events != None:
+                            if len(add_events.keys()) == 6: # not merge commit
+                                return add_events
+                            else:
+                                add_events.pop("backup")
+                                backup_add_events = add_events
+                        else:
+                            commit_block = []
+                            start_count = 1
+                # Append lines to commit_block
+                if start_count == 1:
+                    commit_block.append(line)
 
-                file_delete_check_tmp = file.split("/")[-1].split(log_path_separator)[:2]
-                file_delete_check = "/".join(file_delete_check_tmp)
-                start_count = 0
-                all_commit_block_file_level = []
-                lines_len = len(lines)
-                lines_max = lines_len-1
-                for line, line_count in zip(lines, range(lines_len)): # There are empty lines in "lines"
-                    line = line.replace("\n", "").strip()
-                    # Deal with the start line of commit_block
-                    if line:
-                        if line.startswith("commit "):
-                            start_count+=1 # found the start point of a commit_block
-                            if start_count == 2: # basic setting: one commit block has one start
-                                commit_block_instance= CommitBlock(commit_block).get_commit_block()
-                                all_commit_block_file_level.append(commit_block_instance)
-                                commit_block = []
-                                start_count = 1
-                        # Append lines to commit_block
-                        if start_count == 1:
-                            commit_block.append(line)
-                    if line_count == lines_max:
-                        commit_block_instance = CommitBlock(commit_block).get_commit_block()
-                        all_commit_block_file_level.append(commit_block_instance)
-                        commit_block = []
-                commit_block_file_level_info = AllCommitBlock(all_commit_block_file_level, file_delete_check)
-                commit_block_commit_level.append(commit_block_file_level_info)
-
-        all_change_events_list_commit_level = self.get_change_events_commit_level(commit_block_commit_level)
-        return all_change_events_list_commit_level
-
-    def get_change_events_commit_level(self, commit_block_commit_level):
-        all_index = 0
-
-        for block_logfile_level in commit_block_commit_level:
-            '''
-            In general, block_logfile_level is about only 1 suppression.
-            All the blocks at this level could be change events for the suppression (add, delete, 'change')
-            Special cases: change warning type (delete old warning type, add new one)
-            '''
-            # Check if the file_path in current commit block was deleted 
-            file_delete_mark = False
-            if block_logfile_level.delete_check in str(self.tracked_deleted_files):
-                file_delete_mark = True
-
-            change_events_suppression_level = [] # Expected as a list of changeEvent objects
-            for block in block_logfile_level.block:
-                type_line_set, operation_set, tricky_mark = IdentifyChangeOperation(block).identify_change_operation() 
-
-                if tricky_mark:
-                    self.record_tricky_cases(block)
-
-                if operation_set:
-                    for type_line, operation in zip(type_line_set, operation_set):
-                        change_event_object = ChangeEvent(block.commit_id, block.date, block.file_path, 
-                                type_line.warning_type, type_line.line_number, operation)
-                        change_events_suppression_level, all_index = self.handle_connection_between_change_events(change_event_object, \
-                                change_events_suppression_level, all_index)
-
-            if change_events_suppression_level:
-                # File delete, current change_events_suppression_level will be deleted in the next commit
-                all_index = self.handle_delete_cases(change_events_suppression_level, file_delete_mark, all_index) 
-                change_events_suppression_level = []
-        return self.all_change_events_commit_level
-
-    def record_tricky_cases(self, block):
-        serializable_block = {}
-        for key, value in block.__dict__.items():
-            if isinstance(value, range):
-                serializable_block[key] = list(value)
-            else:
-                serializable_block[key] = value
-
-        tricky_recorder = join(self.log_result_folder, "tricky_recorder.txt")
-        with open(tricky_recorder, "a") as f:
-            json.dump(serializable_block, f, indent=4, ensure_ascii=False)
-
-    def handle_delete_cases(self,change_events_suppression_level, file_delete_mark, all_index):
-        '''
-        This function covers 3 different cases:
-        1) file delete happens in the next commit, the suppression in commit are all deleted.
-        2) no suppression in the next commit, the suppression in commit are all deleted.
-        3) above 1) and 2) didn't happened.
-        '''
-        delete_operation = ""
-        if file_delete_mark:
-            delete_operation = "file delete"
-        elif self.tracked_suppression_deleted_mark:
-            delete_operation = "delete" # No suppression in new commit, but there are in old commit.
-        if delete_operation:
-            last_event = change_events_suppression_level[-1]
-            if "delete" not in last_event.change_operation:
-                delete_change_event_object = ChangeEvent(self.tracked_delete_commit, self.tracked_delete_date, 
-                        last_event.file_path, last_event.warning_type, last_event.line_number, delete_operation)
-                change_events_suppression_level.append(delete_change_event_object)
-                self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
-                all_index+=1
-        else: # No "file delete" and no "no suppression in the next commit"
-            self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
-            all_index+=1
-        return all_index
-    
-    def handle_connection_between_change_events(self, change_event_object, change_events_suppression_level, all_index):
-        '''
-        Handle the connections between different change events, to see if they are related to the same suppression or a new one.
-        '''
-        exists_in_commit_level = False
-        for key, suppression_level_change_events in self.all_change_events_commit_level.items():
-            for change_event in suppression_level_change_events:
-                # Expected: if exists, should be equals to add change event
-                if change_event == change_event_object:
-                    exists_in_commit_level = True
-                    break
-        
-        if exists_in_commit_level == False:
-            if change_events_suppression_level:
-                last_event = change_events_suppression_level[-1]
-                if last_event.warning_type == change_event_object.warning_type: 
-                    # Connection for delete cases
-                    if "delete" in change_event_object.change_operation and "delete" not in last_event.change_operation:
-                        # The history of current suppression are all collected
-                        # append it to commit level, start to check the next suppression
-                        change_events_suppression_level.append(change_event_object)
-                        self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
-                        change_events_suppression_level = []
-                        all_index+=1
-            else:
-                if "delete" not in change_event_object.change_operation:
-                    change_events_suppression_level.append(change_event_object)
-                else: 
-                    # actual: misinformation due to tricky cases
-                    change_events_suppression_level.append(change_event_object)
-                    self.all_change_events_commit_level[f"# S {all_index}"] = change_events_suppression_level
-                    change_events_suppression_level = []
-                    all_index+=1
-
-        return change_events_suppression_level, all_index
+            if line_count == lines_max: # the last(oldest) commit block of current git log history results
+                last_commit_block_mark = True
+                add_events = CommitBlock(
+                    commit_block, self.suppressor, self.raw_warning_type, self.current_file
+                ).from_single_commit_block_to_add_event(last_commit_block_mark)
+                if add_events == None:
+                   add_events =  backup_add_events
+                
+                assert add_events != None  # always has an add event for all suppressions
+                assert add_events != ""
+                return add_events
