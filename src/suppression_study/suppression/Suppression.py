@@ -83,12 +83,12 @@ def get_raw_warning_type(csv_file):
     raw_warning_types = []
     suppression_texts = get_suppression_text_from_file(csv_file)
     for suppression_text in suppression_texts:
-        raw_warning_type = get_raw_warning_type_from_suppression_text(suppression_text)
+        raw_warning_type = get_raw_warning_type_from_formatted_suppression_text(suppression_text)
         raw_warning_types.append(raw_warning_type)
         
     return raw_warning_types  # all raw warning type in specified csv_file
 
-def get_raw_warning_type_from_suppression_text(suppression_text):
+def get_raw_warning_type_from_formatted_suppression_text(suppression_text):
     separator = ""
     if "=" in suppression_text: # Pylint
         separator = "="

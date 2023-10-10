@@ -1,4 +1,3 @@
-import json
 from suppression_study.code_evolution.CommitBlock import CommitBlock
 
 

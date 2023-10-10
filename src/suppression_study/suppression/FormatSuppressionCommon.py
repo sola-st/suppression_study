@@ -83,7 +83,7 @@ class FormatSuppressionCommon():
                 for suppression_text in preprocessed_suppression_texts:
                     writer.writerow([file_path_info, suppression_text, raw_suppression["line_number"]])
                 
-def get_suppression_from_source_code(comment_symbol, code_suppression):
+def get_suppression_from_source_code(comment_symbol, code_suppression, empty_check=True):
     '''
     Give a code_suppression, 
     eg,. def log_message(self, fmt, *args):  # pylint: disable=arguments-differ
@@ -141,7 +141,7 @@ def get_suppression_from_source_code(comment_symbol, code_suppression):
         else:
             preprocessed_suppression = code_suppression
 
-    if suppressed_suppression_mark == False:
+    if suppressed_suppression_mark == False and empty_check == True:
         assert preprocessed_suppression != ""
     
     # further format steps, separate multiple warning types into single ones

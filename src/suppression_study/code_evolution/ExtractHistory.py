@@ -1,4 +1,3 @@
-# class ExtractHistories():
 import argparse
 import datetime
 import json
@@ -55,7 +54,6 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
         return
     
     # get never removed suppressions
-    # in theory, last_commit_with_suppression should be the newest commit
     never_removed_suppressions = ""
     last_commit_with_suppression = ""
     for commit in selected_1000_commits_list:

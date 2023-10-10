@@ -1,8 +1,17 @@
 import subprocess
 
 from suppression_study.code_evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
-from suppression_study.suppression.Suppression import get_raw_warning_type_from_suppression_text
+from suppression_study.suppression.Suppression import get_raw_warning_type_from_formatted_suppression_text
 from git.repo import Repo
+
+
+def get_suppressor(suppression_text):
+    # Given the text of a suppression, return the suppressor of this suppression
+    suppressors = ["# pylint:", "# type: ignore"]
+    # always only one suppressor in one suppression
+    suppressor = [suppressor for suppressor in suppressors if suppressor in suppression_text][0]
+    return suppressor
+
 
 class GitLogFromFinalStatus():
 
@@ -11,7 +20,6 @@ class GitLogFromFinalStatus():
         self.never_removed_suppressions = never_removed_suppressions
         self.delete_event_suppression_commit_list = delete_event_suppression_commit_list
 
-        self.suppressors = ["# pylint:", "# type: ignore"]
         self.only_add_event_histories = []
         self.add_delete_histories = []
 
@@ -19,8 +27,8 @@ class GitLogFromFinalStatus():
 
     def run_git_log(self, suppression, log_result, run_command_mark):
         # always only one suppressor for a suppression
-        suppressor = [suppressor for suppressor in self.suppressors if suppressor in suppression.text][0]
-        raw_warning_type = get_raw_warning_type_from_suppression_text(suppression.text)
+        suppressor = get_suppressor(suppression.text)
+        raw_warning_type = get_raw_warning_type_from_formatted_suppression_text(suppression.text)
        
         '''
         About git log command:
