@@ -1,6 +1,7 @@
 import csv
 import re
 
+
 '''
 These format steps can be used to format suppression from the following 3 checkers:
 For Python:
@@ -77,26 +78,32 @@ class FormatSuppressionCommon():
                 if "/lib" in raw_suppression['file_path']: # Hard code to exclude dir, need to manual check folder names.
                     continue
                 code_suppression = raw_suppression['code_suppression']
-                preprocessed_suppression_texts = get_suppression_from_source_code(self.comment_symbol, code_suppression)
-                # Reorder suppression keys and combined to a whole one
-                file_path_info = raw_suppression['file_path'].replace("./", "", 1)
-                for suppression_text in preprocessed_suppression_texts:
-                    writer.writerow([file_path_info, suppression_text, raw_suppression["line_number"]])
-                
-def get_suppression_from_source_code(comment_symbol, code_suppression, empty_check=True):
+                suppressor = get_suppressor(code_suppression)
+                if suppressor:
+                    preprocessed_suppression_texts = get_suppression_from_source_code(suppressor, self.comment_symbol, code_suppression)
+                    # Reorder suppression keys and combined to a whole one
+                    file_path_info = raw_suppression['file_path'].replace("./", "", 1)
+                    for suppression_text in preprocessed_suppression_texts:
+                        writer.writerow([file_path_info, suppression_text, raw_suppression["line_number"]])
+
+def get_suppressor(suppression_text):
+    # Given the text of a suppression, return the suppressor of this suppression
+    suppressor = ""
+    if "# pylint:" in suppression_text and "disable" in suppression_text:
+        suppressor = "# pylint:"
+    elif "# type: ignore" in suppression_text:
+        suppressor = "# type: ignore"
+    else:
+        suppressor = None
+    return suppressor
+             
+def get_suppression_from_source_code(suppressor, comment_symbol, code_suppression):
     '''
     Give a code_suppression, 
     eg,. def log_message(self, fmt, *args):  # pylint: disable=arguments-differ
     Return the preprocessed_suppression:  # pylint: disable=arguments-differ
     '''
     preprocessed_suppression = ""
-
-    # Confirm suppressor
-    suppressor = ""
-    if "# pylint:" in code_suppression and "disable" in code_suppression:
-        suppressor = "# pylint:"
-    elif "# type: ignore" in code_suppression:
-        suppressor = "# type: ignore"
 
     '''
     Avoid impacts from # noqa, a suppression from checker flake8
@@ -141,7 +148,7 @@ def get_suppression_from_source_code(comment_symbol, code_suppression, empty_che
         else:
             preprocessed_suppression = code_suppression
 
-    if suppressed_suppression_mark == False and empty_check == True:
+    if suppressed_suppression_mark == False:
         assert preprocessed_suppression != ""
     
     # further format steps, separate multiple warning types into single ones

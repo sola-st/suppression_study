@@ -1,5 +1,5 @@
 from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
-from suppression_study.suppression.FormatSuppressionCommon import get_suppression_from_source_code
+from suppression_study.suppression.FormatSuppressionCommon import get_suppression_from_source_code, get_suppressor
 
 
 class CommitBlock:
@@ -91,11 +91,13 @@ class CommitBlock:
         comment_symbol = "#"
         suppression_exists_in_old_mark = False # default set as no suppression in old commit
         for code, line_num in zip(self.old_source_code, self.old_hunk_line_range):
-            suppression_text_from_code = str(get_suppression_from_source_code(comment_symbol, code))
-            if suppression_text_from_code: 
-                if self.target_raw_warning_type in suppression_text_from_code:
-                    suppression_exists_in_old_mark = True
-                    break
+            suppressor = get_suppressor(code)
+            if suppressor:
+                suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                if suppression_text_from_code: 
+                    if self.target_raw_warning_type in suppression_text_from_code:
+                        suppression_exists_in_old_mark = True
+                        break
         
         if suppression_exists_in_old_mark == False:
             # no suppression in old commit, check if suppression exists in new commit
@@ -103,11 +105,13 @@ class CommitBlock:
             suppression_line_number = None
             # get line number for add event
             for code, line_num in zip(self.new_source_code, self.new_hunk_line_range):
-                suppression_text_from_code = str(get_suppression_from_source_code(comment_symbol, code))
-                if suppression_text_from_code:
-                    if self.target_raw_warning_type in suppression_text_from_code:
-                        suppression_line_number = line_num
-                        break
+                suppressor = get_suppressor(code)
+                if suppressor:
+                    suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                    if suppression_text_from_code:
+                        if self.target_raw_warning_type in suppression_text_from_code:
+                            suppression_line_number = line_num
+                            break
 
             if suppression_line_number != None:        
                 operation = "add"

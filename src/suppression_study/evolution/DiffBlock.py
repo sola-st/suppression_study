@@ -1,5 +1,5 @@
 from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
-from suppression_study.suppression.FormatSuppressionCommon import get_suppression_from_source_code
+from suppression_study.suppression.FormatSuppressionCommon import get_suppression_from_source_code, get_suppressor
 
 
 class DiffBlock():
@@ -54,10 +54,6 @@ class DiffBlock():
                 
     def get_delete_event(self, last_block_mark=False):
         comment_symbol = "#"
-        # not sure if all the code lines contains suppression, 
-        # set to not check the return of get_suppression_from_source_code
-        empty_check = False 
-
         '''
         sometimes the changed hunk includes the target line number, but no changes to the line.
         eg,.  @@ -10,2
@@ -67,21 +63,25 @@ class DiffBlock():
         to get more accurate results, here check if the suppression real exists in current_source_code'''
         target_warning_type_exists_in_current = False # default set as no suppression in old commit
         for code in self.current_source_code:
-            suppression_text_from_code = str(get_suppression_from_source_code(comment_symbol, code, empty_check))
-            if suppression_text_from_code: 
-                if self.target_raw_warning_type in suppression_text_from_code:
-                    target_warning_type_exists_in_current = True
-                    break
+            suppressor = get_suppressor(code)
+            if suppressor != None: # make sure suppression in current code
+                suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                if suppression_text_from_code: 
+                    if self.target_raw_warning_type in suppression_text_from_code:
+                        target_warning_type_exists_in_current = True
+                        break
 
         if target_warning_type_exists_in_current == True:
             # has suppression in current commit, check if suppression exists in next commit
             target_warning_type_exists_in_next = False
             for code in self.next_source_code:
-                suppression_text_from_code = str(get_suppression_from_source_code(comment_symbol, code, empty_check))
-                if suppression_text_from_code:
-                    if self.target_raw_warning_type in suppression_text_from_code:
-                        target_warning_type_exists_in_next = True
-                        break
+                suppressor = get_suppressor(code)
+                if suppressor != None: 
+                    suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                    if suppression_text_from_code:
+                        if self.target_raw_warning_type in suppression_text_from_code:
+                            target_warning_type_exists_in_next = True
+                            break
 
             if target_warning_type_exists_in_next == False: 
                 delete_event_object = ChangeEvent(

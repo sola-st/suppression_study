@@ -1,16 +1,9 @@
 import subprocess
 
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
+from suppression_study.suppression.FormatSuppressionCommon import get_suppressor
 from suppression_study.suppression.Suppression import get_raw_warning_type_from_formatted_suppression_text
 from git.repo import Repo
-
-
-def get_suppressor(suppression_text):
-    # Given the text of a suppression, return the suppressor of this suppression
-    suppressors = ["# pylint:", "# type: ignore"]
-    # always only one suppressor in one suppression
-    suppressor = [suppressor for suppressor in suppressors if suppressor in suppression_text][0]
-    return suppressor
 
 
 class GitLogFromFinalStatus():
