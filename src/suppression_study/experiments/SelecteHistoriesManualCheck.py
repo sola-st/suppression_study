@@ -18,18 +18,18 @@ def random_select_repositories(results_parent_folder):
     seed_value = 42
     random.seed(seed_value)
 
-    # Make sure check at least 25% of the repositories
+    # Check at least ~25% of the repositories
     num_repositories = len(repositories)
     num_repositories_to_choose = random.randint(num_repositories // 4, num_repositories)
     chosen_repositories = random.sample(repositories, num_repositories_to_choose)
     print(f"Number of repositories chosen: {num_repositories_to_choose}")
     print(f"Chosen repositories: {chosen_repositories}")
 
-    return chosen_repositories
+    return num_repositories_to_choose, chosen_repositories
 
-def write_selected_repositories(output_json_file, chosen_repositories):
+def write_chosen_info(output_json_file, to_write):
     with open(output_json_file, "a", newline="\n") as f:
-        f.write(f"{chosen_repositories}\n")
+        f.write(f"{to_write}\n")
 
 
 class SelectHistoriesManualCheck:
@@ -61,6 +61,8 @@ class SelectHistoriesManualCheck:
         print(f"Number of histories chosen: {self.repo} {num_histories_to_choose}")
         self.write_selected_histories(chosen_histories, num_histories_to_choose)
 
+        return num_histories_to_choose
+
     def write_selected_histories(self, chosen_histories, num_histories_to_choose):
         with open(self.output_json_file, "a", newline="\n") as f:
             f.write(f"{self.repo}: {num_histories_to_choose}\n")
@@ -69,12 +71,16 @@ class SelectHistoriesManualCheck:
 
 
 def main(results_parent_folder, output_json_file):
-    chosen_repositories = random_select_repositories(results_parent_folder)
-    write_selected_repositories(output_json_file, chosen_repositories)
+    num_repositories_to_choose, chosen_repositories = random_select_repositories(results_parent_folder)
+    write_chosen_info(output_json_file, f"All chosen repositories: {num_repositories_to_choose}.\n{chosen_repositories}")
+    all_chosen_histories_num = 0
     for repo in chosen_repositories:
         history_json_file = join(results_parent_folder, repo, "histories_suppression_level_all.json")
         if os.path.exists(history_json_file):
-            SelectHistoriesManualCheck(repo, history_json_file, output_json_file).random_select_histories()
+            num_histories_to_choose = SelectHistoriesManualCheck(repo, history_json_file, output_json_file).random_select_histories()
+            all_chosen_histories_num += num_histories_to_choose
+    print(f"Number of histories chosen (all): {all_chosen_histories_num}")
+    write_chosen_info(output_json_file, f"All chosen histories: {all_chosen_histories_num}.")
 
 if __name__ == "__main__":
     args = parser.parse_args()
