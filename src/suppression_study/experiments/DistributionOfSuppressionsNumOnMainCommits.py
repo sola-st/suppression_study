@@ -51,7 +51,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
         ax = axes[row, col]
         ax.axis('off')  # Remove axis labels
         if i == 10:
-            ax.text(0, 0.5, "X-axis: Number of commits\nY-axis: Number of Suppressions", 
+            ax.text(0, 0.5, "X-axis: Number of commits\nY-axis: Number of suppressions", 
                 fontsize=10, ha='left', va='top' )
             ax.legend(handles=[blue_scatter, orange_scatter], fontsize=10, loc="upper left")
 

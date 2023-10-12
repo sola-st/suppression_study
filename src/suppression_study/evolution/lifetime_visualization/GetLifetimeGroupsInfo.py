@@ -13,13 +13,12 @@ class GetLifetimeGroupsInfo:
         self.num_groups = num_groups
 
     def get_groups(self):
-        # lifetime_output file columns=['warning_key', 'occur_days', 'occur_commits', 'commit_based_rates', 'lasting_marks']
+        # lifetime_output file columns=['key(id)', 'occur_days', 'commit_based_rates', 'lasting_marks']
         csv_reader = csv.reader(open(self.lifetime_output, "r"))
         data = list(csv_reader)
         occurrences_days = [row[1] for row in data]
-        occurrences_commits = [row[2] for row in data]
-        commit_based_rates = [row[3] for row in data]
-        lasting_marks = [row[4] for row in data] # Current suppression still exists or not
+        commit_based_rates = [row[2] for row in data]
+        lasting_marks = [row[3] for row in data] # Current suppression still exists or not
 
         # Get groups and check if the suppression are alive
         suppression_num = occurrences_days.__len__()
@@ -27,11 +26,6 @@ class GetLifetimeGroupsInfo:
         days_groups, days_groups_format = self.divide_into_groups(self.entire_lifetime)
         days_groups_num_removed, days_groups_num_lasting = self.check_suppression_if_alive(
                 occurrences_days, days_groups, suppression_num, lasting_marks)
-
-        # commits
-        commits_groups, commits_groups_format = self.divide_into_groups(self.total_commits)
-        commits_groups_num_removed, commits_groups_num_lasting = self.check_suppression_if_alive(
-                occurrences_commits, commits_groups, suppression_num, lasting_marks)
 
         # rates, hard code
         rates_groups = [range(0, 2000), range(2000, 4000), range(4000, 6000), range(6000, 8000), range(8000, 10001)]
@@ -41,18 +35,13 @@ class GetLifetimeGroupsInfo:
                 commit_based_rates_only_digits, rates_groups, suppression_num, lasting_marks)
 
         # Write grouped results to a csv file
-        to_write = ""
-        for index in range(0, self.num_groups):
-            day_str = f"\"{days_groups_format[index]}\",{days_groups_num_removed[index]},{days_groups_num_lasting[index]}"
-            commit_str = f"\"{commits_groups_format[index]}\",{commits_groups_num_removed[index]},{commits_groups_num_lasting[index]}"
-            rate_str = f"\"{rates_groups_format[index]}\",{rates_groups_num_removed[index]},{rates_groups_num_lasting[index]}"
-            to_write = f"{to_write}{day_str},{commit_str},{rate_str}\n"
-        
-        header = (f'day_range,day_group_num_removed,day_group_num_lasting,commit_range,commit_group_num_removed,'
-                f'commit_group_num_lasting,commit_based_rates_range,rate_group_num_removed,rate_group_num_lasting')
-        to_write = f'{header}\n{to_write}'
-        with open(self.group_output, "a") as f:
-            f.write(to_write)
+        with open(self.group_output, 'a', ) as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow(["day_range","day_group_num_removed","day_group_num_lasting",
+                "commit_based_rates_range","rate_group_num_removed","rate_group_num_lasting"])
+            for index in range(0, self.num_groups):
+                csv_writer.writerow([days_groups_format[index],days_groups_num_removed[index],days_groups_num_lasting[index],
+                    f'{rates_groups_format[index]}', rates_groups_num_removed[index], rates_groups_num_lasting[index]])
         print("Get groups, done.")
 
     def divide_into_groups(self, target):

@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import csv
 
 from suppression_study.utils.VisualizationLoadData import load_data_from_csv
 
@@ -12,9 +11,6 @@ def visualize_lifetime(lifetime_group_output_csv):
         "day_range",
         "day_group_num_removed",
         "day_group_num_lasting",
-        "commit_range",
-        "commit_group_num_removed",
-        "commit_group_num_lasting",
         "commit_based_rates_range",
         "rate_group_num_removed",
         "rate_group_num_lasting",
@@ -23,40 +19,38 @@ def visualize_lifetime(lifetime_group_output_csv):
     data = load_data_from_csv(lifetime_group_output_csv)
     output_pdf = lifetime_group_output_csv.replace("_groups.csv", "_visualization.pdf")
     
-    plt.rcParams["figure.figsize"] = (12, 5)
-    
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3)
-    fig.suptitle("Lifetime of all repositories with three different standards.", fontsize=11, horizontalalignment="center")
-  
-    for ax in (ax1, ax2, ax3):
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(30)
+    plt.rcParams["figure.figsize"] = (8, 5)
+    fig, (ax_day, ax_rate) = plt.subplots(nrows=1, ncols=2)
 
-    ax1.set_xlabel("# days")
-    ax1.set_ylabel("# suppression")
-    bottom1 = np.zeros(len(data['day_range']))
+    for ax in (ax_day, ax_rate):
+        for tick in ax.get_xticklabels():
+            tick.set_rotation(45)
+
+    ax_day.set_xlabel("Days")
+    ax_day.set_ylabel("Number of suppressions")
+    bottom_day = np.zeros(len(data['day_range']))
+    legend_labels = []  # Create an empty list to store legend labels
+
     for keyword in ['day_group_num_removed', 'day_group_num_lasting']:
         d_num = np.array(data[keyword], dtype=np.float64)
         # label legend
-        ax1.bar(data['day_range'], d_num, label=keyword.split('_')[-1], bottom=bottom1)
-        bottom1 += d_num
-    ax1.legend(loc="upper right")
+        legend_label = keyword.split('_')[-1]
+        if legend_label == "lasting":
+            legend_label = "never removed"
+        ax_day.bar(data['day_range'], d_num, label=legend_label, bottom=bottom_day)
+        legend_labels.append(legend_label)  # Add the legend label to the list
+        bottom_day += d_num
 
-    ax2.set_xlabel("# commits")
-    bottom2 = np.zeros(len(data['commit_range']))
-    for keyword in ['commit_group_num_removed', 'commit_group_num_lasting']:
-        c_num = np.array(data[keyword], dtype=np.float64)
-        ax2.bar(data['commit_range'], c_num, label=keyword.split('_')[-1], bottom=bottom2)
-        bottom2 += c_num
+    ax_rate.set_xlabel("Commit-based rates")
+    bottom_rate = np.zeros(len(data['commit_based_rates_range']))
 
-    ax3.set_xlabel("# commit-based rates")
-    bottom3 = np.zeros(len(data['commit_based_rates_range']))
     for keyword in ['rate_group_num_removed', 'rate_group_num_lasting']:
         rate = np.array(data[keyword], dtype=np.float64)
-        ax3.bar(data['commit_based_rates_range'], rate, label=keyword.split('_')[-1], bottom=bottom3)
-        bottom3 += rate
+        ax_rate.bar(data['commit_based_rates_range'], rate, label=keyword.split('_')[-1], bottom=bottom_rate)
+        bottom_rate += rate
+
+    ax_rate.legend(legend_labels, loc="upper right", fontsize=10)
 
     plt.tight_layout()
-    plt.subplots_adjust(top=0.9)
     plt.savefig(output_pdf)
     print("Visualization done.")
