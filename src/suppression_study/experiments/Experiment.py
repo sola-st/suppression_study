@@ -76,6 +76,19 @@ class Experiment(ABC):
             print(f"Checked out commit {commit_id} of {repo_dir}")
         return repo_dir_to_commit
 
+    def repo_name_to_git_url(self, repo_name: str) -> str:
+        repo_file = join("data", "python_repos.txt")
+        with open(repo_file) as f:
+            git_urls = f.read().splitlines()
+
+        candidate_urls = [u for u in git_urls if repo_name in u]
+        if len(candidate_urls) != 1:
+            raise Exception(
+                f"Could not find unique git URL for repo name '{repo_name}'")
+        url = candidate_urls[0]
+        assert url.endswith(".git")
+        return url[:-4]
+
     @abstractmethod
     def run(self):
         """
