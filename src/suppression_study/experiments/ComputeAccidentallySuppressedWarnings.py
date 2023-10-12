@@ -31,8 +31,7 @@ def run_on_repo(repo_dir):
     print(f"Computing accidentally suppressed warnings for {repo_name}")
     commits_file = join("data", "results", repo_name, "commit_id_list.csv")
     assert exists(commits_file)
-    history_file = join("data", "results", repo_name,
-                        "gitlog_history", "histories_suppression_level_all.json")
+    history_file = join("data", "results", repo_name, "histories_suppression_level_all.json")
     assert exists(history_file)
     results_dir = join("data", "results", repo_name)
     find_accidentally_suppressed_warnings(

@@ -36,7 +36,7 @@ def main(all_repositories_csv, repo_parent_folder, lifetime_output_csv):
             write_commit_info_to_csv(repo_dir, all_commits_csv_file)
         # Read all_commits_csv_file, get 2 lists: all_commit, all_dates
         all_commits, all_dates = get_commit_date_lists(all_commits_csv_file)
-        suppression_history_json_file = f"{results_folder}/{repo_name}/gitlog_history/histories_suppression_level_all.json"
+        suppression_history_json_file = f"{results_folder}/{repo_name}/histories_suppression_level_all.json"
         # Start get lifetime
         # Write a file 'output_individual_repository', which records lifetime of all suppressions in current repository
         init = LifetimeCalculator(all_commits, all_dates, suppression_history_json_file, lifetime_output_csv)

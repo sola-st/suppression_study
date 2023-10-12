@@ -6,7 +6,7 @@ i.e., that are suppressed by a suppression that was added before the warning its
 import argparse
 from os.path import join
 from typing import List
-from suppression_study.evolution.SuppressionHistory import read_histories_from_json
+from suppression_study.evolution.ExtractHistory import read_histories_from_json
 from suppression_study.utils.FunctionsCommon import get_commit_list
 from suppression_study.warnings.WarningSuppressionMapper import main as compute_warning_suppression_mapping
 from suppression_study.warnings.WarningSuppressionUtil import read_mapping_from_csv

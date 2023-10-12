@@ -17,7 +17,7 @@ class ComputeSuppressionHistories(Experiment):
         commit_list_file_1000_all = commit_list_file_1000.replace("_1000", "")
         write_commit_info_to_csv(repo_dir, commit_list_file_1000_all)
 
-        select_1000_commits(repo_dir, commit_list_file_1000_all, commit_list_file_1000)
+        select_1000_commits(repo_dir, commit_list_file_1000)
         return commit_list_file_1000
 
     def run(self):
@@ -33,7 +33,7 @@ class ComputeSuppressionHistories(Experiment):
             commit_list_file_1000 = join("data", "results", repo_name, "commit_id_list_1000.csv")
             if not os.path.exists(commit_list_file_1000):
                 # Depending on the experiment "Get1000Commits" is done or not
-                commit_list_file_1000 = self._compute_commit_id_list(repo_dir, commit_list_file_1000)
+                commit_list_file_1000 = self._compute_1000_commit_id_list(repo_dir, commit_list_file_1000)
             print(f"Computed commit list for {repo_name}.")
 
             dest_dir = join("data", "results", repo_name)

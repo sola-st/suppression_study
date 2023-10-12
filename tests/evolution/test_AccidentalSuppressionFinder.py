@@ -20,7 +20,7 @@ def run_test_on_repo(repo_name, repo_url, expected_result_file):
                         "--results_dir=" + working_dir])
 
         history_file = join(
-            working_dir, "gitlog_history/histories_suppression_level_all.json")
+            working_dir, "histories_suppression_level_all.json")
 
         repo_dir = join(working_dir, repo_name)
         subprocess.run(["python", "-m", "suppression_study.evolution.AccidentalSuppressionFinder",

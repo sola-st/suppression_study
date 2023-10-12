@@ -83,40 +83,20 @@ def get_raw_warning_type(csv_file):
     raw_warning_types = []
     suppression_texts = get_suppression_text_from_file(csv_file)
     for suppression_text in suppression_texts:
-        '''
-        Suppression examples:
-        # pylint: disable= no-member, arguments-differ, invalid-name
-        # type: ignore[assignment]
-        '''
-        if "=" in suppression_text:  # Pylint
-            raw_warning_type = suppression_text.split("=")[1]
-            raw_warning_types = raw_warning_types_accumulator(
-                raw_warning_type, raw_warning_types)
-        elif "(" in suppression_text:  # Mypy
-            raw_warning_type = suppression_text.split("(")[1].replace(")", "")
-            raw_warning_types = raw_warning_types_accumulator(
-                raw_warning_type, raw_warning_types)
-        elif "[" in suppression_text:  # Mypy
-            raw_warning_type = suppression_text.split("[")[1].replace("]", "")
-            raw_warning_types = raw_warning_types_accumulator(
-                raw_warning_type, raw_warning_types)
-        else:
-            # Could be: # type: ignore
-            if suppression_text == "# type: ignore":
-                suppression_text = "ignore"
-            raw_warning_types.append(suppression_text)
-
+        raw_warning_type = get_raw_warning_type_from_formatted_suppression_text(suppression_text)
+        raw_warning_types.append(raw_warning_type)
+        
     return raw_warning_types  # all raw warning type in specified csv_file
 
+def get_raw_warning_type_from_formatted_suppression_text(suppression_text):
+    separator = ""
+    if "=" in suppression_text: # Pylint
+        separator = "="
+    elif "[" in suppression_text: # Mypy
+        separator = "["
 
-def raw_warning_types_accumulator(raw_warning_type, raw_warning_types):
-    # Add extracted warning types to raw_warning_types
-    if "," in raw_warning_type:  # multiple types
-        multi_raw_warning_type_tmp = raw_warning_type.split(",")
-        multi_raw_warning_type = [warning_type.strip()
-                                  for warning_type in multi_raw_warning_type_tmp]
-        raw_warning_types.extend(multi_raw_warning_type)
-    else:
-        raw_warning_types.append(raw_warning_type)
-
-    return raw_warning_types
+    if separator:
+        raw_warning_type = suppression_text.split(separator)[1].replace("]", "")
+    else: # eg,. # type: ignore
+        raw_warning_type = suppression_text
+    return raw_warning_type
