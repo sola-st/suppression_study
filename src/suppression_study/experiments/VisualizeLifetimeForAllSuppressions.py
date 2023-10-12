@@ -12,6 +12,9 @@ class VisualizeLifetimeForAllSuppressions(Experiment):
     Experiment that run GrepSuppressionPython on all commits. 
     Get suppressions in given repositories, and get a csv file which 
     show the number of suppressions in every commit.
+
+    Depends on:
+     * ComputeSuppressionHistories
     """
 
     def run(self):

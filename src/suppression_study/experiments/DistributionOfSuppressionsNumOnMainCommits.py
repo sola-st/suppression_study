@@ -8,6 +8,7 @@ from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
     fig, axes = plt.subplots(3, 4, figsize=(12, 8))
+    plt.subplots_adjust(wspace=0.4, hspace=0.6)
 
     for i, (suppression_nums_csv, start_commit, end_commit) in enumerate(
         zip(suppression_nums_csvs, start_commit_indices, end_commit_indices)
@@ -30,7 +31,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
             num_suppressions.append(num_suppression)
 
         # 's' controls the size of the markers
-        blue_scatter = ax.scatter(indexes, num_suppressions, s=2, label='Blue Point')
+        blue_scatter = ax.scatter(indexes, num_suppressions, s=2, label='Commits on the main/master branch')
 
         # Configure x-axis and y-axis tick locators to use MaxNLocator
         ax.xaxis.set_major_locator(MaxNLocator(prune='both'))
@@ -40,7 +41,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
         for index in indexes:
             if index == start_commit or index == end_commit:
                 orange_scatter = ax.scatter(
-                    index, num_suppressions[index - 1], s=10, color='orange', label='Orange Point'
+                    index, num_suppressions[index - 1], s=10, color='orange', label='Start/end commit'
                 )
 
         ax.set_title(repo_names[i])
@@ -51,14 +52,15 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
         ax = axes[row, col]
         ax.axis('off')  # Remove axis labels
         if i == 10:
-            ax.text(0, 0.5, "X-axis: Number of commits\nY-axis: Number of suppressions", 
-                fontsize=10, ha='left', va='top' )
-            ax.legend(handles=[blue_scatter, orange_scatter], fontsize=10, loc="upper left")
+            ax.text(
+                0, 0.5, "X-axis: Number of commits\nY-axis: Number of suppressions", fontsize=11, ha='left', va='top'
+            )
+            ax.legend(handles=[blue_scatter, orange_scatter], fontsize=11, loc="upper left")
 
     for ax in axes.flat:
         ax.tick_params(axis='x', labelrotation=45)
 
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(output_pdf)
 
 
