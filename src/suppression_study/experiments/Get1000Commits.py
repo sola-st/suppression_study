@@ -10,6 +10,7 @@ from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 class Get1000Commits(Experiment):
     """
     Get 1000 commits for all repositories.
+    Get an overview of start and end commits of each repository - overall_information_csv.
     """
 
     def _compute_commit_id_list(self, repo_dir, repo_name):
@@ -24,6 +25,8 @@ class Get1000Commits(Experiment):
         self.checkout_latest_commits()
         print(f"Found {len(repo_dirs)} repositories.")
 
+        # accelerate to record overall information
+        overall_information_csv = join("data", "results", "start_end_commits_1000.csv")
         # compute commits to consider list and prepare args for running ExtractHistory in parallel
         args_for_all_repos = []
         for repo_dir in repo_dirs:
@@ -32,7 +35,7 @@ class Get1000Commits(Experiment):
             print(f"Computed commit list for {repo_name}.")
 
             output_commit_list_file = commit_list_file.replace(".csv", "_1000.csv")
-            args = [repo_dir, output_commit_list_file]
+            args = [repo_dir, output_commit_list_file, overall_information_csv]
             args_for_all_repos.append(args)
             
         # start selecting 1000 commits, in parallel on different repos
