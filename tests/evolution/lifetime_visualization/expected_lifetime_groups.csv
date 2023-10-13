@@ -1,0 +1,6 @@
+day_range,day_group_num_removed,day_group_num_lasting,commit_based_rates_range,rate_group_num_removed,rate_group_num_lasting
+"[0, 0]",0,0,"[0,20%)",1,0
+"[0, 0]",0,0,"[20%,40%)",0,1
+"[0, 0]",0,0,"[40%,60%)",0,1
+"[0, 0]",0,0,"[60%,80%)",0,1
+"[0, 0]",0,0,"[80%,100%]",0,0

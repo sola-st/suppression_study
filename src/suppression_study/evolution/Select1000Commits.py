@@ -1,6 +1,6 @@
+import csv
 import os
-from os.path import join
-from os import sep
+from os.path import join, dirname
 import shutil
 import subprocess
 import tempfile
@@ -9,40 +9,31 @@ from suppression_study.utils.FunctionsCommon import get_commit_list, write_commi
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
-def get_commits_first_use_suppression(repo_dir, all_commit_id_list_startsfrom_oldest, all_commit_num):
-    first_suppression_commit_index = 0
-    if repo_dir.endswith(sep):
-        repo_dir = repo_dir.rstrip(sep)
-    repo_name = repo_dir_to_name(repo_dir)
-    repo_parent_folder = os.path.dirname(repo_dir)
-
+def get_commits_first_use_suppression(repo_dir, all_main_commit_id_list_startsfrom_oldest, all_main_commit_num):
+    # Return the first commit that firstly introduces suppressions and its index
     with tempfile.TemporaryDirectory() as tmp_dir:
         grep_suppression_folder = join(tmp_dir, "grep")
         # Get the first commit that start using suppressions.
-        for commit, commit_index in zip(all_commit_id_list_startsfrom_oldest, range(all_commit_num)):
+        for commit, commit_index in zip(all_main_commit_id_list_startsfrom_oldest, range(all_main_commit_num)):
             subprocess.run(
-                ["python", "-m",  "suppression_study.suppression.GrepSuppressionPython",
+                ["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
                 "--repo_dir=" + repo_dir,
                 "--commit_id=" + commit,
-                "--results_dir=" + tmp_dir]
-            )
+                "--results_dir=" + tmp_dir,])
 
             suppression_csv_file_name = f"{commit}_suppression.csv"
             suppression_csv_file = join(grep_suppression_folder, suppression_csv_file_name)
             if os.path.exists(suppression_csv_file) and os.path.getsize(suppression_csv_file):
-                first_suppression_commit_index = commit_index
-                with open(f"{repo_parent_folder}_first_suppression_all_repos.csv", "a") as f:
-                    f.write(f"{repo_name}, {commit}, {all_commit_num}, {commit_index}\n")
-                break
-            else: 
-                # suppression exists in grep results, but not real suppressions, 
+                return commit, commit_index  # first_suppression_commit and its index
+            else:
+                # suppression exists in grep results, but not real suppressions,
                 # eg,. a suppression in a comment line
                 shutil.rmtree(grep_suppression_folder)
 
-    return first_suppression_commit_index
 
-
-def select_1000_commits(repo_dir, selected_1000_commits_csv):
+def select_1000_commits(repo_dir, selected_1000_commits_csv, overall_information_csv=None):
+    # overall_information_csv is designed to record the start and end of the selected 1000 commits.
+    # especially when run this function on all repositories. [Actual usage example: experiment/Get1000Commits.py]
     '''
     Select 1000 commits for each repository:
     start from the commit that first introduces suppressions (Assume it called "first_suppression_commit")
@@ -60,32 +51,54 @@ def select_1000_commits(repo_dir, selected_1000_commits_csv):
     expected_select_commits_num = 1000
     selected_1000_commits_dates = []
 
-    all_commit_id_csv = selected_1000_commits_csv.replace("_1000", "")
-    if not os.path.exists(all_commit_id_csv):
-        write_commit_info_to_csv(repo_dir, all_commit_id_csv) # commit_info: commit and date
+    all_main_commit_id_csv = selected_1000_commits_csv.replace("_1000", "")
+    if not os.path.exists(all_main_commit_id_csv):
+        write_commit_info_to_csv(repo_dir, all_main_commit_id_csv)  # commit_info: commit and date
 
-    all_commit_id_list = get_commit_list(all_commit_id_csv)
-    all_commit_num = len(all_commit_id_list)
+    all_commit_id_list = get_commit_list(all_main_commit_id_csv)
+    all_main_commit_num = len(all_commit_id_list)
 
     # Find first_suppression_commit
-    all_commit_id_list_startsfrom_oldest = list(reversed(all_commit_id_list))
-    first_suppression_commit_index = get_commits_first_use_suppression(
-            repo_dir, all_commit_id_list_startsfrom_oldest, all_commit_num)
+    all_main_commit_id_list_startsfrom_oldest = list(reversed(all_commit_id_list))
+    first_suppression_commit, first_suppression_commit_index = get_commits_first_use_suppression(
+        repo_dir, all_main_commit_id_list_startsfrom_oldest, all_main_commit_num
+    )
 
     # Get the selected 1000 commits index range (final results includes commits and dates)
-    with open(all_commit_id_csv, 'r') as f:
+    with open(all_main_commit_id_csv, 'r') as f:
         commits_and_dates = f.readlines()
     commits_and_dates_startsfrom_oldest = list(reversed(commits_and_dates))
 
     expected_end_commit_index = first_suppression_commit_index + expected_select_commits_num
-    if expected_end_commit_index > all_commit_num:
+    real_end_commit_index_startsfrom_zero = expected_end_commit_index - 1
+    if expected_end_commit_index > all_main_commit_num:
         # Get all the commits starts after first_suppression_commit (will be under 1000)
-        expected_end_commit_index = all_commit_num
-    
-    selected_1000_commits_dates = list(reversed(commits_and_dates_startsfrom_oldest[
-            first_suppression_commit_index:expected_end_commit_index]))
+        expected_end_commit_index = all_main_commit_num
+
+    selected_1000_commits_dates = list(
+        reversed(commits_and_dates_startsfrom_oldest[first_suppression_commit_index:expected_end_commit_index])
+    )
 
     selected_1000_commits_dates_str = "".join(selected_1000_commits_dates)
 
     with open(selected_1000_commits_csv, "w") as f:
         f.writelines(selected_1000_commits_dates_str)
+
+    if overall_information_csv != None:
+        # record the selected 1000's first and end commit information
+        # repo_name, all_main_commit_num, first_commit, first_commit_index, end_commit, end_commit_index
+        os.makedirs(dirname(overall_information_csv), exist_ok=True)
+        repo_name = repo_dir_to_name(repo_dir)
+        real_end_commit = all_main_commit_id_list_startsfrom_oldest[real_end_commit_index_startsfrom_zero]
+        with open(overall_information_csv, 'a', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow(
+                [
+                    repo_name,
+                    all_main_commit_num,
+                    first_suppression_commit,
+                    first_suppression_commit_index,
+                    real_end_commit,
+                    real_end_commit_index_startsfrom_zero,
+                ]
+            )
