@@ -7,8 +7,7 @@ from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
 def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
-    fig, axes = plt.subplots(3, 4, figsize=(12, 8))
-    plt.subplots_adjust(wspace=0.4, hspace=0.6)
+    fig, axes = plt.subplots(3, 4, figsize=(16, 8))
 
     for i, (suppression_nums_csv, start_commit, end_commit) in enumerate(
         zip(suppression_nums_csvs, start_commit_indices, end_commit_indices)
@@ -60,7 +59,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
     for ax in axes.flat:
         ax.tick_params(axis='x', labelrotation=45)
 
-    # plt.tight_layout()
+    plt.tight_layout()
     plt.savefig(output_pdf)
 
 

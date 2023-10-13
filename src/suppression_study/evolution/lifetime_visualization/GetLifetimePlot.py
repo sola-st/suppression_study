@@ -41,7 +41,7 @@ def visualize_lifetime(lifetime_group_output_csv):
         legend_labels.append(legend_label)  # Add the legend label to the list
         bottom_day += d_num
 
-    ax_rate.set_xlabel("Commit-based rates")
+    ax_rate.set_xlabel("Percentage of all studied commits")
     bottom_rate = np.zeros(len(data['commit_based_rates_range']))
 
     for keyword in ['rate_group_num_removed', 'rate_group_num_lasting']:
