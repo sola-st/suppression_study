@@ -7,7 +7,7 @@ from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
 def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
-    fig, axes = plt.subplots(3, 4, figsize=(16, 8))
+    fig, axes = plt.subplots(4, 3, figsize=(12, 10)) # figsize=(22, 12)
 
     for i, (suppression_nums_csv, start_commit, end_commit) in enumerate(
         zip(suppression_nums_csvs, start_commit_indices, end_commit_indices)
@@ -16,7 +16,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
         if i >= 10:
             break
 
-        row, col = divmod(i, 4)
+        row, col = divmod(i, 3)
         ax = axes[row, col]
 
         indexes = []
@@ -43,18 +43,20 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
                     index, num_suppressions[index - 1], s=10, color='orange', label='Start/end commit'
                 )
 
-        ax.set_title(repo_names[i])
+        ax.set_title(repo_names[i], fontsize=12)
 
     # Add agenda text to the last two subplots
-    for i in range(10, 12):
-        row, col = divmod(i, 4)
-        ax = axes[row, col]
-        ax.axis('off')  # Remove axis labels
-        if i == 10:
-            ax.text(
-                0, 0.5, "X-axis: Number of commits\nY-axis: Number of suppressions", fontsize=11, ha='left', va='top'
-            )
-            ax.legend(handles=[blue_scatter, orange_scatter], fontsize=11, loc="upper left")
+    # Merge the last two subplots (positions 10 and 11)
+    ax10 = axes[3, 1]
+    ax11 = axes[3, 2]
+    for ax in [ax10, ax11]:
+        ax.remove()
+    ax10_11 = fig.add_subplot(4, 3, 11)
+    ax10_11.axis('off')  # Remove axis labels
+    ax10_11.legend(handles=[blue_scatter, orange_scatter], fontsize=12, loc="upper left")
+    ax10_11.text(
+        0.05, 0.2, "X-axis: Number of commits\nY-axis: Number of suppressions", fontsize=12, ha='left', va='bottom'
+    )
 
     for ax in axes.flat:
         ax.tick_params(axis='x', labelrotation=45)
@@ -86,7 +88,7 @@ class DistributionOfSuppressionsNumOnMainCommits(Experiment):
         for repo_dir in repo_dirs:
             repo_name = repo_dir_to_name(repo_dir)
             repo_names.append(repo_name)
-            suppression_num_csv = join("data", "results", repo_name, "main_suppression_nums.csv")
+            suppression_num_csv = join("data", "results", repo_name, "main_suppression_nums_pylint.csv")
             suppression_nums_csvs.append(suppression_num_csv)
 
         # get all start and end commit indices, index number based on only main branch
@@ -97,8 +99,8 @@ class DistributionOfSuppressionsNumOnMainCommits(Experiment):
         #  the repos order is the same as repo_dirs
         csv_reader = csv.reader(open(start_end_commits_csv, 'r'))
         for row in csv_reader:
-            start_index = int(row[3])
-            end_index = int(row[5])
+            start_index = int(row[3]) + 1
+            end_index = int(row[5]) + 1
             start_commit_indices.append(start_index)
             end_commit_indices.append(end_index)
 

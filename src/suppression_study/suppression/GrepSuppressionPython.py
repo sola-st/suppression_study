@@ -63,7 +63,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
             all_suppression_nums.append(suppression_num)
 
         # Write a file to record the number of suppressions in every commit
-        suppression_num_csv = join(os.path.dirname(self.output_path), "main_suppression_nums.csv")
+        suppression_num_csv = join(os.path.dirname(self.output_path), "main_suppression_nums_pylint.csv")
         commit_max_index = len(all_suppression_nums) + 1 # set to start from 1
         all_suppression_nums.reverse() # let it start from older commits
         with open(suppression_num_csv, 'w', newline='') as csvfile:
