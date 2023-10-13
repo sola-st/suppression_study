@@ -84,4 +84,5 @@ def main(results_parent_folder, output_json_file):
 
 if __name__ == "__main__":
     args = parser.parse_args()
+    # TODO remove the arguments; instead, all experiments should just use the same default location of these files (as defined in README.md)
     main(args.results_parent_folder, args.output_json_file)
