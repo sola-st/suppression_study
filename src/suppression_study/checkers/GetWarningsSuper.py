@@ -2,6 +2,7 @@
 Common functions for getting warnings from running checkers.
 '''
 
+import csv
 import subprocess
 from git.repo import Repo
 import os
@@ -27,6 +28,7 @@ class GetWarningsSuper():
             target_repo = Repo(self.repo_dir)
             target_repo.git.checkout(self.commit_id, force=True)
 
+        # used to store checker results and extracted warning csv file
         commit_results_dir = join(self.results_dir, "checker_results", self.commit_id)
         if not os.path.exists(commit_results_dir):
             os.makedirs(commit_results_dir)
@@ -43,9 +45,7 @@ class GetWarningsSuper():
         '''
         Write all reported warnings to a .csv file.
         '''
-        with open(join(commit_results_dir, self.commit_id + "_warnings.csv"), "w") as f:
-            write_str = ""
+        with open(join(commit_results_dir, self.commit_id + "_warnings.csv"), "w") as csvfile:
+            csv_writer = csv.writer(csvfile)
             for single_warning in warnings:
-                single_write_str = single_warning['file_path'] + "," + single_warning['warning_type'] + "," + single_warning['line_number']
-                write_str = write_str + single_write_str + "\n"
-            f.write(write_str)
+                csv_writer.writerow([single_warning.path, single_warning.kind, single_warning.line])
