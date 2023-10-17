@@ -19,8 +19,7 @@ def get_commits_first_use_suppression(repo_dir, all_main_commit_id_list_startsfr
                 ["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
                 "--repo_dir=" + repo_dir,
                 "--commit_id=" + commit,
-                "--results_dir=" + tmp_dir,
-                "--checker=pylint"])
+                "--results_dir=" + tmp_dir,])
 
             suppression_csv_file_name = f"{commit}_suppression.csv"
             suppression_csv_file = join(grep_suppression_folder, suppression_csv_file_name)

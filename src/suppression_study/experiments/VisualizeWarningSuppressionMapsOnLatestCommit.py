@@ -1,3 +1,4 @@
+import os
 from os.path import join
 from collections import Counter
 import matplotlib.pyplot as plt
@@ -27,9 +28,10 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
             repo_name = repo_dir_to_name(repo_dir)
             mapping_file = join("data", "results", repo_name,
                                 "commits", commit, f"{checker}_mapping.csv")
-            suppression_warning_pairs = read_mapping_from_csv(
-                file=mapping_file)
-            repo_dir_to_mapping[repo_dir] = suppression_warning_pairs
+            if os.path.exists(mapping_file):
+                suppression_warning_pairs = read_mapping_from_csv(
+                    file=mapping_file)
+                repo_dir_to_mapping[repo_dir] = suppression_warning_pairs
 
         return repo_dir_to_mapping
 
@@ -84,15 +86,19 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
     def _load_useless_suppression(self, repo_name, checker, commit):
         useless_suppressions_file = join("data", "results", repo_name,
                                          "commits", commit, f"{checker}_useless_suppressions.csv")
-        useless_suppressions = read_suppressions_from_file(
-            useless_suppressions_file)
+        useless_suppressions = []
+        if os.path.exists(useless_suppressions_file):
+            useless_suppressions = read_suppressions_from_file(
+                useless_suppressions_file)
         return useless_suppressions
 
     def _load_useful_suppression(self, repo_name, checker, commit):
         useful_suppressions_file = join("data", "results", repo_name,
                                         "commits", commit, f"{checker}_useful_suppressions.csv")
-        useful_suppressions = read_suppressions_from_file(
-            useful_suppressions_file)
+        useful_suppressions = []
+        if os.path.exists(useful_suppressions_file):
+            useful_suppressions = read_suppressions_from_file(
+                useful_suppressions_file)
         return useful_suppressions
 
     def _compute_useful_and_useless_suppressions_table(self, repo_dir_to_commit):
@@ -143,11 +149,15 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
 
             warnings_file = join("data", "results", repo_name,
                                  "commits", commit, f"{checker}_warnings.csv")
-            unsuppressed_warnings = read_warning_from_file(warnings_file)
+            unsuppressed_warnings = []
+            if os.path.exists(warnings_file):
+                unsuppressed_warnings = read_warning_from_file(warnings_file)
             suppressed_warnings_file = join("data", "results", repo_name,
                                             "commits", commit, f"{checker}_suppressed_warnings.csv")
-            suppressed_warnings = read_warning_from_file(
-                suppressed_warnings_file)
+            suppressed_warnings = []
+            if os.path.exists(suppressed_warnings_file):
+                suppressed_warnings = read_warning_from_file(
+                    suppressed_warnings_file)
 
             print(
                 f"{repo_name}, suppressed: {len(suppressed_warnings)}, unsuppressed: {len(unsuppressed_warnings)}")
@@ -219,11 +229,11 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
         suppression_to_warnings, warning_to_suppressions = self._compute_one_to_many_maps(
             repo_dir_to_pairs)
         self._plot_one_to_many_distribution(suppression_to_warnings,
-                                            xlabel="Suppressions that suppress a single warning",
+                                            xlabel="Warnings suppressed by a single suppression",
                                             ylabel="Occurrences",
                                             outfile="warning_to_suppressions.pdf")
         self._plot_one_to_many_distribution(warning_to_suppressions,
-                                            xlabel="Warnings suppressed by a single suppression",
+                                            xlabel="Suppressions that suppress a single warning",
                                             ylabel="Occurrences",
                                             outfile="suppression_to_warnings.pdf")
 
