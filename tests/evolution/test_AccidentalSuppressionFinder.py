@@ -27,7 +27,7 @@ def run_test_on_repo(repo_name, repo_url, expected_result_file):
                         "--repo_dir=" + repo_dir,
                         "--commits_file=" + selected_1000_commits_csv,
                         "--history_file=" + history_file,
-                        "--results_dir=" + working_dir])
+                        "--results_dir=" + repo_dir]) # the results json file will be written to working_dir
 
         actual_result_file = join(
             working_dir, "accidentally_suppressed_warnings.json")
