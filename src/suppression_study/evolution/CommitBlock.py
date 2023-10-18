@@ -3,11 +3,12 @@ from suppression_study.suppression.FormatSuppressionCommon import get_suppressio
 
 
 class CommitBlock:
-    def __init__(self, commit_block, suppressor, target_raw_warning_type, current_file):
+    def __init__(self, commit_block, suppressor, target_raw_warning_type, current_file, specific_numeric_maps):
         self.commit_block = commit_block
         self.suppressor = suppressor
         self.target_raw_warning_type = target_raw_warning_type # single warning type
         self.current_file = current_file # if merge commit, this is the file path of the added suppression
+        self.specific_numeric_maps = specific_numeric_maps
 
         self.commit_id = ""
         self.date = ""
@@ -93,7 +94,8 @@ class CommitBlock:
         for code, line_num in zip(self.old_source_code, self.old_hunk_line_range):
             suppressor = get_suppressor(code)
             if suppressor:
-                suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                suppression_text_from_code = str(get_suppression_from_source_code(suppressor, 
+                        comment_symbol, code, self.specific_numeric_maps))
                 if suppression_text_from_code: 
                     if self.target_raw_warning_type in suppression_text_from_code:
                         suppression_exists_in_old_mark = True
@@ -107,7 +109,8 @@ class CommitBlock:
             for code, line_num in zip(self.new_source_code, self.new_hunk_line_range):
                 suppressor = get_suppressor(code)
                 if suppressor:
-                    suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                    suppression_text_from_code = str(get_suppression_from_source_code(suppressor, 
+                            comment_symbol, code, self.specific_numeric_maps))
                     if suppression_text_from_code:
                         if self.target_raw_warning_type in suppression_text_from_code:
                             suppression_line_number = line_num

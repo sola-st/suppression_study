@@ -25,7 +25,7 @@ def get_commits_first_use_suppression(repo_dir, all_main_commit_id_list_startsfr
             suppression_csv_file = join(grep_suppression_folder, suppression_csv_file_name)
             if os.path.exists(suppression_csv_file) and os.path.getsize(suppression_csv_file):
                 return commit, commit_index  # first_suppression_commit and its index
-            else:
+            elif os.path.exists(grep_suppression_folder):
                 # suppression exists in grep results, but not real suppressions,
                 # eg,. a suppression in a comment line
                 shutil.rmtree(grep_suppression_folder)

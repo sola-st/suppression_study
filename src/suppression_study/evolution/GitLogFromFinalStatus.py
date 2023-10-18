@@ -8,10 +8,11 @@ from git.repo import Repo
 
 class GitLogFromFinalStatus():
 
-    def __init__(self, repo_dir, never_removed_suppressions, delete_event_suppression_commit_list):
+    def __init__(self, repo_dir, never_removed_suppressions, delete_event_suppression_commit_list, specific_numeric_maps):
         self.repo_dir = repo_dir
         self.never_removed_suppressions = never_removed_suppressions
         self.delete_event_suppression_commit_list = delete_event_suppression_commit_list
+        self.specific_numeric_maps = specific_numeric_maps
 
         self.only_add_event_histories = []
         self.add_delete_histories = []
@@ -45,7 +46,8 @@ class GitLogFromFinalStatus():
             result = subprocess.run(command_line, cwd=self.repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
             log_result = result.stdout
             
-        expected_add_event = AnalyzeGitlogReport(log_result, suppressor, raw_warning_type, current_file).from_gitlog_results_to_change_events()
+        expected_add_event = AnalyzeGitlogReport(log_result, suppressor, raw_warning_type, current_file,
+                self.specific_numeric_maps).from_gitlog_results_to_change_events()
 
         return expected_add_event, log_result
     

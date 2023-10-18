@@ -3,6 +3,7 @@ import subprocess
 from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
 from suppression_study.evolution.DiffBlock import DiffBlock
 from os.path import join
+from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
 
 from suppression_study.suppression.Suppression import (
     get_raw_warning_type_from_formatted_suppression_text, read_suppressions_from_file)
@@ -22,11 +23,12 @@ class GetSuppressionDeleteHistories:
     2) return a history list that includes all deleted suppressions and their delete events
     '''
 
-    def __init__(self, repo_dir, selected_1000_commits_list, selected_1000_dates_list, grep_folder):
+    def __init__(self, repo_dir, selected_1000_commits_list, selected_1000_dates_list, grep_folder, specific_numeric_maps):
         self.repo_dir = repo_dir
         self.selected_1000_commits_list = selected_1000_commits_list
         self.selected_1000_dates_list = selected_1000_dates_list
         self.grep_folder = grep_folder
+        self.specific_numeric_maps = specific_numeric_maps
 
     def track_commits_forward(self):
         '''
@@ -92,7 +94,7 @@ class GetSuppressionDeleteHistories:
                                 stdout=subprocess.PIPE, universal_newlines=True)
                         diff_contents = diff_result.stdout
                         delete_event_ready_to_json = DiffBlock(
-                            next_commit, next_date, diff_contents, suppression, raw_warning_type
+                            next_commit, next_date, diff_contents, suppression, raw_warning_type, self.specific_numeric_maps
                         ).from_diff_block_to_delete_event()
                         last_exists_commit = current_commit
 
