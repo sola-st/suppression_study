@@ -33,6 +33,8 @@ def test_OccurrencesVisualization_in_suppressions():
             f"--results_dir={demo_path}",
             f"--type_source='suppressions'"])
 
+        # TODO newly edited suppression format steps are not well fit for mypy
+        # warning_types_occurrences does not includes mypy warning types now
         actual_results_data = join(demo_path, "occurrences/warning_types_occurrences.csv")
         expected_results_data = "tests/suppression/occurrences/expected_warning_types_occurrences.csv"
         sort_and_compare_files(actual_results_data, expected_results_data)
