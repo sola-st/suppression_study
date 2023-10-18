@@ -27,7 +27,7 @@ def get_specific_numeric_type_map_csv_from_page_source():
         csv_writer.writerows(maps)
 
 def get_specific_numeric_type_map_list():
-    specific_numeric_type_csv = join("data", "results", "specific_numeric_type_map.csv")
+    specific_numeric_type_csv = join("data", "specific_numeric_type_map.csv")
     maps = set()
     with open(specific_numeric_type_csv, "r") as f:
         reader = csv.reader(f)
