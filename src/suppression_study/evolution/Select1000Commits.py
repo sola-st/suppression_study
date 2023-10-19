@@ -73,7 +73,7 @@ def select_1000_commits(repo_dir, selected_1000_commits_csv, overall_information
     real_end_commit_index_startsfrom_zero = expected_end_commit_index - 1
     if expected_end_commit_index > all_main_commit_num:
         # Get all the commits starts after first_suppression_commit (will be under 1000)
-        expected_end_commit_index = all_main_commit_num
+        real_end_commit_index_startsfrom_zero = all_main_commit_num - 1
 
     selected_1000_commits_dates = list(
         reversed(commits_and_dates_startsfrom_oldest[first_suppression_commit_index:expected_end_commit_index])

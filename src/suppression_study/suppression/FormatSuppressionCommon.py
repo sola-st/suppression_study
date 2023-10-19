@@ -176,6 +176,8 @@ def get_separated_suppressions(suppression_text, specific_numeric_maps):
     '''
     preprocessed_suppression_texts = []
     separator = ""
+    raw_warning_type = ""
+    suppressor_part = ""
 
     if "=" in suppression_text:  # Pylint
         separator = "="
@@ -183,13 +185,18 @@ def get_separated_suppressions(suppression_text, specific_numeric_maps):
         separator = "("
     elif "[" in suppression_text:  # Mypy
         separator = "["
+    else: # suppression: pylint: disable-all
+        if "disable-all" in suppression_text and "pylint" in suppression_text:
+            raw_warning_type = "all"
+            suppressor_part = "# pylint: disable"
 
-    tmp = suppression_text.split(separator)
-    suppressor_part = tmp[0] # eg,. # pylint: disable
-    # raw waning type can a single one, or multiple
-    # eg,. no-member
-    # eg,. arguments-differ, invalid-name
-    raw_warning_type = tmp[1].replace("]", "", 1).strip()
+    if separator:
+        tmp = suppression_text.split(separator)
+        suppressor_part = tmp[0] # eg,. # pylint: disable
+        # raw waning type can a single one, or multiple
+        # eg,. no-member
+        # eg,. arguments-differ, invalid-name
+        raw_warning_type = tmp[1].replace("]", "", 1).strip()
 
     last_type = ""
     multi_raw_warning_type = []
