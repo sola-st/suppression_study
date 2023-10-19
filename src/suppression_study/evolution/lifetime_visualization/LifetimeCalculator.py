@@ -18,7 +18,7 @@ class LifetimeCalculator():
         total_commits_num = len(self.all_main_commits)
         default_start_date = self.all_dates[-1].strip().replace("\"", "")
         default_end_date = self.all_dates[0].strip().replace("\"", "")
-        entire_lifetime = self.time_delta(default_start_date, default_end_date)
+        entire_lifetime = time_delta(default_start_date, default_end_date)
 
         print(f"Total commits num: {total_commits_num}")
         print(f"Entire lifetime: {entire_lifetime} days")
@@ -60,7 +60,7 @@ class LifetimeCalculator():
             # days
             start_date = start_date.replace("\"", "").strip()
             end_date = end_date.replace("\"", "").strip()
-            day_delta = self.time_delta(start_date, end_date)
+            day_delta = time_delta(start_date, end_date)
             self.lifetime_days.append(day_delta)
 
             # commit based rates
@@ -68,14 +68,6 @@ class LifetimeCalculator():
             commit_delta = abs(end_commit_index - start_commit_index)
             rate = format(float(commit_delta / total_commits_num * 100), '.2f')
             self.lifetime_commit_rates.append(f"{rate}%")
-        
-    def time_delta(self, start_date, end_date):
-        d1 = time.mktime(time.strptime(start_date, "%a %b %d %H:%M:%S %Y %z"))
-        d2 = time.mktime(time.strptime(end_date, "%a %b %d %H:%M:%S %Y %z"))
-        start = datetime.datetime.fromtimestamp(d1)
-        end = datetime.datetime.fromtimestamp(d2)
-        delta = abs((end - start).days)
-        return delta
     
     def write_lifetime(self):
         # write calculated lifetime to a csv file
@@ -85,3 +77,10 @@ class LifetimeCalculator():
             for index in range(0, length): # Suppression id, day, commit based rate, delete/never removed mark
                 csv_writer.writerow([f"# S{index}", self.lifetime_days[index], self.lifetime_commit_rates[index], self.lasting_mark_set[index]])
    
+def time_delta(start_date, end_date):
+    d1 = time.mktime(time.strptime(start_date, "%a %b %d %H:%M:%S %Y %z"))
+    d2 = time.mktime(time.strptime(end_date, "%a %b %d %H:%M:%S %Y %z"))
+    start = datetime.datetime.fromtimestamp(d1)
+    end = datetime.datetime.fromtimestamp(d2)
+    delta = abs((end - start).days)
+    return delta
