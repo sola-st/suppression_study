@@ -2,11 +2,12 @@ from suppression_study.evolution.CommitBlock import CommitBlock
 
 
 class AnalyzeGitlogReport:
-    def __init__(self, log_result, suppressor, raw_warning_type, current_file):
+    def __init__(self, log_result, suppressor, raw_warning_type, current_file, specific_numeric_maps):
         self.log_result = log_result
         self.suppressor = suppressor
         self.raw_warning_type = raw_warning_type
         self.current_file = current_file
+        self.specific_numeric_maps = specific_numeric_maps
 
     def from_gitlog_results_to_change_events(self):
         '''
@@ -44,9 +45,8 @@ class AnalyzeGitlogReport:
                 if line.startswith("commit "):
                     start_count += 1  # found the start point of a commit_block
                     if start_count == 2:  # basic setting: one commit block has one start
-                        add_events = CommitBlock(
-                            commit_block, self.suppressor, self.raw_warning_type, self.current_file
-                        ).from_single_commit_block_to_add_event()
+                        add_events = CommitBlock(commit_block, self.suppressor, self.raw_warning_type, 
+                                self.current_file, self.specific_numeric_maps).from_single_commit_block_to_add_event()
                         if add_events != None:
                             if len(add_events.keys()) == 6: # not merge commit
                                 return add_events
@@ -62,9 +62,8 @@ class AnalyzeGitlogReport:
 
             if line_count == lines_max: # the last(oldest) commit block of current git log history results
                 last_commit_block_mark = True
-                add_events = CommitBlock(
-                    commit_block, self.suppressor, self.raw_warning_type, self.current_file
-                ).from_single_commit_block_to_add_event(last_commit_block_mark)
+                add_events = CommitBlock(commit_block, self.suppressor, self.raw_warning_type, self.current_file, 
+                        self.specific_numeric_maps).from_single_commit_block_to_add_event(last_commit_block_mark)
                 if add_events == None:
                    add_events =  backup_add_events
                 

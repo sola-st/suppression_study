@@ -4,6 +4,7 @@ i.e., that are suppressed by a suppression that was added before the warning its
 '''
 
 import argparse
+import os
 from os.path import join
 from typing import List
 from suppression_study.evolution.ExtractHistory import read_histories_from_json
@@ -162,7 +163,8 @@ def main(repo_dir, commits_file, history_file, results_dir):
         print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.")
 
     # write results to file
-    output_file = join(results_dir, "accidentally_suppressed_warnings.json")
+    print(f"Write all {len(all_accidentally_suppressed_warnings)} accidental suppressions.")
+    output_file = join(os.path.dirname(results_dir), "accidentally_suppressed_warnings.json")
     write_accidentally_suppressed_warnings(
         all_accidentally_suppressed_warnings, output_file)
 

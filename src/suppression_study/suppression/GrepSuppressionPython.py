@@ -1,4 +1,4 @@
-'''
+'''get_specific_numeric_type_map_list
 Get suppression for Python, both Mypy and Pylint.
 '''
 
@@ -8,6 +8,8 @@ from suppression_study.suppression.GrepSuppressionSuper import GrepSuppressionSu
 from suppression_study.suppression.FormatSuppressionCommon import FormatSuppressionCommon
 import os
 from os.path import join
+
+from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
 
 
 parser = argparse.ArgumentParser(description="Find suppression in Python repositories")
@@ -19,9 +21,9 @@ class GrepSuppressionPython(GrepSuppressionSuper):
 
     def __init__(self, repo_dir, commit_id, output_path, checker=None):
         if checker == None:
-            super().__init__("*.py", "# pylint: *disable|# type: ignore")
+            super().__init__("*.py", "* pylint: *disable|# type: ignore")
         elif checker == "pylint":
-            super().__init__("*.py", "# pylint: *disable")
+            super().__init__("*.py", "* pylint: *disable")
         elif checker == "mypy":
             super().__init__("*.py", "# type: ignore")
         else:
@@ -29,6 +31,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.output_path = output_path
+        self.specific_numeric_maps = get_specific_numeric_type_map_list()
 
     def grep_suppression_for_specific_commit(self):
         '''
@@ -36,7 +39,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         ''' 
         raw_suppression_results = super(GrepSuppressionPython, self).grep_suppression_for_specific_commit()
         if os.path.getsize(raw_suppression_results):
-            format_to_csv(raw_suppression_results)
+            format_to_csv(raw_suppression_results, self.specific_numeric_maps)
         else:
             os.remove(raw_suppression_results)
 
@@ -52,7 +55,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         output_txt_files : list = super(GrepSuppressionPython, self).grep_suppression_for_all_commits()
         for raw_suppression_results in output_txt_files:
             if os.path.getsize(raw_suppression_results):
-                format_to_csv(raw_suppression_results)
+                format_to_csv(raw_suppression_results, self.specific_numeric_maps)
                 preprocessed_suppression_csv = raw_suppression_results.replace(".txt", "_suppression.csv")
                 # Every suppression / every line in preprocessed_suppression_csv includes only 1 warning type
                 # the length is exactly the number of suppressions
@@ -63,7 +66,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
             all_suppression_nums.append(suppression_num)
 
         # Write a file to record the number of suppressions in every commit
-        suppression_num_csv = join(os.path.dirname(self.output_path), "main_suppression_nums.csv")
+        suppression_num_csv = join(os.path.dirname(self.output_path), "main_suppression_nums_pylint.csv")
         commit_max_index = len(all_suppression_nums) + 1 # set to start from 1
         all_suppression_nums.reverse() # let it start from older commits
         with open(suppression_num_csv, 'w', newline='') as csvfile:
@@ -71,10 +74,11 @@ class GrepSuppressionPython(GrepSuppressionSuper):
             for i, suppression_num in zip(range(1, commit_max_index), all_suppression_nums):
                 csv_writer.writerow([i, suppression_num])
 
-def format_to_csv(raw_suppression_results): 
+def format_to_csv(raw_suppression_results, specific_numeric_maps): 
     comment_symbol = "#" 
     preprocessed_suppression_csv = raw_suppression_results.replace(".txt", "_suppression.csv")
-    FormatSuppressionCommon(comment_symbol, raw_suppression_results, preprocessed_suppression_csv).format_suppression_common()
+    FormatSuppressionCommon(comment_symbol, raw_suppression_results, preprocessed_suppression_csv, 
+                            specific_numeric_maps).format_suppression_common()
 
         
 if __name__=="__main__":
@@ -84,7 +88,6 @@ if __name__=="__main__":
     results_dir = args.results_dir
 
     output_path = os.path.join(results_dir, "grep")
-
     init = GrepSuppressionPython(repo_dir, commit_id, output_path)
 
     if os.path.exists(commit_id): # It's a file

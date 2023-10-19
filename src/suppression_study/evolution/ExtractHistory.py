@@ -9,6 +9,7 @@ from suppression_study.evolution.ChangeEvent import ChangeEvent
 from suppression_study.evolution.GetSuppressionDeleteHistories import GetSuppressionDeleteHistories
 from suppression_study.evolution.GitLogFromFinalStatus import GitLogFromFinalStatus
 from suppression_study.evolution.Select1000Commits import select_1000_commits
+from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
 from suppression_study.suppression.Suppression import read_suppressions_from_file
 from suppression_study.utils.FunctionsCommon import get_commit_date_lists
 
@@ -83,17 +84,20 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     assert never_removed_suppressions != ""
     assert last_commit_with_suppression != ""
 
+    # get specific_numeric_maps, related to GetSuppressionDeleteHistories and GitLogFromFinalStatus
+    specific_numeric_maps = get_specific_numeric_type_map_list()
     # get delete events, return delete events and the corresponding suppressions, commit
     # change commits and dates lists to from oldest to newest
     selected_1000_commits_list.reverse()
     selected_1000_dates_list.reverse()
     delete_event_suppression_commit_list = GetSuppressionDeleteHistories(
-        repo_dir, selected_1000_commits_list, selected_1000_dates_list, suppression_result
+        repo_dir, selected_1000_commits_list, selected_1000_dates_list, suppression_result, specific_numeric_maps
     ).track_commits_forward()
 
     # get add events (for both delete and never removed suppressions)
     # finally get the histories: 1) add event 2) add delete events
-    evolution_init = GitLogFromFinalStatus(repo_dir, never_removed_suppressions, delete_event_suppression_commit_list)
+    evolution_init = GitLogFromFinalStatus(repo_dir, never_removed_suppressions, 
+            delete_event_suppression_commit_list, specific_numeric_maps)
     only_add_event_histories = evolution_init.git_log_never_removed_suppression(last_commit_with_suppression)
     add_delete_histories = evolution_init.git_log_deleted_suppression()
 

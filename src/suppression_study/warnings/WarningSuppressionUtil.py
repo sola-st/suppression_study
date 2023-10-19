@@ -3,6 +3,7 @@ Helper functions used mostly by WarningSuppressionMapper.
 These functions are in a separate file to avoid circular imports.
 """
 
+import os
 from os.path import join
 import csv
 from suppression_study.suppression.Suppression import Suppression
@@ -26,15 +27,16 @@ def read_mapping_from_csv(file: str = None, results_dir=None, commit_id=None):
         file = join(results_dir, f"{commit_id}_mapping.csv")
 
     pairs = []
-    with open(file, "r") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            suppression = Suppression(row[0], row[1], int(row[2]))
-            if row[3] == "":  # no warning for this suppression
-                warning = None
-            else:
-                warning = Warning(row[3], row[4], int(row[5]))
-            pairs.append([suppression, warning])
+    if os.path.exists(file):
+        with open(file, "r") as f:
+            reader = csv.reader(f)
+            for row in reader:
+                suppression = Suppression(row[0], row[1], int(row[2]))
+                if row[3] == "":  # no warning for this suppression
+                    warning = None
+                else:
+                    warning = Warning(row[3], row[4], int(row[5]))
+                pairs.append([suppression, warning])
     return pairs
 
 

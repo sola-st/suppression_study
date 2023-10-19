@@ -5,7 +5,7 @@
                 "commit_id": "bc3b393c",
                 "date": "Mon Oct 9 17:44:56 2023 +0200",
                 "file_path": "multi_operation/concatenate_strings.py",
-                "warning_type": "# pylint: disable=W1401",
+                "warning_type": "# pylint: disable=anomalous-backslash-in-string",
                 "line_number": "merge unknown",
                 "change_operation": "merge add"
             },
@@ -13,7 +13,7 @@
                 "commit_id": "1b99baab",
                 "date": "Mon Oct 9 17:57:10 2023 +0200",
                 "file_path": "multi_operation/concatenate_strings.py",
-                "warning_type": "# pylint: disable=W1401",
+                "warning_type": "# pylint: disable=anomalous-backslash-in-string",
                 "line_number": 2,
                 "change_operation": "delete"
             }
@@ -25,7 +25,7 @@
                 "commit_id": "bc3b393c",
                 "date": "Mon Oct 9 17:44:56 2023 +0200",
                 "file_path": "multi_operation/concatenate_strings.py",
-                "warning_type": "# pylint: disable=W1402",
+                "warning_type": "# pylint: disable=anomalous-unicode-escape-in-string",
                 "line_number": "merge unknown",
                 "change_operation": "merge add"
             },
@@ -33,7 +33,7 @@
                 "commit_id": "b429c023",
                 "date": "Mon Oct 9 18:08:55 2023 +0200",
                 "file_path": "multi_operation/concatenate_strings.py",
-                "warning_type": "# pylint: disable=W1402",
+                "warning_type": "# pylint: disable=anomalous-unicode-escape-in-string",
                 "line_number": 2,
                 "change_operation": "file delete"
             }
@@ -45,7 +45,7 @@
                 "commit_id": "7b631b93",
                 "date": "Mon Oct 9 17:51:00 2023 +0200",
                 "file_path": "read_files.py",
-                "warning_type": "# pylint: disable=W0702",
+                "warning_type": "# pylint: disable=bare-except",
                 "line_number": 6,
                 "change_operation": "add"
             },
@@ -53,7 +53,7 @@
                 "commit_id": "5a60b482",
                 "date": "Mon Oct 9 18:00:54 2023 +0200",
                 "file_path": "read_files.py",
-                "warning_type": "# pylint: disable=W0702",
+                "warning_type": "# pylint: disable=bare-except",
                 "line_number": 6,
                 "change_operation": "delete"
             }

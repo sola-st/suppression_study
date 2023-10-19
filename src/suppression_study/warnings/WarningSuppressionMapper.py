@@ -136,13 +136,17 @@ def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warn
         suppression_warning_pairs, all_suppressed_warnings, useful_suppressions, useless_suppressions = compute_mapping_by_removing_suppressions(
             repo_dir, suppressions, original_warnings, commit_id, checker, results_dir)
 
-    write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
-    write_suppressed_warnings_to_csv(
-        all_suppressed_warnings, results_dir, commit_id)
-    write_suppression_to_csv(
-        useless_suppressions, results_dir, commit_id, "useless")
-    write_suppression_to_csv(
-        useful_suppressions, results_dir, commit_id, "useful")
+    if suppression_warning_pairs:
+        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
+    if all_suppressed_warnings:
+        write_suppressed_warnings_to_csv(
+            all_suppressed_warnings, results_dir, commit_id)
+    if useless_suppressions:
+        write_suppression_to_csv(
+            useless_suppressions, results_dir, commit_id, "useless")
+    if useful_suppressions:
+        write_suppression_to_csv(
+            useful_suppressions, results_dir, commit_id, "useful")
 
 
 if __name__ == "__main__":

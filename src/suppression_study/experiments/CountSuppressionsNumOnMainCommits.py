@@ -27,8 +27,8 @@ class CountOfSuppressionsNumOnMainCommits(Experiment):
                 write_commit_info_to_csv(repo_dir, commit_list_file)
             print(f"Computed commit list for {repo_name}.")
 
-            dest_dir = join("data", "results", repo_name, "main_commits_suppression_nums")
-            args = [repo_dir, commit_list_file, dest_dir]
+            dest_dir = join("data", "results", repo_name, "main_commits_suppression_pylint")
+            args = [repo_dir, commit_list_file, dest_dir, "pylint"]
             args_for_all_repos.append(args)
             
         # find suppression for all commits, in parallel on different repos

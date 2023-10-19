@@ -22,10 +22,13 @@ class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
         output_file = join("data", "results", "suppression_histogram.pdf")
         top_kind_to_count = dict(kind_to_count.most_common(10))
         print(top_kind_to_count)
-        plt.bar(top_kind_to_count.keys(), top_kind_to_count.values())
-        plt.xticks(rotation=45)
-        plt.xlabel("Kind of suppression")
-        plt.ylabel("Number of suppressions")
+        # set longer bar at the top
+        sorted_data = dict(sorted(top_kind_to_count.items(), key=lambda item: item[1]))
+        
+        # Use barh for horizontal bar chart
+        plt.barh(list(sorted_data.keys()), list(sorted_data.values()))
+        plt.xlabel("Number of suppressions") 
+        plt.ylabel("Kind of suppression") 
         plt.tight_layout()
         plt.savefig(output_file)
         print(f"Saved histogram to {output_file}")

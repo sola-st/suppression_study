@@ -3,12 +3,13 @@ from suppression_study.suppression.FormatSuppressionCommon import get_suppressio
 
 
 class DiffBlock():
-    def __init__(self, next_commit, next_date, diff_contents, suppression, target_raw_warning_type):
+    def __init__(self, next_commit, next_date, diff_contents, suppression, target_raw_warning_type, specific_numeric_maps):
         self.next_commit = next_commit
         self.next_date = next_date
         self.diff_contents = diff_contents
         self.suppression = suppression # target suppression
         self.target_raw_warning_type = target_raw_warning_type # target single warning type
+        self.specific_numeric_maps = specific_numeric_maps
 
         self.current_source_code = []
         self.next_source_code = []
@@ -65,7 +66,8 @@ class DiffBlock():
         for code in self.current_source_code:
             suppressor = get_suppressor(code)
             if suppressor != None: # make sure suppression in current code
-                suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                suppression_text_from_code = str(get_suppression_from_source_code(suppressor, 
+                        comment_symbol, code, self.specific_numeric_maps))
                 if suppression_text_from_code: 
                     if self.target_raw_warning_type in suppression_text_from_code:
                         target_warning_type_exists_in_current = True
@@ -77,7 +79,8 @@ class DiffBlock():
             for code in self.next_source_code:
                 suppressor = get_suppressor(code)
                 if suppressor != None: 
-                    suppression_text_from_code = str(get_suppression_from_source_code(suppressor, comment_symbol, code))
+                    suppression_text_from_code = str(get_suppression_from_source_code(suppressor, 
+                            comment_symbol, code, self.specific_numeric_maps))
                     if suppression_text_from_code:
                         if self.target_raw_warning_type in suppression_text_from_code:
                             target_warning_type_exists_in_next = True

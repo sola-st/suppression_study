@@ -49,7 +49,10 @@ class Suppression():
                     parts = kind_text.split(",")
                     return [f"{part.strip().rstrip()}" for part in parts]
             else:
-                print(f"Unknown pylint suppression: {self.text}")
+                if re.match(r"# pylint: *disable-all*", self.text):
+                    return ["all"]
+                else:
+                    print(f"Unknown pylint suppression: {self.text}")
 
         return [self.text]
 
@@ -97,6 +100,6 @@ def get_raw_warning_type_from_formatted_suppression_text(suppression_text):
 
     if separator:
         raw_warning_type = suppression_text.split(separator)[1].replace("]", "")
-    else: # eg,. # type: ignore
+    else: # eg,. # type: ignore, # pylint: disable-all
         raw_warning_type = suppression_text
     return raw_warning_type

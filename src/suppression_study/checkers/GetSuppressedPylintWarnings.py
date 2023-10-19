@@ -35,14 +35,14 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
 
         # if relevant files are given, run pylint only on those files (otherwise, run it on the whole repo)
         if self.relevant_files is None:
-            command_line = "pylint --recursive=y --disable=I,R --enable=I0020 ./"
+            command_line = "pylint --recursive=y --disable=I --enable=I0020 ./"
         else:
             # analyze relevant files that exist in the current commit
             files_to_analyze = [
                 f for f in self.relevant_files if exists(join(self.repo_dir, f))]
-            command_line = f"pylint --recursive=y --disable=I,R --enable=I0020 {' '.join(files_to_analyze)}"
+            command_line = f"pylint --recursive=y --disable=I --enable=I0020 {' '.join(files_to_analyze)}"
 
-        print(f"Running {command_line} on {self.commit_id}")
+        # print(f"Running {command_line} on {self.commit_id}")
         report, commit_results_dir = super(
             GetPylintWarnings, self).run_checker(checker, command_line)
         return report, commit_results_dir
@@ -76,7 +76,8 @@ def main(repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
         repo_dir, commit_id, results_dir, relevant_files)
     report, _ = tool.run_checker()
     suppression_warning_pairs = tool.read_reports(report)
-    write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
+    if suppression_warning_pairs:
+        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
     return suppression_warning_pairs
 
 
