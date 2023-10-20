@@ -53,16 +53,16 @@ class VisualizeLifetimeForAllSuppressions(Experiment):
             suppression_history_json_file = join("data", "results", repo_name, "histories_suppression_level_all.json")
             
             commit_list_file_1000 = join("data", "results", repo_name, "commit_id_list_1000.csv")
-            commits_list, _ = get_commit_date_lists(commit_list_file_1000)
+            commits_1000, dates_1000 = get_commit_date_lists(commit_list_file_1000)
                         
             # Start get lifetime
             # Write a file 'output_individual_repository', which records lifetime of all suppressions in current repository
-            init = LifetimeCalculator(all_commits, all_dates, suppression_history_json_file, lifetime_output_csv)
+            init = LifetimeCalculator(commits_1000, dates_1000, suppression_history_json_file, lifetime_output_csv)
             entire_lifetime, total_commits_num, nb_suppression_histories = init.get_lifetime()
             
-            table.add_row([repo_name, "{:,}".format(len(all_commits)), "{:,}".format(len(commits_list)), "{:,}".format(nb_suppression_histories)])
+            table.add_row([repo_name, "{:,}".format(len(all_commits)), "{:,}".format(len(commits_1000)), "{:,}".format(nb_suppression_histories)])
             total_commits += len(all_commits)
-            total_studied_commits += len(commits_list)
+            total_studied_commits += len(commits_1000)
             total_histories += nb_suppression_histories
             
             # Collect lifetime and commits_num for each repository

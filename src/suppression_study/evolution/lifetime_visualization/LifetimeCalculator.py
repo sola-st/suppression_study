@@ -1,18 +1,26 @@
 import csv
 import time
 import datetime
-import json
+from suppression_study.evolution.ExtractHistory import read_histories_from_json
 
 class LifetimeCalculator():
     def __init__(self, all_main_commits, all_dates, suppression_history_json_file, lifetime_output_csv):
         self.all_main_commits = all_main_commits
         self.all_dates = all_dates
-        self.suppression_history_json_file = suppression_history_json_file
+        self.suppression_histories = read_histories_from_json(suppression_history_json_file)
         self.lifetime_output_csv = lifetime_output_csv
+
+        self._filter_histories_by_date()
 
         self.lifetime_days = []
         self.lifetime_commit_rates = []
         self.lasting_mark_set = []
+
+    def _filter_histories_by_date(self):
+        # TODO This is a work-around for a bug (?) in the history extraction.
+        # Some histories have their "add" event before the first commit in the selected 1000 commits.
+        # The following code removes these histories.
+        pass
 
     def get_lifetime(self):
         total_commits_num = len(self.all_main_commits)
@@ -29,27 +37,18 @@ class LifetimeCalculator():
         return entire_lifetime, total_commits_num, nb_suppression_histories
 
     def calculate_lifetime_from_history(self, default_end_date, total_commits_num):
-        # Read the suppression histories, get the start/end date/commit to calculate lifetimes
-        with open(self.suppression_history_json_file, 'r') as jf:
-            json_strs = json.load(jf)
+        print(f"Number of suppression histories: {len(self.suppression_histories)}\n")
 
-        right_range = len(json_strs)
-        print(f"All Suppressions: {right_range}\n")
-
-        for i in range(0, right_range):
-            key = f"# S{i}"
-            events = json_strs[i][key]
-            events_num = len(events)
+        for history in self.suppression_histories:
             end_commit = ""
             lasting_mark = 0  # 0->removed, 1->lasting, never removed
+            start_date = history[0].date
+            start_commit = history[0].commit_id[:8]
+            expect_operation = history[-1].change_operation
 
-            start_date = json_strs[i][key][0]['date']
-            start_commit = json_strs[i][key][0]['commit_id'][:8]
-            expect_operation = json_strs[i][key][events_num - 1]['change_operation']
-
-            if events_num > 1 and "delete" in expect_operation:  # change events(max 2), end of lifetime
-                end_date = json_strs[i][key][1]['date']
-                end_commit = json_strs[i][key][1]['commit_id'][:8]
+            if len(history) > 1 and "delete" in expect_operation:  # change events(max 2), end of lifetime
+                end_date = history[1].date
+                end_commit = history[1].commit_id[:8]
                 end_commit_index = self.all_main_commits.index(end_commit)
             else:
                 end_date = default_end_date
@@ -69,7 +68,7 @@ class LifetimeCalculator():
             rate = format(float(commit_delta / total_commits_num * 100), '.2f')
             self.lifetime_commit_rates.append(f"{rate}%")
 
-        return right_range
+        return len(self.suppression_histories)
     
     def write_lifetime(self):
         # write calculated lifetime to a csv file
