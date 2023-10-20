@@ -7,8 +7,8 @@ from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
 def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
-    fig, axes = plt.subplots(4, 3, figsize=(12, 10)) # figsize=(22, 12)
-
+    fig, axes = plt.subplots(4, 3, figsize=(12, 12)) # figsize=(22, 12)
+    fix_font_size = 12
     for i, (suppression_nums_csv, start_commit, end_commit) in enumerate(
         zip(suppression_nums_csvs, start_commit_indices, end_commit_indices)
     ):
@@ -35,6 +35,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
         # Configure x-axis and y-axis tick locators to use MaxNLocator
         ax.xaxis.set_major_locator(MaxNLocator(prune='both'))
         ax.yaxis.set_major_locator(MaxNLocator(prune='both'))
+        ax.tick_params(axis='both', which='both', labelsize=fix_font_size) 
 
         # Set the select 1000 commits to a different color
         for index in indexes:
@@ -43,7 +44,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
                     index, num_suppressions[index - 1], s=10, color='orange', label='Start/end commit'
                 )
 
-        ax.set_title(repo_names[i], fontsize=12)
+        ax.set_title(repo_names[i], fontsize=fix_font_size)
 
     # Add agenda text to the last two subplots
     # Merge the last two subplots (positions 10 and 11)
@@ -53,9 +54,9 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
         ax.remove()
     ax10_11 = fig.add_subplot(4, 3, 11)
     ax10_11.axis('off')  # Remove axis labels
-    ax10_11.legend(handles=[blue_scatter, orange_scatter], fontsize=12, loc="upper left")
+    ax10_11.legend(handles=[blue_scatter, orange_scatter], fontsize=fix_font_size, loc="upper left")
     ax10_11.text(
-        0.05, 0.2, "X-axis: Number of commits\nY-axis: Number of suppressions", fontsize=12, ha='left', va='bottom'
+        0.05, 0.2, "X-axis: Number of commits\nY-axis: Number of suppressions", fontsize=fix_font_size, ha='left', va='bottom'
     )
 
     for ax in axes.flat:
