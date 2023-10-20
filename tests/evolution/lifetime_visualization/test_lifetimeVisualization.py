@@ -40,7 +40,7 @@ def test_LifetimeVisualization_toy_repo():
         suppression_history_json_file = join(results_dir, "histories_suppression_level_all.json")
         lifetime_output_csv = join(visualization_result_folder, "lifetime.csv")
         init = LifetimeCalculator(all_commits, all_dates, suppression_history_json_file, lifetime_output_csv)
-        entire_lifetime, total_commits_num = init.get_lifetime()
+        entire_lifetime, total_commits_num, _ = init.get_lifetime()
         # Get groups for extracting plot
         lifetime_groups_csv = lifetime_output_csv.replace(".csv", "_groups.csv") # For all repositories
         # Based on lifetime_output_csv, process and write to lifetime_groups_csv
