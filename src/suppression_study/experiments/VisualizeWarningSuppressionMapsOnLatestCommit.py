@@ -65,6 +65,7 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
             nb_ys_to_occurrences[len(ys)] += 1
 
         print(nb_ys_to_occurrences)
+        print(f"Total: {sum(nb_ys_to_occurrences.values())}")
         x_to_y = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5--10": 0, ">10": 0}
         for nb_warnings, occurrences in nb_ys_to_occurrences.items():
             if nb_warnings in range(5):
