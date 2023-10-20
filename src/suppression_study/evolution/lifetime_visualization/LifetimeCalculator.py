@@ -20,7 +20,15 @@ class LifetimeCalculator():
         # TODO This is a work-around for a bug (?) in the history extraction.
         # Some histories have their "add" event before the first commit in the selected 1000 commits.
         # The following code removes these histories.
-        pass
+        cleaned_histories = []
+        for history in self.suppression_histories:
+            ignore = False
+            for change_event in history:
+                if change_event.commit_id not in self.all_main_commits:
+                    ignore = True
+            if not ignore:
+                cleaned_histories.append(history)
+        self.suppression_histories = cleaned_histories
 
     def get_lifetime(self):
         total_commits_num = len(self.all_main_commits)
