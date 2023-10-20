@@ -15,12 +15,14 @@ class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
     """
 
     def _plot_distribution(self, suppressions: List[Suppression]):
+        plt.rcParams.update({'font.size': 13})
+        
         kinds = []
         for s in suppressions:
             kinds.extend(s.get_short_names())
 
         kind_to_count = Counter(kinds)
-        output_file = join("data", "results", "suppression_histogram.pdf")
+        output_file = join("data", "results", "suppression_histogram_python.pdf")
         top_kind_to_count = dict(kind_to_count.most_common(10))
         print(top_kind_to_count)
         # set longer bar at the top
