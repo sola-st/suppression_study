@@ -1,9 +1,11 @@
-from os.path import join, getsize, exists
+from os.path import join, exists
 from os import makedirs
 from tempfile import TemporaryDirectory
 from shutil import move
 import subprocess
 import re
+import matplotlib.pyplot as plt
+from scipy.stats.stats import pearsonr
 from suppression_study.experiments.Experiment import Experiment
 from suppression_study.suppression.GrepSuppressionPython import GrepSuppressionPython
 from suppression_study.suppression.Suppression import read_suppressions_from_file
@@ -12,7 +14,7 @@ from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
 class CountSuppressionsOnLatestCommit(Experiment):
-    def _find_suppressions(self, repo_dir, commit):
+    def _count_suppressions(self, repo_dir, commit):
         with TemporaryDirectory() as tmp_dir:
             print(
                 f"Grepping for suppressions in {repo_dir} at commit {commit}")
@@ -36,7 +38,11 @@ class CountSuppressionsOnLatestCommit(Experiment):
                 open(tmp_out_file, 'a').close()
             move(tmp_out_file, out_file)
 
-            return out_file
+            # count suppressions
+            suppressions = read_suppressions_from_file(out_file)
+            print(f"Found {len(suppressions)} suppressions in {out_file}")
+
+            return len(suppressions)
 
     def _count_lines_of_code(self, repo_dir):
         command_line = f"sloccount {repo_dir}"
@@ -49,51 +55,98 @@ class CountSuppressionsOnLatestCommit(Experiment):
         loc = int(m.groups()[0])
         return loc
 
-    def _produce_result_table(self, repo_dir_to_out_file, repo_dir_to_loc):
+    def _count_python_files(self, repo_dir):
+        command_line = f"find {repo_dir} -name '*.py' | wc -l"
+        result = subprocess.run(command_line, shell=True,
+                                stdout=subprocess.PIPE, universal_newlines=True)
+        return int(result.stdout.strip())
+
+    def _produce_result_table(self, repo_dir_to_suppressions, repo_dir_to_loc, repo_dir_to_python_files):
         table = LaTeXTable(["Project",
+                            "Python files",
                             "LoC (Python)",
-                            "Suppressions"])
+                            "Suppressions",
+                            "Suppr./file",
+                            "Suppr./KLoC"])
         total_suppressions = 0
         total_loc = 0
-        for repo_dir, out_file in repo_dir_to_out_file.items():
-            suppressions = read_suppressions_from_file(out_file)
-            print(f"Found {len(suppressions)} suppressions in {out_file}")
+        total_files = 0
+        for repo_dir, nb_suppressions in repo_dir_to_suppressions.items():
             loc = repo_dir_to_loc[repo_dir]
+            nb_files = repo_dir_to_python_files[repo_dir]
             repo_name = repo_dir_to_name(repo_dir)
             table.add_row([repo_name,
+                           "{:,}".format(nb_files),
                            "{:,}".format(loc),
-                           "{:,}".format(len(suppressions))])
-            total_suppressions += len(suppressions)
+                           "{:,}".format(nb_suppressions),
+                           round(nb_suppressions/nb_files, 2),
+                           round(1000*nb_suppressions/loc, 2)])
+            total_suppressions += nb_suppressions
             total_loc += loc
+            total_files += nb_files
         table.add_separator()
         table.add_row(["Total",
+                       "{:,}".format(total_files),
                        "{:,}".format(total_loc),
-                       "{:,}".format(total_suppressions)])
+                       "{:,}".format(total_suppressions),
+                       round(total_suppressions/total_files, 2),
+                       round(1000*total_suppressions/total_loc, 2)])
 
         latex_out_file = join("data", "results", "suppressions_per_repo.tex")
         with open(latex_out_file, "w") as f:
             f.write(table.to_latex())
         print(f"Result table written to {latex_out_file}")
 
+    def _plot_suppressions_over_log(self, repo_dir_to_suppressions, repo_dir_to_loc):
+        xs = []
+        ys = []
+        for repo_dir, nb_suppressions in repo_dir_to_suppressions.items():
+            loc = repo_dir_to_loc[repo_dir]
+            xs.append(loc)
+            ys.append(nb_suppressions)
+
+        plt.scatter(xs, ys)
+        plt.xlabel("Lines of code (Python)")
+        plt.ylabel("Nb. of suppressions")
+        plt.tight_layout()
+        output_file = join("data", "results", "suppressions_over_loc.pdf")
+        plt.savefig(output_file)
+        print(f"Saved histogram to {output_file}")
+
+        correlation = pearsonr(xs, ys)
+        print(
+            f"Pearson correlation coefficient (suppressions vs. LoC): {correlation[0]}")
+
     def run(self):
         # prepare repositories
         self.get_repo_dirs()
         repo_dir_to_commit = self.checkout_latest_commits()
 
-        # find suppressions
-        repo_dir_to_out_file = {}
+        # find and count suppressions
+        repo_dir_to_suppressions = {}
         for repo_dir, commit in repo_dir_to_commit.items():
-            out_file = self._find_suppressions(repo_dir, commit)
-            repo_dir_to_out_file[repo_dir] = out_file
+            nb_suppressions = self._count_suppressions(repo_dir, commit)
+            repo_dir_to_suppressions[repo_dir] = nb_suppressions
 
         # count lines of code
         repo_dir_to_loc = {}
-        for repo_dir in repo_dir_to_out_file.keys():
+        for repo_dir in repo_dir_to_commit.keys():
             loc = self._count_lines_of_code(repo_dir)
             repo_dir_to_loc[repo_dir] = loc
 
+        # count Python files
+        repo_dir_to_python_files = {}
+        for repo_dir in repo_dir_to_commit.keys():
+            nb_files = self._count_python_files(repo_dir)
+            repo_dir_to_python_files[repo_dir] = nb_files
+
         # produce result table
-        self._produce_result_table(repo_dir_to_out_file, repo_dir_to_loc)
+        self._produce_result_table(
+            repo_dir_to_suppressions, repo_dir_to_loc, repo_dir_to_python_files)
+
+        # plot nb of suppressions vs LoC
+        self._plot_suppressions_over_log(
+            repo_dir_to_suppressions, repo_dir_to_loc)
 
 
 if __name__ == "__main__":
