@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from suppression_study.experiments.CountSuppressionsOnLatestCommit import CountSuppressionsOnLatestCommit
 from suppression_study.suppression.Suppression import Suppression, read_suppressions_from_file
+from suppression_study.suppression.NumericSpecificTypeMap import get_warning_kind_to_numeric_code
 
 
 class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
@@ -33,6 +34,23 @@ class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
         plt.savefig(output_file)
         print(f"Saved histogram to {output_file}")
 
+    def _count_suppressions_by_category(self, suppressions):
+        kinds = []
+        for s in suppressions:
+            kinds.extend(s.get_short_names())
+
+        warning_to_numeric_code = get_warning_kind_to_numeric_code()
+        category_to_count = Counter()
+        for kind in kinds:
+            if kind not in warning_to_numeric_code:
+                print(f"Unknown kind: {kind}")
+            else:
+                code = warning_to_numeric_code[kind]
+                category = code[0]
+                category_to_count[category] += 1
+
+        print(f"Category to count: {category_to_count}")
+
     def run(self):
         # prepare repositories
         self.get_repo_dirs()
@@ -47,6 +65,9 @@ class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
 
         # compute and plot distribution
         self._plot_distribution(all_suppressions)
+
+        # count suppressions by category
+        self._count_suppressions_by_category(all_suppressions)
 
 
 if __name__ == "__main__":
