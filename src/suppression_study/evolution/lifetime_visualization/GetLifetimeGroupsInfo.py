@@ -29,7 +29,8 @@ class GetLifetimeGroupsInfo:
 
         # rates, hard code
         rates_groups = [range(0, 2000), range(2000, 4000), range(4000, 6000), range(6000, 8000), range(8000, 10001)]
-        rates_groups_format = ["[0,20%)", "[20%,40%)", "[40%,60%)", "[60%,80%)", "[80%,100%]"]
+        # rates_groups_format = ["[0,20%)", "[20%,40%)", "[40%,60%)", "[60%,80%)", "[80%,100%]"]
+        rates_groups_format = ["[0,10%)", "[10%,20%)", "[20%,30%)", "[30%,40%)", "[40%,50%)", "[50%,60%)", "[60%,70%)", "[70%,80%)", "[80%,90%)", "[90%,100%]"]
         commit_based_rates_only_digits = [int(re.sub("\D", "", rate)) for rate in commit_based_rates]
         rates_groups_num_removed, rates_groups_num_lasting = self.check_suppression_if_alive(
                 commit_based_rates_only_digits, rates_groups, suppression_num, lasting_marks)

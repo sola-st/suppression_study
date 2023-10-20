@@ -22,7 +22,7 @@ class VisualizeLifetimeForAllSuppressions(Experiment):
     def run(self):
         entire_lifetime_set = []
         total_commits_num_set = []
-        num_groups = 5 # The number of columns in the expected plot
+        num_groups = 10 # The number of columns in the expected plot
         '''
         expected lifetime_output_csv contains: 
             suppression ID, 
@@ -34,6 +34,8 @@ class VisualizeLifetimeForAllSuppressions(Experiment):
         lifetime_groups_csv = lifetime_output_csv.replace(".csv", "_groups.csv")
 
         # remove old files to ensure we can run this experiments repeatedly
+        if exists(lifetime_output_csv):
+            remove(lifetime_output_csv)
         if exists(lifetime_groups_csv):
             remove(lifetime_groups_csv)
 
