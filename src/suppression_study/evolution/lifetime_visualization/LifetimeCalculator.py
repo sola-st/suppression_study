@@ -23,10 +23,10 @@ class LifetimeCalculator():
         print(f"Total commits num: {total_commits_num}")
         print(f"Entire lifetime: {entire_lifetime} days")
 
-        self.calculate_lifetime_from_history(default_end_date, total_commits_num)
+        nb_suppression_histories = self.calculate_lifetime_from_history(default_end_date, total_commits_num)
         self.write_lifetime()
 
-        return entire_lifetime, total_commits_num
+        return entire_lifetime, total_commits_num, nb_suppression_histories
 
     def calculate_lifetime_from_history(self, default_end_date, total_commits_num):
         # Read the suppression histories, get the start/end date/commit to calculate lifetimes
@@ -68,6 +68,8 @@ class LifetimeCalculator():
             commit_delta = abs(end_commit_index - start_commit_index)
             rate = format(float(commit_delta / total_commits_num * 100), '.2f')
             self.lifetime_commit_rates.append(f"{rate}%")
+
+        return right_range
     
     def write_lifetime(self):
         # write calculated lifetime to a csv file
