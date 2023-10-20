@@ -61,10 +61,11 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
 
     def _plot_one_to_many_distribution(self, x_to_ys, xlabel, ylabel, outfile):
         nb_ys_to_occurrences = Counter()
-        for _, warnings in x_to_ys.items():
-            nb_ys_to_occurrences[len(warnings)] += 1
+        for _, ys in x_to_ys.items():
+            nb_ys_to_occurrences[len(ys)] += 1
 
         print(nb_ys_to_occurrences)
+        print(f"Total: {sum(nb_ys_to_occurrences.values())}")
         x_to_y = {"0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5--10": 0, ">10": 0}
         for nb_warnings, occurrences in nb_ys_to_occurrences.items():
             if nb_warnings in range(5):
@@ -75,6 +76,7 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
                 x_to_y[">10"] += occurrences
 
         output_file = join("data", "results", outfile)
+        plt.rcParams.update({'font.size': 15})
         plt.clf()
         plt.bar(x_to_y.keys(), x_to_y.values())
         plt.xlabel(xlabel)
@@ -229,13 +231,13 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
         suppression_to_warnings, warning_to_suppressions = self._compute_one_to_many_maps(
             repo_dir_to_pairs)
         self._plot_one_to_many_distribution(suppression_to_warnings,
-                                            xlabel="Warnings suppressed by a single suppression",
-                                            ylabel="Occurrences",
-                                            outfile="warning_to_suppressions.pdf")
+                                            xlabel="Warnings suppressed by the suppression",
+                                            ylabel="Number of suppressions",
+                                            outfile="suppressions_to_warnings.pdf")
         self._plot_one_to_many_distribution(warning_to_suppressions,
-                                            xlabel="Suppressions that suppress a single warning",
-                                            ylabel="Occurrences",
-                                            outfile="suppression_to_warnings.pdf")
+                                            xlabel="Suppressions that affect the warning",
+                                            ylabel="Number of warnings",
+                                            outfile="warnings_to_suppressions.pdf")
 
         # table of useless and useful suppressions per project
         self._compute_useful_and_useless_suppressions_table(repo_dir_to_commit)
