@@ -12,7 +12,7 @@ from suppression_study.checkers.GetPylintWarnings import main as get_pylint_warn
 from suppression_study.checkers.GetMypyWarnings import main as get_mypy_warnings
 from suppression_study.suppression.SuppressionRemover import SuppressionRemover
 from suppression_study.warnings.Warning import read_warning_from_file
-from suppression_study.suppression.Suppression import read_suppressions_from_file
+from suppression_study.suppression.Suppression import Suppression, read_suppressions_from_file
 from suppression_study.checkers.GetSuppressedPylintWarnings import main as get_suppressed_pylint_warnings
 from suppression_study.warnings.WarningSuppressionUtil import write_mapping_to_csv, write_suppressed_warnings_to_csv, write_suppression_to_csv
 
@@ -90,16 +90,21 @@ def compute_mapping_via_pylint_support(repo_dir, suppressions, commit_id, releva
 
     # find useful suppressions and suppressed warnings
     all_suppressed_warnings = set()
-    useful_suppressions = set()
+    useful_suppressions = set() # to write to file
+    useful_suppressions_to_compare = set()
     for suppression, warning in suppression_warning_pairs:
-        useful_suppressions.add(suppression)
+        suppression_to_compare = Suppression(suppression.path, suppression.text.replace(" ", "").strip(), suppression.line)
+        useful_suppressions_to_compare.add(suppression_to_compare) # avoid noise from " " when do the comparison
+        # still add the original one, keep the original format to correctly get raw warning types in visualization
+        useful_suppressions.add(suppression) 
         all_suppressed_warnings.add(warning)
 
     # find useless suppressions
     useless_suppressions = set()
     for suppression in suppressions:
-        if suppression not in useful_suppressions:
-            useless_suppressions.add(suppression)
+        suppression_to_compare = Suppression(suppression.path, suppression.text.replace(" ", "").strip(), suppression.line)
+        if suppression_to_compare not in useful_suppressions_to_compare:
+            useless_suppressions.add(suppression) 
             suppression_warning_pairs.append((suppression, None))
 
     return suppression_warning_pairs, list(all_suppressed_warnings), list(useful_suppressions), list(useless_suppressions)
