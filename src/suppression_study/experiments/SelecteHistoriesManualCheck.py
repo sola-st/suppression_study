@@ -1,19 +1,13 @@
-import argparse
 import os
 import random
 import json
 from os.path import join
 
-
-parser = argparse.ArgumentParser(description="Randomly choose several histories for manual checking")
-parser.add_argument("--results_parent_folder", help="Directory with all the repositories' results", required=True)
-parser.add_argument("--output_json_file", help="a json file to write chosen histories", required=True)
+from suppression_study.experiments.Experiment import Experiment
+from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
 
-def random_select_repositories(results_parent_folder):
-    repositories = [
-        f for f in os.listdir(results_parent_folder) if os.path.isdir(os.path.join(results_parent_folder, f))
-    ]
+def random_select_repositories(repositories):
     # To ensure reproducibility, use a fixed seed value with the random module
     seed_value = 42
     random.seed(seed_value)
@@ -32,7 +26,7 @@ def write_chosen_info(output_json_file, to_write):
         f.write(f"{to_write}\n")
 
 
-class SelectHistoriesManualCheck:
+class SelectHistoriesManualCheck():
     def __init__(self, repo, history_json_file, output_json_file):
         self.repo = repo
         self.history_json_file = history_json_file
@@ -70,19 +64,35 @@ class SelectHistoriesManualCheck:
             f.write("\n")
 
 
-def main(results_parent_folder, output_json_file):
-    num_repositories_to_choose, chosen_repositories = random_select_repositories(results_parent_folder)
-    write_chosen_info(output_json_file, f"All chosen repositories: {num_repositories_to_choose}.\n{chosen_repositories}")
-    all_chosen_histories_num = 0
-    for repo in chosen_repositories:
-        history_json_file = join(results_parent_folder, repo, "histories_suppression_level_all.json")
-        if os.path.exists(history_json_file):
-            num_histories_to_choose = SelectHistoriesManualCheck(repo, history_json_file, output_json_file).random_select_histories()
-            all_chosen_histories_num += num_histories_to_choose
-    print(f"Number of histories chosen (all): {all_chosen_histories_num}")
-    write_chosen_info(output_json_file, f"All chosen histories: {all_chosen_histories_num}.")
+class SelectRepos(Experiment):
+    """
+    Randomly select several repos for running "SelectHistoriesManualCheck" from studied repositories.
+    
+    Depends on:
+     * ComputeSuppressionHistories
+    """
+
+    def run(self):
+        # prepare repositories
+        repo_dirs = self.get_repo_dirs()
+        results_parent_folder = join("data", "results")
+        output_json_file = join(results_parent_folder, "selected_histories_manual_check.json")
+        repositories = []
+        for repo_dir in repo_dirs:
+            repo_name = repo_dir_to_name(repo_dir)
+            repositories.append(repo_name)
+
+        num_repositories_to_choose, chosen_repositories = random_select_repositories(repositories)
+        write_chosen_info(output_json_file, f"All chosen repositories: {num_repositories_to_choose}.\n{chosen_repositories}")
+        all_chosen_histories_num = 0
+        for repo in chosen_repositories:
+            history_json_file = join(results_parent_folder, repo, "histories_suppression_level_all.json")
+            if os.path.exists(history_json_file):
+                num_histories_to_choose = SelectHistoriesManualCheck(repo, history_json_file, output_json_file).random_select_histories()
+                all_chosen_histories_num += num_histories_to_choose
+        print(f"Number of histories chosen (all): {all_chosen_histories_num}")
+        write_chosen_info(output_json_file, f"All chosen histories: {all_chosen_histories_num}.")
+
 
 if __name__ == "__main__":
-    args = parser.parse_args()
-    # TODO remove the arguments; instead, all experiments should just use the same default location of these files (as defined in README.md)
-    main(args.results_parent_folder, args.output_json_file)
+    SelectRepos().run()
