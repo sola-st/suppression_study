@@ -9,7 +9,7 @@ from suppression_study.suppression.FormatSuppressionCommon import FormatSuppress
 import os
 from os.path import join
 
-from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
+from suppression_study.suppression.NumericSpecificTypeMap import get_warning_kind_to_numeric_code
 
 
 parser = argparse.ArgumentParser(description="Find suppression in Python repositories")
@@ -31,7 +31,7 @@ class GrepSuppressionPython(GrepSuppressionSuper):
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.output_path = output_path
-        self.specific_numeric_maps = get_specific_numeric_type_map_list()
+        self.specific_numeric_maps = get_warning_kind_to_numeric_code()
 
     def grep_suppression_for_specific_commit(self):
         '''
