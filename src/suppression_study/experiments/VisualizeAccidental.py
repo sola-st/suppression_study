@@ -11,7 +11,7 @@ from suppression_study.experiments.Experiment import Experiment
 from suppression_study.suppression.Suppression import get_raw_warning_type_from_formatted_suppression_text
 from suppression_study.utils.FunctionsCommon import get_commit_date_lists
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
-from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
+from suppression_study.suppression.NumericSpecificTypeMap import get_warning_kind_to_numeric_code
 
 
 def get_time_between_add_and_accidental_data(repo_dirs, commit_suppressions, 
@@ -165,18 +165,18 @@ class InspectSuppressionRelatedCommits(Experiment):
         # Calculate the difference between self.previous_nums, self.nums
         # the absolute numbers, 
         # even without the manual checking, the after - before is exactly newly suppressed warnings
-        # difference = [b - a for a, b in zip(self.previous_nums, self.nums)]
+        difference = [b - a for a, b in zip(self.previous_nums, self.nums)]
 
-        # # plot 1
-        # compare_plot_output = join("data", "results", "accidental_num_changes_before_after.pdf")
-        # plot_previous_current_warnings_num(difference, self.previous_nums, self.nums, compare_plot_output)
+        # plot 1
+        compare_plot_output = join("data", "results", "accidental_num_changes_before_after.pdf")
+        plot_previous_current_warnings_num(difference, self.previous_nums, self.nums, compare_plot_output)
 
-        # # plot 2
-        # top_rank_plot_output = join("data", "results", "top_accidentally_suppressed_warning_types_text.pdf")
-        # plot_top_rank_accidentally_suppressed_warning_types(difference, self.raw_warning_types, top_rank_plot_output)
+        # plot 2
+        top_rank_plot_output = join("data", "results", "top_accidentally_suppressed_warning_types_text.pdf")
+        plot_top_rank_accidentally_suppressed_warning_types(difference, self.raw_warning_types, top_rank_plot_output)
 
         # plot 3
-        specific_numeric_maps = get_specific_numeric_type_map_list()
+        specific_numeric_maps = get_warning_kind_to_numeric_code()
         days = get_time_between_add_and_accidental_data(self.repo_dirs_mapped, 
                 self.commit_suppressions, self.raw_warning_types, specific_numeric_maps, self.dates)
 

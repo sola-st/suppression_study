@@ -214,9 +214,9 @@ def get_separated_suppressions(suppression_text, specific_numeric_maps):
     # let raw warning types back to suppression format
     for t in multi_raw_warning_type:
         if bool(re.search(r'\d', t)) == True:
-            for map in specific_numeric_maps:
-                if t == map.numeric:
-                    t = map.specific
+            for specific, numeric in specific_numeric_maps.items():
+                if t == numeric:
+                    t = specific
                     break
                     
         if "# pylint:" in suppressor_part:

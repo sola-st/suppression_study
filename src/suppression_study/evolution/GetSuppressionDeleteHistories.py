@@ -3,7 +3,6 @@ import subprocess
 from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
 from suppression_study.evolution.DiffBlock import DiffBlock
 from os.path import join
-from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
 
 from suppression_study.suppression.Suppression import (
     get_raw_warning_type_from_formatted_suppression_text, read_suppressions_from_file)
