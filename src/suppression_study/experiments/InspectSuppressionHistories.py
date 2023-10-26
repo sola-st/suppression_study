@@ -1,8 +1,9 @@
-import json
 from typing import Dict, List
 from os.path import join
 import random
 from json import dump
+from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
+from suppression_study.evolution.ExtractHistory import read_histories_from_json
 from suppression_study.experiments.Experiment import Experiment
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
@@ -16,37 +17,32 @@ class InspectSuppressionHistories(Experiment):
      * ComputeSuppressionHistories
     """
 
-    def _read_suppression_histories(self) -> Dict[str, List[List[dict]]]:
+    def _read_suppression_histories(self) -> Dict[str, List[List[ChangeEvent]]]:
         repo_dirs = self.get_repo_dirs()
         repo_name_to_histories = {}
         for repo_dir in repo_dirs:
             repo_name = repo_dir_to_name(repo_dir)
             history_file = join("data", "results", repo_name,
                                 "histories_suppression_level_all.json")
-            with open(history_file, "r") as f:
-                raw_histories = json.load(f)
-
-            histories = []
-            for raw_history_wrapper in raw_histories:
-                keys = list(raw_history_wrapper.keys())
-                assert len(keys) == 1 and keys[0].startswith("# S")
-                raw_suppression_history = raw_history_wrapper[keys[0]]
-                histories.append(raw_suppression_history)
+            histories = read_histories_from_json(history_file)
             repo_name_to_histories[repo_name] = histories
         return repo_name_to_histories
 
-    def _sample_commits(self, repo_name_to_histories: Dict[str, List[List[dict]]]):
+    def _sample_commits(self, repo_name_to_histories: Dict[str, List[List[ChangeEvent]]]):
         url_and_histories = []
         for repo_name, histories in repo_name_to_histories.items():
             git_url_prefix = self.repo_name_to_git_url(repo_name)
             for history in histories:
                 commit_urls = []
+                history_dict = []
                 for event in history:
-                    url = git_url_prefix + "/commit/" + event["commit_id"]
+                    url = git_url_prefix + "/commit/" + event.commit_id
+                    event_dict = get_change_event_dict(event)
                     # commit_urls at most has 2 urls, 
                     # one for add events, and optionally has another one for delete event
                     commit_urls.append(url)
-                commit_urls.extend(history)
+                    history_dict.append(event_dict)
+                commit_urls.extend(history_dict)
                 url_and_histories.append(commit_urls)
         return url_and_histories
 
