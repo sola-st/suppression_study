@@ -26,7 +26,7 @@ class PlotSuppressionDistributionJavaAndJS(Experiment):
         print(top_kind_to_count)
         sorted_data = dict(sorted(top_kind_to_count.items(), key=lambda item: item[1]))
         plt.barh(list(sorted_data.keys()), list(sorted_data.values()))
-        plt.xlabel("Number of suppressions") 
+        plt.xlabel("Number of potential suppressions") 
         plt.ylabel("Kind of suppression") 
         plt.tight_layout()
         plt.savefig(output_file)
