@@ -17,8 +17,24 @@ class LifetimeCalculator():
         self.lasting_mark_set = []
 
     def _filter_histories_by_date(self):
-        # TODO This is a work-around for a bug (?) in the history extraction.
-        # Some histories have their "add" event before the first commit in the selected 1000 commits.
+        '''
+        Cover special cases: Some histories have their "add" event before the first commit in the selected 1000 commits.
+        Problem: commit id out of range
+        Reason: an initial third party suppression becomes a normal suppression later.
+
+        For example,
+            A suppression (xxx/lib/example.py # pylint: disable=protected-access) is recognized in a third party library in 10th commit. 
+                (The extracted suppression history does not consider the suppressions from a third party library.)
+
+            at a later point, in 20th commit, the suppression moved to another folder (xxx/music/example.py), is recognized as a normal suppression
+                (The history extraction algorithm starts from 20th commit, as the 20th is regarded as the first commit introduces suppressions.)
+
+            When use git log to go through all the histories, the result return the real start point is 10th commit.
+            But the selected 1000 is [20, 1020], the 10 is out of this range.
+
+        The filtered histories are correct (ground truth: source code).
+        '''
+        
         # The following code removes these histories.
         cleaned_histories = []
         for history in self.suppression_histories:

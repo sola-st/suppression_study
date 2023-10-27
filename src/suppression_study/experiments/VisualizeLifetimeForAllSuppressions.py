@@ -4,7 +4,7 @@ from suppression_study.evolution.lifetime_visualization.GetLifetimeGroupsInfo im
 from suppression_study.evolution.lifetime_visualization.GetLifetimePlot import visualize_lifetime
 from suppression_study.evolution.lifetime_visualization.LifetimeCalculator import LifetimeCalculator
 from suppression_study.experiments.Experiment import Experiment
-from suppression_study.utils.FunctionsCommon import get_commit_date_lists
+from suppression_study.utils.FunctionsCommon import get_commit_date_lists, get_commit_list
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 from suppression_study.utils.LaTeXUtils import LaTeXTable
 
@@ -51,7 +51,7 @@ class VisualizeLifetimeForAllSuppressions(Experiment):
             repo_name = repo_dir_to_name(repo_dir)
             print(f"Repository: {repo_name}")
             all_main_commits_csv = join("data", "results", repo_name, "commit_id_list.csv") # only main branch
-            all_commits, all_dates = get_commit_date_lists(all_main_commits_csv)
+            all_commits = get_commit_list(all_main_commits_csv)
             suppression_history_json_file = join("data", "results", repo_name, "histories_suppression_level_all.json")
             
             commit_list_file_1000 = join("data", "results", repo_name, "commit_id_list_1000.csv")

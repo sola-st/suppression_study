@@ -9,7 +9,7 @@ from suppression_study.evolution.ChangeEvent import ChangeEvent
 from suppression_study.evolution.GetSuppressionDeleteHistories import GetSuppressionDeleteHistories
 from suppression_study.evolution.GitLogFromFinalStatus import GitLogFromFinalStatus
 from suppression_study.evolution.Select1000Commits import select_1000_commits
-from suppression_study.suppression.NumericSpecificTypeMap import get_specific_numeric_type_map_list
+from suppression_study.suppression.NumericSpecificTypeMap import get_warning_kind_to_numeric_code
 from suppression_study.suppression.Suppression import read_suppressions_from_file
 from suppression_study.utils.FunctionsCommon import get_commit_date_lists
 
@@ -85,7 +85,7 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     assert last_commit_with_suppression != ""
 
     # get specific_numeric_maps, related to GetSuppressionDeleteHistories and GitLogFromFinalStatus
-    specific_numeric_maps = get_specific_numeric_type_map_list()
+    specific_numeric_maps = get_warning_kind_to_numeric_code()
     # get delete events, return delete events and the corresponding suppressions, commit
     # change commits and dates lists to from oldest to newest
     selected_1000_commits_list.reverse()
