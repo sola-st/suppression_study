@@ -5,7 +5,7 @@ from suppression_study.experiments.CountSuppressionsOnLatestCommit import CountS
 class CountSuppressionsOnUnbiasedSample(CountSuppressionsOnLatestCommit):
     def __init__(self):
         super().__init__()
-        self.repo_file = join("data", "python_repos_48_using_pylint.txt")
+        self.repo_file = join("data", "python_repos_46_using_pylint.txt")
 
 
 if __name__ == "__main__":
