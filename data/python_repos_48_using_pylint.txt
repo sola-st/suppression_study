@@ -28,7 +28,6 @@ https://github.com/deepset-ai/haystack.git
 https://github.com/kedro-org/kedro.git
 https://github.com/fail2ban/fail2ban.git
 https://github.com/cython/cython.git
-https://github.com/dagster-io/dagster.git
 https://github.com/google/trax.git
 https://github.com/dylanaraps/pywal.git
 https://github.com/catboost/catboost.git
@@ -45,4 +44,3 @@ https://github.com/Project-MONAI/MONAI.git
 https://github.com/nylas/sync-engine.git
 https://github.com/ethereum/consensus-specs.git
 https://github.com/inducer/pudb.git
-https://github.com/pantsbuild/pants.git
