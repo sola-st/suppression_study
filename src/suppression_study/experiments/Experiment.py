@@ -22,6 +22,7 @@ class Experiment(ABC):
 
     def __init__(self):
         self.latest_commit_date = "2023-09-01T00:00:00-00:00"
+        self.repo_file = join("data", "python_repos.txt")
 
     def _is_repo(self, repo_dir):
         try:
@@ -36,8 +37,7 @@ class Experiment(ABC):
         If the repositories are not yet cloned, this method clones them first.
         """
         # read repo file
-        repo_file = join("data", "python_repos.txt")
-        with open(repo_file) as f:
+        with open(self.repo_file) as f:
             git_urls = f.read().splitlines()
 
         # ensure we have data/repos directory
@@ -77,8 +77,7 @@ class Experiment(ABC):
         return repo_dir_to_commit
 
     def repo_name_to_git_url(self, repo_name: str) -> str:
-        repo_file = join("data", "python_repos.txt")
-        with open(repo_file) as f:
+        with open(self.repo_file) as f:
             git_urls = f.read().splitlines()
 
         candidate_urls = [u for u in git_urls if repo_name in u]
