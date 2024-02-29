@@ -54,12 +54,12 @@ class InspectSuppressionRelatedCommits(Experiment):
         my_random = random.Random(42)
         my_random.shuffle(all_commit_urls)
 
-        inspection_dict = [{"url:": u, "comment": ""} for u in all_commit_urls]
+        inspection_list = [{"url:": u, "comment": ""} for u in all_commit_urls]
 
         target_file = join("data", "results",
                            f"inspection_{name}_commits.json")
         with open(target_file, "w") as f:
-            dump(inspection_dict, f, indent=4)
+            dump(inspection_list, f, indent=4)
 
     def _commit_matches_keywords(self, commit, keywords):
         message = commit.message.lower()
