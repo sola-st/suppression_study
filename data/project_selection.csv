@@ -1,50 +1,50 @@
 Index,repoName,gitLink,stars,commits,Uses Pylint,.py files,LoC,Suppressions,Used in main study,"Config-based, global suppressions"
-58,buildbot,https://github.com/buildbot/buildbot.git,5045,23683,1,899,149779,157,1,disables kinds of warnings via .pylintrc
-269,bup,https://github.com/bup/bup.git,6904,2352,1,94,15214,0,,
-232,catboost,https://github.com/catboost/catboost.git,7162,45980,1,22705,2997486,359,,no
-133,celery,https://github.com/celery/celery.git,21065,12208,1,340,58644,87,1,no
-241,ChatGPT,https://github.com/acheong08/ChatGPT.git,20351,1517,1,9,2148,0,,
-131,chia-blockchain,https://github.com/Chia-Network/chia-blockchain.git,10974,10453,1,828,157777,79,,disables kinds of warnings via .pylintrc
-214,clusterfuzz,https://github.com/google/clusterfuzz.git,5011,2265,1,660,96880,308,1,disables kinds of warnings via .pylintrc
-140,consensus-specs,https://github.com/ethereum/consensus-specs.git,3179,8490,1,293,24905,3,,disables kinds of warnings via linter.ini
-229,cookiecutter-django,https://github.com/cookiecutter/cookiecutter-django.git,10265,6596,1,67,2850,0,,no
-239,coursera-dl,https://github.com/coursera-dl/coursera-dl.git,9054,1131,1,29,4190,0,,
+78,pgcli,https://github.com/dbcli/pgcli.git,10943,2330,1,69,9709,0,,disables kinds of warnings via .pylintrc
+193,stable-diffusion-webui,https://github.com/AUTOMATIC1111/stable-diffusion-webui.git,45180,4723,1,186,27975,0,,disables kinds of warnings via .pylintrc
 77,cython,https://github.com/cython/cython.git,7966,17691,1,379,83461,1,,disables kinds of warnings via .pylintrc
-22,dgl,https://github.com/dmlc/dgl.git,11274,3063,1,1180,189502,395,1,disables kinds of warnings via .pylintrc
-234,dvc,https://github.com/iterative/dvc.git,11584,8747,1,521,58409,213,1,no
-39,fail2ban,https://github.com/fail2ban/fail2ban.git,7990,5787,1,79,22177,0,,no
-47,gevent,https://github.com/gevent/gevent.git,5934,5834,1,361,133257,644,,disables kinds of warnings via .pylintrc
-253,guake,https://github.com/Guake/guake.git,4187,2470,1,38,6938,28,,
-17,haystack,https://github.com/deepset-ai/haystack.git,8960,2284,1,450,70100,74,,
-94,isort,https://github.com/PyCQA/isort.git,5822,4086,1,111,15318,10,,no
-10,jax,https://github.com/google/jax.git,23357,16234,1,575,176901,87,,no
-160,kedro,https://github.com/kedro-org/kedro.git,8147,2253,1,299,34004,104,1,no
+240,RedditVideoMakerBot,https://github.com/elebumm/RedditVideoMakerBot.git,5130,1160,1,33,2298,1,,disables kinds of warnings via .pylintrc
+204,pywal,https://github.com/dylanaraps/pywal.git,7266,1086,1,26,1351,2,,disables kinds of warnings via .pylintrc
+202,spotify-downloader,https://github.com/spotDL/spotify-downloader.git,11723,2251,1,85,8962,18,,disables kinds of warnings via .pylintrc
+253,guake,https://github.com/Guake/guake.git,4187,2470,1,38,6938,28,,disables kinds of warnings via .pylintrc
+73,saleor,https://github.com/saleor/saleor.git,18125,20441,1,3022,400457,30,,disables kinds of warnings via .pylintrc
+131,chia-blockchain,https://github.com/Chia-Network/chia-blockchain.git,10974,10453,1,828,157777,79,,disables kinds of warnings via .pylintrc
+75,yapf,https://github.com/google/yapf.git,13124,1264,1,72,18895,138,1,disables kinds of warnings via .pylintrc
+58,buildbot,https://github.com/buildbot/buildbot.git,5045,23683,1,899,149779,157,1,disables kinds of warnings via .pylintrc
 163,magenta,https://github.com/magenta/magenta.git,18265,1420,1,332,44830,184,1,disables kinds of warnings via .pylintrc
-96,marshmallow,https://github.com/marshmallow-code/marshmallow.git,6558,3178,1,37,11441,0,,
-108,MONAI,https://github.com/Project-MONAI/MONAI.git,4097,2697,1,1104,124757,24,,
-141,PaddleNLP,https://github.com/PaddlePaddle/PaddleNLP.git,9229,3840,1,2465,401420,32,1,"partially; multiple subprojects, some of which have workflows that call “pylint –disable=all …”"
-78,pgcli,https://github.com/dbcli/pgcli.git,10943,2330,1,69,9709,0,,
+142,thumbor,https://github.com/thumbor/thumbor.git,9383,2387,1,238,18775,255,1,disables kinds of warnings via .pylintrc
+214,clusterfuzz,https://github.com/google/clusterfuzz.git,5011,2265,1,660,96880,308,1,disables kinds of warnings via .pylintrc
+22,dgl,https://github.com/dmlc/dgl.git,11274,3063,1,1180,189502,395,1,disables kinds of warnings via .pylintrc
+110,tensor2tensor,https://github.com/tensorflow/tensor2tensor.git,13085,4379,1,453,87456,400,,disables kinds of warnings via .pylintrc
+9,trax,https://github.com/google/trax.git,7389,1614,1,198,43250,503,,disables kinds of warnings via .pylintrc
+47,gevent,https://github.com/gevent/gevent.git,5934,5834,1,361,133257,644,,disables kinds of warnings via .pylintrc
+19,salt,https://github.com/saltstack/salt.git,13086,117420,1,3685,791982,3200,,disables kinds of warnings via .pylintrc
+140,consensus-specs,https://github.com/ethereum/consensus-specs.git,3179,8490,1,293,24905,3,,disables kinds of warnings via linter.ini
 102,psutil,https://github.com/giampaolo/psutil.git,9332,5936,1,71,19044,0,,disables kinds of warnings via pyproject.toml
-70,pudb,https://github.com/inducer/pudb.git,2679,1204,1,34,5705,8,,
-51,pwntools,https://github.com/Gallopsled/pwntools.git,9966,4181,1,217,50745,1,,workflow call “pylint –errors-only”
-154,pyecharts,https://github.com/pyecharts/pyecharts.git,13268,1618,1,126,12959,0,,
+17,haystack,https://github.com/deepset-ai/haystack.git,8960,2284,1,450,70100,74,,disables kinds of warnings via pyproject.toml
+123,sync-engine,https://github.com/nylas/sync-engine.git,3513,4395,1,633,47031,0,,"in .travis.yml, invokes “pylint -d all -e w0631 inbox”"
+241,ChatGPT,https://github.com/acheong08/ChatGPT.git,20351,1517,1,9,2148,0,,no
+229,cookiecutter-django,https://github.com/cookiecutter/cookiecutter-django.git,10265,6596,1,67,2850,0,,no
+239,coursera-dl,https://github.com/coursera-dl/coursera-dl.git,9054,1131,1,29,4190,0,,no
+39,fail2ban,https://github.com/fail2ban/fail2ban.git,7990,5787,1,79,22177,0,,no
+96,marshmallow,https://github.com/marshmallow-code/marshmallow.git,6558,3178,1,37,11441,0,,no
+154,pyecharts,https://github.com/pyecharts/pyecharts.git,13268,1618,1,126,12959,0,,no
 29,pyinstaller,https://github.com/pyinstaller/pyinstaller.git,10083,8756,1,1032,40208,0,,no
 13,pytest,https://github.com/pytest-dev/pytest.git,9878,15007,1,249,54416,0,,no
-204,pywal,https://github.com/dylanaraps/pywal.git,7266,1086,1,26,1351,2,,
 120,rasa,https://github.com/RasaHQ/rasa.git,15743,31897,1,597,116615,0,,no
-240,RedditVideoMakerBot,https://github.com/elebumm/RedditVideoMakerBot.git,5130,1160,1,33,2298,1,,
-73,saleor,https://github.com/saleor/saleor.git,18125,20441,1,3022,400457,30,,disables kinds of warnings via .pylintrc
-19,salt,https://github.com/saltstack/salt.git,13086,117420,1,3685,791982,3200,,disables kinds of warnings via .pylintrc
-202,spotify-downloader,https://github.com/spotDL/spotify-downloader.git,11723,2251,1,85,8962,18,,
-193,stable-diffusion-webui,https://github.com/AUTOMATIC1111/stable-diffusion-webui.git,45180,4723,1,186,27975,0,,disables kinds of warnings via .pylintrc
-123,sync-engine,https://github.com/nylas/sync-engine.git,3513,4395,1,633,47031,0,,"in .travis.yml, invokes “pylint -d all -e w0631 inbox”"
-110,tensor2tensor,https://github.com/tensorflow/tensor2tensor.git,13085,4379,1,453,87456,400,,disables kinds of warnings via .pylintrc
-26,TensorLayer,https://github.com/tensorlayer/TensorLayer.git,7156,3353,1,259,30902,8,,CONT HERE
-142,thumbor,https://github.com/thumbor/thumbor.git,9383,2387,1,238,18775,255,1,disables kinds of warnings via .pylintrc
-9,trax,https://github.com/google/trax.git,7389,1614,1,198,43250,503,,
-206,ungoogled-chromium,https://github.com/ungoogled-software/ungoogled-chromium.git,16186,2069,1,36,3428,3,,
-75,yapf,https://github.com/google/yapf.git,13124,1264,1,72,18895,138,1,disables kinds of warnings via .pylintrc
-242,ydata-profiling,https://github.com/ydataai/ydata-profiling.git,10315,1297,1,270,15536,1,,
+242,ydata-profiling,https://github.com/ydataai/ydata-profiling.git,10315,1297,1,270,15536,1,,no
+206,ungoogled-chromium,https://github.com/ungoogled-software/ungoogled-chromium.git,16186,2069,1,36,3428,3,,no
+70,pudb,https://github.com/inducer/pudb.git,2679,1204,1,34,5705,8,,no
+26,TensorLayer,https://github.com/tensorlayer/TensorLayer.git,7156,3353,1,259,30902,8,,no
+94,isort,https://github.com/PyCQA/isort.git,5822,4086,1,111,15318,10,,no
+108,MONAI,https://github.com/Project-MONAI/MONAI.git,4097,2697,1,1104,124757,24,,no
+133,celery,https://github.com/celery/celery.git,21065,12208,1,340,58644,87,1,no
+10,jax,https://github.com/google/jax.git,23357,16234,1,575,176901,87,,no
+160,kedro,https://github.com/kedro-org/kedro.git,8147,2253,1,299,34004,104,1,no
+234,dvc,https://github.com/iterative/dvc.git,11584,8747,1,521,58409,213,1,no
+232,catboost,https://github.com/catboost/catboost.git,7162,45980,1,22705,2997486,359,,no
+141,PaddleNLP,https://github.com/PaddlePaddle/PaddleNLP.git,9229,3840,1,2465,401420,32,1,"partially; multiple subprojects, some of which have workflows that call “pylint –disable=all …”"
+269,bup,https://github.com/bup/bup.git,6904,2352,1,94,15214,0,,uses .pylintrc to disable all warnings and enable only a small subset
+51,pwntools,https://github.com/Gallopsled/pwntools.git,9966,4181,1,217,50745,1,,workflow call “pylint –errors-only”
 167,pgmpy,https://github.com/pgmpy/pgmpy.git,2372,2875,,,,,,
 129,nbdime,https://github.com/jupyter/nbdime.git,2459,2000,,,,,,
 86,KindleEar,https://github.com/cdhigh/KindleEar.git,2601,374,,,,,,
