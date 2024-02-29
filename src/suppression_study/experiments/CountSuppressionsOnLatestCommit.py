@@ -97,14 +97,17 @@ class CountSuppressionsOnLatestCommit(Experiment):
             f.write(table.to_latex())
         print(f"Result table written to {latex_out_file}")
 
-    def _plot_suppressions_over_log(self, repo_dir_to_suppressions, repo_dir_to_loc):
+    def _plot_suppressions_over_loc(self, repo_dir_to_suppressions, repo_dir_to_loc):
         xs = []
         ys = []
         for repo_dir, nb_suppressions in repo_dir_to_suppressions.items():
             loc = repo_dir_to_loc[repo_dir]
             xs.append(loc)
             ys.append(nb_suppressions)
+            print(f"{repo_dir}: {loc} LoC, {nb_suppressions} suppressions")
 
+        plt.xscale("log")
+        plt.yscale("log")
         plt.scatter(xs, ys)
         plt.xlabel("Lines of code (Python)")
         plt.ylabel("Nb. of suppressions")
@@ -145,7 +148,7 @@ class CountSuppressionsOnLatestCommit(Experiment):
             repo_dir_to_suppressions, repo_dir_to_loc, repo_dir_to_python_files)
 
         # plot nb of suppressions vs LoC
-        self._plot_suppressions_over_log(
+        self._plot_suppressions_over_loc(
             repo_dir_to_suppressions, repo_dir_to_loc)
 
 
