@@ -42,7 +42,7 @@ class CountSuppressionsOnLatestCommit(Experiment):
             suppressions = read_suppressions_from_file(out_file)
             print(f"Found {len(suppressions)} suppressions in {out_file}")
 
-            return len(suppressions)
+            return suppressions
 
     def _count_lines_of_code(self, repo_dir):
         command_line = f"sloccount {repo_dir}"
@@ -127,7 +127,7 @@ class CountSuppressionsOnLatestCommit(Experiment):
         # find and count suppressions
         repo_dir_to_suppressions = {}
         for repo_dir, commit in repo_dir_to_commit.items():
-            nb_suppressions = self._count_suppressions(repo_dir, commit)
+            nb_suppressions = len(self._count_suppressions(repo_dir, commit))
             repo_dir_to_suppressions[repo_dir] = nb_suppressions
 
         # count lines of code

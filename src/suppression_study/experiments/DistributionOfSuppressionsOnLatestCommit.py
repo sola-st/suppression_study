@@ -61,8 +61,7 @@ class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
         # get suppressions
         all_suppressions = []
         for repo_dir, commit in repo_dir_to_commit.items():
-            suppressions_file = super()._count_suppressions(repo_dir, commit)
-            suppressions = read_suppressions_from_file(suppressions_file)
+            suppressions = super()._count_suppressions(repo_dir, commit)
             all_suppressions.extend(suppressions)
 
         # compute and plot distribution
