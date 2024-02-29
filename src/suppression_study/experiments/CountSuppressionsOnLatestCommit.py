@@ -104,7 +104,6 @@ class CountSuppressionsOnLatestCommit(Experiment):
             loc = repo_dir_to_loc[repo_dir]
             xs.append(loc)
             ys.append(nb_suppressions)
-            print(f"{repo_dir}: {loc} LoC, {nb_suppressions} suppressions")
 
         plt.xscale("log")
         plt.yscale("log")
@@ -153,4 +152,6 @@ class CountSuppressionsOnLatestCommit(Experiment):
 
 
 if __name__ == "__main__":
-    CountSuppressionsOnLatestCommit().run()
+    exp = CountSuppressionsOnLatestCommit()
+    exp.repo_file = join("data", "python_repos_46_using_pylint.txt")
+    exp.run()

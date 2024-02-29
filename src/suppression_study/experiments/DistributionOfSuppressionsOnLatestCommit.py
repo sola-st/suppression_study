@@ -73,4 +73,6 @@ class DistributionOfSuppressionOnLatestCommit(CountSuppressionsOnLatestCommit):
 
 
 if __name__ == "__main__":
-    DistributionOfSuppressionOnLatestCommit().run()
+    exp = DistributionOfSuppressionOnLatestCommit()
+    exp.repo_file = join("data", "python_repos_46_using_pylint.txt")
+    exp.run()
