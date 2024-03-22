@@ -173,7 +173,7 @@ class DistributionOfSuppressionsNumOnMainCommits(Experiment):
         _plot_distribution(
             repo_names,
             suppression_nums_csvs,
-            join("data", "results", "subplots10_suppression_num_on_main_icse2025.pdf"),
+            join("data", "results", "subplots10_suppression_num_on_main.pdf"),
             start_commit_indices,
             end_commit_indices,
         )
@@ -182,7 +182,7 @@ class DistributionOfSuppressionsNumOnMainCommits(Experiment):
         _plot_distribution_overall_plot(
             repo_names,
             suppression_nums_csvs,
-            join("data", "results", "repo10_suppression_num_on_main_icse2025.pdf"),
+            join("data", "results", "repo10_suppression_num_on_main.pdf"),
             start_commit_indices,
             end_commit_indices,
         )
