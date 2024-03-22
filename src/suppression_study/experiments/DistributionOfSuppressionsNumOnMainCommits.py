@@ -66,6 +66,69 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
     plt.savefig(output_pdf)
 
 
+def _plot_distribution_overall_plot(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
+    plt.rcParams.update({'font.size': 20})
+    fig, ax = plt.subplots(figsize=(10, 6)) 
+
+    # Define colors for each dataset
+    colors = ['deeppink', 'brown', 'red', 'purple', 'darkorange', 'cyan', 'magenta', 'green', 'black', 'blue']  
+
+    csv_lens = []
+    for i, (suppression_nums_csv, start_commit, end_commit, color) in enumerate(
+            zip(suppression_nums_csvs, start_commit_indices, end_commit_indices, colors)
+    ):
+        # Load data from CSV
+        indexes = []
+        num_suppressions = []
+        with open(suppression_nums_csv, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                index = int(row[0])
+                num_suppression = int(row[1])
+                indexes.append(index)
+                num_suppressions.append(num_suppression)
+        
+        csv_lens.append(len(num_suppressions))
+
+        # Plot the data
+        ax.scatter(indexes, num_suppressions, s=2, color=color) # label=repo_names[i],
+
+        # Highlight start and end commits
+        for index in [start_commit, end_commit]:
+            ax.scatter(index, num_suppressions[index - 1], s=400, marker='*', color=color)
+
+        last_commit_num = len(num_suppressions)
+        ax.annotate(f'{repo_names[i]}', xy=(last_commit_num, num_suppressions[last_commit_num - 1]),
+                    xytext=(last_commit_num + 10, num_suppressions[last_commit_num - 1]), color=color)
+        
+    # Set legend for star marker
+    ax.scatter([], [], s=400, marker='*', color='gray', label='Selected start / end commit')
+    ax.legend()
+
+    # set to get extra space on the end of x-axis, 
+    # otherwise the repo name labels will out of the plot border
+    ticks = ax.get_xticks()
+    tick_interval = ticks[1] - ticks[0]
+    max_index = max(csv_lens)
+    quotient, remainder = divmod(max_index, tick_interval)
+    if remainder > 0:
+        max_quotient = quotient + 2.5 # 1 for cover the remainder, 1.5 for extra space
+    ax.set_xlim(left=ax.get_xlim()[0], right=tick_interval*max_quotient)
+
+    # Configure x-axis and y-axis tick locators to use MaxNLocator
+    ax.xaxis.set_major_locator(MaxNLocator(prune='both'))
+    ax.yaxis.set_major_locator(MaxNLocator(prune='both'))
+    ax.tick_params(axis='both', which='both')
+
+    # Set legend and axis labels
+    # ax.legend()
+    ax.set_xlabel('Number of commits')
+    ax.set_ylabel('Number of suppressions')
+
+    plt.tight_layout()
+    plt.savefig(output_pdf)
+
+
 class DistributionOfSuppressionsNumOnMainCommits(Experiment):
     """
     Generate a figure with 10 subplots
@@ -105,10 +168,21 @@ class DistributionOfSuppressionsNumOnMainCommits(Experiment):
             start_commit_indices.append(start_index)
             end_commit_indices.append(end_index)
 
+        # two options to get a plot
+        # 1. subplot
         _plot_distribution(
             repo_names,
             suppression_nums_csvs,
-            join("data", "results", "subplots10_suppression_num_on_main.pdf"),
+            join("data", "results", "subplots10_suppression_num_on_main_icse2025.pdf"),
+            start_commit_indices,
+            end_commit_indices,
+        )
+
+        # 2. a big plot to show all repos
+        _plot_distribution_overall_plot(
+            repo_names,
+            suppression_nums_csvs,
+            join("data", "results", "repo10_suppression_num_on_main_icse2025.pdf"),
             start_commit_indices,
             end_commit_indices,
         )
