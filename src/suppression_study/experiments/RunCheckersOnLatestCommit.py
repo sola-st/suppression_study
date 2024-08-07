@@ -31,7 +31,7 @@ class RunCheckersOnLatestCommit(Experiment):
             args_for_all_repos.extend([args_pylint])
 
         cores_to_use = cpu_count() - 1  # leave one core for other processes
-        print(f"Using {cores_to_use} cores to extract histories in parallel.")
+        print(f"Using {cores_to_use} cores in parallel.")
         with Pool(processes=cores_to_use) as pool:
             pool.map(run_checker_on_repo, args_for_all_repos)
 
