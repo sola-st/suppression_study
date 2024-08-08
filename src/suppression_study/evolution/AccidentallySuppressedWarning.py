@@ -2,7 +2,8 @@ import json
 
 
 class AccidentallySuppressedWarning:
-    def __init__(self, commit, suppression, previous_warnings, warnings):
+    def __init__(self, previous_commit, commit, suppression, previous_warnings, warnings):
+        self.previous_commit = previous_commit
         self.commit = commit
         self.suppression = suppression
         self.previous_warnings = previous_warnings
@@ -10,7 +11,9 @@ class AccidentallySuppressedWarning:
 
     def __lt__(self, other):
         """Sort based on attributes. Useful for getting a deterministic order when writing to a file."""
-        if self.commit != other.commit:
+        if self.previous_commit != other.previous_commit:
+            return self.previous_commit < other.previous_commit
+        elif self.commit != other.commit:
             return self.commit < other.commit
         elif self.suppression != other.suppression:
             return self.suppression < other.suppression
@@ -21,6 +24,7 @@ class AccidentallySuppressedWarning:
 
     def to_dict(self):
         d = {
+            "previous_commit": self.previous_commit,
             "commit": self.commit,
             "suppression": {
                 "path": self.suppression.path,

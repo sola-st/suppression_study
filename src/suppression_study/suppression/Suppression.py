@@ -22,7 +22,8 @@ class Suppression():
         elif self.text.startswith("# pylint:"):
             return "pylint"
         else:
-            raise ValueError(f"Unknown suppression type: {self.text}")
+            # raise ValueError(f"Unknown suppression type: {self.text}")
+            return None
 
     def get_short_names(self) -> List[str]:
         """

@@ -34,7 +34,7 @@ class GetPylintWarnings(GetWarningsSuper):
         here do not consider I.
         '''
         checker = "pylint"
-        command_line = "pylint --recursive=y --disable=I ./"
+        command_line = "pylint --recursive=y --disable=I ./" # --enable=I0020
         report, commit_results_dir = super(GetPylintWarnings, self).run_checker(checker, command_line)
 
         return report, commit_results_dir

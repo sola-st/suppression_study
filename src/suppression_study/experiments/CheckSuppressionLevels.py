@@ -54,7 +54,7 @@ class CheckSuppressionLevels(Experiment):
 
     def main(self): 
         repo_dirs = self.get_repo_dirs()
-        # self.checkout_latest_commits()
+        self.checkout_latest_commits()
         print(f"Found {len(repo_dirs)} repositories.")
 
         self.all_repo_counts = {"all": 0} # overall counts for all repos

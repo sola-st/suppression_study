@@ -34,19 +34,22 @@ parser.add_argument(
 
 
 def get_all_suppressions(repo_dir, commit_id, results_dir):
-    # find suppressions
-    grep = GrepSuppressionPython(repo_dir, commit_id, results_dir)
-    grep.grep_suppression_for_specific_commit()
-
     # read them into a list
     suppressions = set()
-    suppression_file = join(results_dir, f"{commit_id}_suppression.csv")
+    suppression_file = join(results_dir.rsplit("/", 1)[0], "grep", f"{commit_id}_suppression.csv")
     if os.path.exists(suppression_file):
+        suppressions = read_suppressions_from_file(suppression_file)
+    else:
+        # find suppressions
+        grep = GrepSuppressionPython(repo_dir, commit_id, results_dir)
+        grep.grep_suppression_for_specific_commit()
+        suppression_file = join(results_dir, f"{commit_id}_suppression.csv")
         suppressions = read_suppressions_from_file(suppression_file)
     return suppressions
 
 
 def get_all_warnings(repo_dir, commit_id, checker, results_dir):
+    # run checkers
     if checker == "pylint":
         get_pylint_warnings(repo_dir, commit_id, results_dir)
     elif checker == "mypy":

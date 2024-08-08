@@ -24,7 +24,7 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
     which allows us to get the list of suppressed warnings.   
     """
 
-    def __init__(self, repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
+    def __init__(self, repo_dir, commit_id, results_dir, relevant_files: set[str]):
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.results_dir = results_dir
@@ -33,18 +33,19 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
     def run_checker(self):
         checker = "pylint"
 
-        # if relevant files are given, run pylint only on those files (otherwise, run it on the whole repo)
-        if self.relevant_files is None:
-            command_line = "pylint --recursive=y --disable=I --enable=I0020 ./"
-        else:
-            # analyze relevant files that exist in the current commit
+        # the default output path from checkers/GetWarningsSuper.py
+        default_report_path = join(self.results_dir, "checker_results", self.commit_id, f"{self.commit_id}_checker.txt")
+        if not exists(default_report_path):
             files_to_analyze = [
                 f for f in self.relevant_files if exists(join(self.repo_dir, f))]
             command_line = f"pylint --recursive=y --disable=I --enable=I0020 {' '.join(files_to_analyze)}"
 
-        # print(f"Running {command_line} on {self.commit_id}")
+        # avoid covering the existing check reports.
+        # file_specific: file name and its first layer parent folder name as a symbol to identify different reports
+        # e.g., all/repo/a.py --> repo_a
+        file_specific = "_".join(["_".join(f.rsplit("/", 2)[1:]).rsplit(".", 1)[0] for f in files_to_analyze]) 
         report, commit_results_dir = super(
-            GetPylintWarnings, self).run_checker(checker, command_line)
+            GetPylintWarnings, self).run_checker(checker, command_line, file_specific)
         return report, commit_results_dir
 
     def read_reports(self, report):
@@ -54,6 +55,7 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
             for line in lines:
                 line = line.strip()
                 if line.endswith("(suppressed-message)"):
+                    # [file for file in self.relevant_files if file in line] and 
                     assert line.count(":") == 4
                     file_path, line_number, _, _, rest = line.split(":")
                     m = re.search(
@@ -67,6 +69,9 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
                     warning = Warning(
                         file_path, warning_type, int(line_number))
                     suppression_warning_pairs.append([suppression, warning])
+                elif "Parsing failed" in line:
+                    print(f"Parsing failed: {report}")
+                    break
 
         return suppression_warning_pairs
 

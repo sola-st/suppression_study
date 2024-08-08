@@ -39,25 +39,16 @@ def find_relevant_range_of_commits(suppression_history, commits):
     """
     oldest_event = suppression_history[0]
     begin_commit = oldest_event.commit_id
+    begin_idx = commits.index(begin_commit)
     newest_event = suppression_history[-1]
-    if newest_event.change_operation in ["delete", "file delete"]:
-        # the suppression was removed before the end of the repo's history
-        end_commit = newest_event.commit_id
-    else:
-        # the suppression remains in the code until the end of the repo's history
-        end_commit = commits[0]
+    end_commit = newest_event.commit_id
+    end_idx = commits.index(end_commit)
+    if newest_event.change_operation == "file delete":
+        # the file is not exist in the last commit, no need to run checker and check the warnings and suppressions. 
+        end_idx += 1 
 
-    range_of_commits = []
-    in_range = False
-    for commit in reversed(commits):  # we want the oldest commit first
-        if commit == begin_commit:
-            in_range = True
-            range_of_commits.append(commit)
-        elif commit == end_commit:
-            range_of_commits.append(commit)
-            break
-        elif in_range:
-            range_of_commits.append(commit)
+    range_of_commits = commits[end_idx: begin_idx+1] 
+    range_of_commits.reverse() # we want the oldest commit first
 
     return range_of_commits
 
@@ -74,9 +65,9 @@ def find_closest_change_event(commit, suppression_history: List[ChangeEvent]):
 
 
 def find_files_in_history(history: List[ChangeEvent]):
-    files = []
+    files = set()
     for change_event in history:
-        files.append(change_event.file_path)
+        files.add(change_event.file_path)
     return files
 
 
@@ -93,7 +84,7 @@ def find_relevant_commits(repo_dir: str, history: List[ChangeEvent], commits: Li
         if any(f in files_changed_by_commit for f in relevant_files):
             result.append(commit)
 
-    return result
+    return result # the commits that changes the relevant files.
 
 
 def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir):
@@ -106,6 +97,7 @@ def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir)
 
 def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relevant_files, results_dir):
     accidentally_suppressed_warnings = []
+    previous_commit = None
     warnings_suppressed_at_previous_commit = None
     for commit in relevant_commits:
         event = find_closest_change_event(commit, history)
@@ -130,11 +122,13 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
                 if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
                     # there's a new warning suppressed by this suppression
                     accidentally_suppressed_warnings.append(
-                        AccidentallySuppressedWarning(commit,
+                        AccidentallySuppressedWarning(previous_commit,
+                                                      commit,
                                                       suppression,
                                                       warnings_suppressed_at_previous_commit,
                                                       warnings_suppressed_at_commit))
 
+        previous_commit = commit
         warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
 
     return accidentally_suppressed_warnings
@@ -151,16 +145,19 @@ def main(repo_dir, commits_file, history_file, results_dir):
     all_accidentally_suppressed_warnings = []
     # go through all suppression histories
     for history_idx, history in enumerate(histories):
-        # find the files and commits that are relevant for the suppression
-        relevant_files = find_files_in_history(history)
-        relevant_commits = find_relevant_commits(repo_dir, history, commits)
-        print(f"Found {len(relevant_commits)} relevant commits.")
+        if history[0].line_number != "merge unknown":
+            # find the files and commits that are relevant for the suppression
+            relevant_files = find_files_in_history(history)
+            relevant_commits = find_relevant_commits(repo_dir, history, commits)
+            print(f"Found {len(relevant_commits)} relevant commits.")
 
-        accidentally_suppressed_warnings = check_for_accidental_suppressions(
-            repo_dir, history, relevant_commits, relevant_files, results_dir)
-        all_accidentally_suppressed_warnings.extend(
-            accidentally_suppressed_warnings)
-        print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.")
+            accidentally_suppressed_warnings = check_for_accidental_suppressions(
+                repo_dir, history, relevant_commits, relevant_files, results_dir)
+            all_accidentally_suppressed_warnings.extend(
+                accidentally_suppressed_warnings)
+            print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.\n")
+        else:
+            print(f"Skip the {history_idx + 1}/{len(histories)}th history.\n")
 
     # write results to file
     print(f"Write all {len(all_accidentally_suppressed_warnings)} accidental suppressions.")

@@ -12,7 +12,7 @@ from suppression_study.utils.GitRepoUtils import get_current_commit
 
 class GetWarningsSuper():
 
-    def run_checker(self, checker, command_line):
+    def run_checker(self, checker, command_line, file_specific=None):
         '''
         Run the specified checker, Return a report file
         Here also return the commit_results_dir which is a subfolder of results_dir
@@ -29,10 +29,13 @@ class GetWarningsSuper():
             target_repo.git.checkout(self.commit_id, force=True)
 
         # used to store checker results and extracted warning csv file
-        commit_results_dir = join(self.results_dir, "checker_results", self.commit_id)
+        commit_results_dir = join(self.results_dir, "checker_results", checker)
         if not os.path.exists(commit_results_dir):
             os.makedirs(commit_results_dir)
-        report = join(commit_results_dir, self.commit_id + "_" + checker + ".txt")
+        if file_specific:
+            report = join(commit_results_dir, f"{self.commit_id}_report_{file_specific}.txt")
+        else:
+            report = join(commit_results_dir, f"{self.commit_id}_report.txt")
         
         result = subprocess.run(command_line, cwd=self.repo_dir, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         output_txt = result.stdout
