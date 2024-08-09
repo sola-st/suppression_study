@@ -46,7 +46,7 @@ class InspectSuppressionRelatedCommits(Experiment):
 
         inspection_dict = [{"Check": u, "comment": ""} for u in url_and_data]
 
-        target_file = join("data", "results", f"inspection_accidental_commits.json")
+        target_file = join("data", "results", "inspection_accidental_commits.json")
         with open(target_file, "w") as f:
             dump(inspection_dict, f, indent=4)
 

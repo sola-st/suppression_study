@@ -108,6 +108,8 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
         warnings_suppressed_at_commit = []
         suppression = None
         for s, w in suppression_warning_pairs:
+            # middle statuses' line numbers are unknown, here the closet event is just a way to show the suppression
+            # TODO change the way to collect warnings_suppressed_at_commit, like keep the middle status for histories.
             if s.path == event.file_path and s.text == event.warning_type and s.line == event.line_number:
                 suppression = s
                 if w is not None:

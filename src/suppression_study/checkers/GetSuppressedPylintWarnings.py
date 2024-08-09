@@ -24,7 +24,8 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
     which allows us to get the list of suppressed warnings.   
     """
 
-    def __init__(self, repo_dir, commit_id, results_dir, relevant_files: set[str]):
+    def __init__(self, repo_dir, commit_id, results_dir, relevant_files): 
+        # relevant_files is a set. It is valid >=python 3.9 as relevant_files: set[str] and <3.9 relevant_files: Set[str]
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.results_dir = results_dir
