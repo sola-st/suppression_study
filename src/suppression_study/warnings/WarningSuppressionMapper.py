@@ -56,8 +56,7 @@ def get_all_warnings(repo_dir, commit_id, checker, results_dir):
         get_mypy_warnings(repo_dir, commit_id, results_dir)
 
     # read them into a list
-    warning_file = join(results_dir, "checker_results",
-                        commit_id, f"{commit_id}_warnings.csv")
+    warning_file = join(results_dir, "check_results", checker, f"{commit_id}_warnings.csv")
     warnings = read_warning_from_file(warning_file)
     return warnings
 

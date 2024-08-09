@@ -32,18 +32,22 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
 
     def run_checker(self):
         checker = "pylint"
-
+        file_specific = None
+        
         # the default output path from checkers/GetWarningsSuper.py
-        default_report_path = join(self.results_dir, "checker_results", self.commit_id, f"{self.commit_id}_checker.txt")
+        default_report_path = join(self.results_dir, "checker_results", checker, f"{self.commit_id}_report.txt")
         if not exists(default_report_path):
-            files_to_analyze = [
-                f for f in self.relevant_files if exists(join(self.repo_dir, f))]
-            command_line = f"pylint --recursive=y --disable=I --enable=I0020 {' '.join(files_to_analyze)}"
+            if self.relevant_files:
+                files_to_analyze = [
+                    f for f in self.relevant_files if exists(join(self.repo_dir, f))]
+                command_line = f"pylint --recursive=y --disable=I --enable=I0020 {' '.join(files_to_analyze)}"
+                # avoid covering the existing check reports.
+                # file_specific: file name and its first layer parent folder name as a symbol to identify different reports
+                # e.g., all/repo/a.py --> repo_a
+                file_specific = "_".join(["_".join(f.rsplit("/", 2)[1:]).rsplit(".", 1)[0] for f in files_to_analyze]) 
+            else: # for running tests
+                command_line = f"pylint --recursive=y --disable=I --enable=I0020 ./"
 
-        # avoid covering the existing check reports.
-        # file_specific: file name and its first layer parent folder name as a symbol to identify different reports
-        # e.g., all/repo/a.py --> repo_a
-        file_specific = "_".join(["_".join(f.rsplit("/", 2)[1:]).rsplit(".", 1)[0] for f in files_to_analyze]) 
         report, commit_results_dir = super(
             GetPylintWarnings, self).run_checker(checker, command_line, file_specific)
         return report, commit_results_dir

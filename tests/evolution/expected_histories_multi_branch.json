@@ -68,6 +68,14 @@
                 "warning_type": "# pylint: disable=unused-variable",
                 "line_number": 10,
                 "change_operation": "add"
+            },
+            {
+                "commit_id": "38902f16",
+                "date": null,
+                "file_path": "read_files.py",
+                "warning_type": "# pylint: disable=unused-variable",
+                "line_number": 10,
+                "change_operation": "remaining"
             }
         ]
     }

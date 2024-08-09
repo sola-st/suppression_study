@@ -28,6 +28,14 @@
                 "warning_type": "# pylint: disable=all",
                 "line_number": 2,
                 "change_operation": "add"
+            },
+            {
+                "commit_id": "15c87719",
+                "date": null,
+                "file_path": "foo.py",
+                "warning_type": "# pylint: disable=all",
+                "line_number": 7,
+                "change_operation": "remaining"
             }
         ]
     },
@@ -40,6 +48,14 @@
                 "warning_type": "# pylint: disable=invalid-name",
                 "line_number": 10,
                 "change_operation": "add"
+            },
+            {
+                "commit_id": "15c87719",
+                "date": null,
+                "file_path": "foo.py",
+                "warning_type": "# pylint: disable=invalid-name",
+                "line_number": 10,
+                "change_operation": "remaining"
             }
         ]
     },
@@ -52,6 +68,14 @@
                 "warning_type": "# pylint: disable=missing-module-docstring",
                 "line_number": 1,
                 "change_operation": "file add"
+            },
+            {
+                "commit_id": "15c87719",
+                "date": null,
+                "file_path": "folder1/bar.py",
+                "warning_type": "# pylint: disable=missing-module-docstring",
+                "line_number": 4,
+                "change_operation": "remaining"
             }
         ]
     }

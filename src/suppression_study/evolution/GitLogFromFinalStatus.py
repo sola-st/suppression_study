@@ -1,6 +1,7 @@
 import subprocess
 
 from suppression_study.evolution.AnalyzeGitlogReport import AnalyzeGitlogReport
+from suppression_study.evolution.ChangeEvent import ChangeEvent, get_change_event_dict
 from suppression_study.suppression.FormatSuppressionCommon import get_suppressor
 from suppression_study.suppression.Suppression import get_raw_warning_type_from_formatted_suppression_text
 from git.repo import Repo
@@ -73,9 +74,12 @@ class GitLogFromFinalStatus():
             # expected_add_event is a dict, and ready to write to history json file.
             expected_add_event, log_result = self.run_git_log(suppression, log_result, run_command_mark)
             # all the suppression level events in histories is a list
-            # 1) [add event]
+            # 1) [add event, remaining event]
             # 2) [add event, delete event]
-            self.only_add_event_histories.append([expected_add_event])
+            # self.only_add_event_histories.append([expected_add_event])
+            remaining_event = ChangeEvent(last_commit_with_suppression, None, suppression.path, suppression.text, suppression.line, "remaining")
+            remaining_event_json_str = get_change_event_dict(remaining_event)
+            self.only_add_event_histories.append([expected_add_event, remaining_event_json_str])
             previous_file_and_line = file_and_line
 
         return self.only_add_event_histories

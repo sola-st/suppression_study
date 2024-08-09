@@ -1,5 +1,6 @@
 [
     {
+        "previous_commit": "9e71cf01",
         "commit": "5ebae409",
         "suppression": {
             "path": "hello.py",
