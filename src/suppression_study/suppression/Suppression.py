@@ -58,12 +58,20 @@ class Suppression():
         return [self.text]
 
 
-def read_suppressions_from_file(csv_file):
-    suppressions = set()
+# def read_suppressions_from_file(csv_file): # unfixed order
+#     suppressions = set()
+#     with open(csv_file, "r") as f:
+#         reader = csv.reader(f)
+#         for s in reader:
+#             suppressions.add(Suppression(s[0], s[1], int(s[2])))
+#     return suppressions
+
+def read_suppressions_from_file(csv_file): # to fix the order of suppressions
+    suppressions = []
     with open(csv_file, "r") as f:
         reader = csv.reader(f)
         for s in reader:
-            suppressions.add(Suppression(s[0], s[1], int(s[2])))
+            suppressions.append(Suppression(s[0], s[1], int(s[2])))
     return suppressions
 
 

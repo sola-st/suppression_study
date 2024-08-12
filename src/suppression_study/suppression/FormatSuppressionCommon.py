@@ -129,7 +129,7 @@ def get_suppression_from_source_code(suppressor, comment_symbol, code_suppressio
     if not code_suppression.startswith(suppressor): # mixed with source code or start with other comments.
         suppression_content = ""
         if comment_symbol in code_suppression:
-            # TODO readd mypy
+            # TODO read mypy
             suppression_tmp = code_suppression.split("pylint:")[1]
             if comment_symbol in suppression_tmp: # comments come after suppression
                 # may other comments follow, further solution in get_separated_suppressions

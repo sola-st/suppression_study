@@ -50,9 +50,7 @@ def test_AccidentalSuppressionFinder5():
                      "https://github.com/michaelpradel/suppression-test-accidental5.git",
                      "tests/evolution/expected_accidentally_suppressed_warnings5.json")
     
-# TODO This test fails because the suppression histories do not (yet) include "move" events,
-# i.e., commits that move a suppression from one line to another in the same file.
-# def test_AccidentalSuppressionFinder6():
-#     run_test_on_repo("suppression-test-accidental6",
-#                      "https://github.com/michaelpradel/suppression-test-accidental6.git",
-#                      "tests/evolution/expected_accidentally_suppressed_warnings6.json")
+def test_AccidentalSuppressionFinder6():
+    run_test_on_repo("suppression-test-accidental6",
+                     "https://github.com/michaelpradel/suppression-test-accidental6.git",
+                     "tests/evolution/expected_accidentally_suppressed_warnings6.json")

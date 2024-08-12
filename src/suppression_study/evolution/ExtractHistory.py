@@ -90,7 +90,7 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     # change commits and dates lists to from oldest to newest
     selected_1000_commits_list.reverse()
     selected_1000_dates_list.reverse()
-    delete_event_suppression_commit_list = GetSuppressionDeleteHistories(
+    delete_event_suppression_commit_list, middle_line_number_chain_remain, middle_line_number_chain_delete = GetSuppressionDeleteHistories(
         repo_dir, selected_1000_commits_list, selected_1000_dates_list, suppression_result, specific_numeric_maps
     ).track_commits_forward()
 
@@ -98,8 +98,8 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     # finally get the histories: 1) add event 2) add delete events
     evolution_init = GitLogFromFinalStatus(repo_dir, never_removed_suppressions, 
             delete_event_suppression_commit_list, specific_numeric_maps)
-    only_add_event_histories = evolution_init.git_log_never_removed_suppression(last_commit_with_suppression)
-    add_delete_histories = evolution_init.git_log_deleted_suppression()
+    only_add_event_histories = evolution_init.git_log_never_removed_suppression(last_commit_with_suppression, middle_line_number_chain_remain)
+    add_delete_histories = evolution_init.git_log_deleted_suppression(middle_line_number_chain_delete)
 
     all_histories = []
     history_index = 0

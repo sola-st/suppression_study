@@ -4,6 +4,7 @@ i.e., that are suppressed by a suppression that was added before the warning its
 '''
 
 import argparse
+import ast
 import os
 from os.path import join
 from typing import List
@@ -99,6 +100,10 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
     accidentally_suppressed_warnings = []
     previous_commit = None
     warnings_suppressed_at_previous_commit = None
+
+    line_number_chain = ast.literal_eval(history[0].middle_status_chain)
+    line_number_chain.insert(0, history[0].line_number) #including middle statuses' line numbers
+    
     for commit in relevant_commits:
         event = find_closest_change_event(commit, history)
         suppression_warning_pairs = get_suppression_warning_pairs(
@@ -110,7 +115,8 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
         for s, w in suppression_warning_pairs:
             # middle statuses' line numbers are unknown, here the closet event is just a way to show the suppression
             # TODO change the way to collect warnings_suppressed_at_commit, like keep the middle status for histories.
-            if s.path == event.file_path and s.text == event.warning_type and s.line == event.line_number:
+            # WIP
+            if s.path == event.file_path and s.text == event.warning_type and s.line in line_number_chain:
                 suppression = s
                 if w is not None:
                     warnings_suppressed_at_commit.append(w)
@@ -118,8 +124,6 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
         # if a new warning shows up that wasn't suppressed by this suppression
         # at the previous commit, create an AccidentallySuppressedWarning
         if warnings_suppressed_at_previous_commit is not None:
-            # TODO if we want to support "moving" suppressions, this check needs to be removed;
-            # see the currently disabled test_AccidentalSuppressionFinder6()
             if suppression is not None:
                 if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
                     # there's a new warning suppressed by this suppression
@@ -155,8 +159,7 @@ def main(repo_dir, commits_file, history_file, results_dir):
 
             accidentally_suppressed_warnings = check_for_accidental_suppressions(
                 repo_dir, history, relevant_commits, relevant_files, results_dir)
-            all_accidentally_suppressed_warnings.extend(
-                accidentally_suppressed_warnings)
+            all_accidentally_suppressed_warnings.extend(accidentally_suppressed_warnings)
             print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.\n")
         else:
             print(f"Skip the {history_idx + 1}/{len(histories)}th history.\n")

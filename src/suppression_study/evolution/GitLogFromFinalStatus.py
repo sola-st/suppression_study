@@ -52,7 +52,7 @@ class GitLogFromFinalStatus():
 
         return expected_add_event, log_result
     
-    def git_log_never_removed_suppression(self, last_commit_with_suppression):
+    def git_log_never_removed_suppression(self, last_commit_with_suppression, middle_line_number_chain_remain):
         ''' 
         all the suppression here are only with 1 warning type
         which means there could be several suppressions has the same line number in the never_removed_suppressions list
@@ -66,13 +66,15 @@ class GitLogFromFinalStatus():
 
         previous_file_and_line = ""
         log_result = ""
-        for suppression in self.never_removed_suppressions:
+        for suppression, middle_line_chain in zip(self.never_removed_suppressions, middle_line_number_chain_remain):
             run_command_mark = False
             file_and_line = f"{suppression.path} {suppression.line}"
             if file_and_line != previous_file_and_line:
                 run_command_mark = True
             # expected_add_event is a dict, and ready to write to history json file.
             expected_add_event, log_result = self.run_git_log(suppression, log_result, run_command_mark)
+            print(len(middle_line_chain))
+            expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
             # all the suppression level events in histories is a list
             # 1) [add event, remaining event]
             # 2) [add event, delete event]
@@ -84,11 +86,11 @@ class GitLogFromFinalStatus():
 
         return self.only_add_event_histories
 
-    def git_log_deleted_suppression(self):
+    def git_log_deleted_suppression(self, middle_line_number_chain_delete):
         previous_file_and_line = ""
         previous_checkout_commit = ""
         log_result = ""
-        for delete_info in self.delete_event_suppression_commit_list:
+        for delete_info, middle_line_chain in zip(self.delete_event_suppression_commit_list, middle_line_number_chain_delete):
             if delete_info.last_exists_commit != previous_checkout_commit:
                 self.repo_base.git.checkout(delete_info.last_exists_commit, force=True)
 
@@ -99,6 +101,8 @@ class GitLogFromFinalStatus():
                 run_command_mark = True
 
             expected_add_event, log_result = self.run_git_log(delete_suppression, log_result, run_command_mark)
+            print(len(middle_line_chain))
+            expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
             delete_event = delete_info.delete_event
             self.add_delete_histories.append([expected_add_event, delete_event])
             previous_file_and_line = file_and_line

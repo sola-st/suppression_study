@@ -1,5 +1,5 @@
 class ChangeEvent:
-    def __init__(self, commit_id, date, file_path, warning_type, line_number, change_operation):
+    def __init__(self, commit_id, date, file_path, warning_type, line_number, change_operation, middle_status_chain=None):
         # limit commit hash length to 8 characters so we use the same length everywhere
         self.commit_id = commit_id[:8]  
         self.date = date
@@ -7,6 +7,7 @@ class ChangeEvent:
         self.warning_type = warning_type
         self.line_number = line_number
         self.change_operation = change_operation
+        self.middle_status_chain = middle_status_chain
 
     def __hash__(self):
         return hash((self.commit_id, self.date, self.file_path, 
@@ -25,5 +26,6 @@ def get_change_event_dict(given_object):
         "warning_type": given_object.warning_type,
         "line_number": given_object.line_number,
         "change_operation": given_object.change_operation,
+        "middle_status_chain": given_object.middle_status_chain
     }
     return change_event
