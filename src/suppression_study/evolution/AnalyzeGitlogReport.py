@@ -48,9 +48,10 @@ class AnalyzeGitlogReport:
                         add_events = CommitBlock(commit_block, self.suppressor, self.raw_warning_type, 
                                 self.current_file, self.specific_numeric_maps).from_single_commit_block_to_add_event()
                         if add_events != None:
-                            if len(add_events.keys()) == 6: # not merge commit
+                            if len(add_events.keys()) == 7: # not merge commit
                                 return add_events
                             else:
+                                # TODO check what really happens here
                                 add_events.pop("backup")
                                 backup_add_events = add_events
                         else:
