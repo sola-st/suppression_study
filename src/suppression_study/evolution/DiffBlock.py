@@ -52,7 +52,7 @@ class DiffBlock():
                     current_step = int(current_lines_tmp[1])
                 else:
                     current_start = int(current_lines_tmp)
-                    # current_step = 0 
+                    current_step = 1
                 end = current_start + current_step 
                 self.current_hunk_line_range = range(current_start, end)
                 if self.suppression.line in self.current_hunk_line_range:
@@ -60,7 +60,14 @@ class DiffBlock():
                 target_tmp = tmp[2].lstrip("+")
                 if "," in target_tmp:
                     target_step = int(target_tmp.split(",")[1])
-                # else: target_step = 0
+                else: 
+                    target_step = 1
+
+                if not target_block_mark and self.suppression.line > current_start:
+                    hunk_delta = target_step - current_step
+                    mapped_line_num += hunk_delta
+                else:
+                    return mapped_line_num
 
             if target_block_mark: # Source code
                 if diff_line.startswith("+"):
@@ -73,13 +80,7 @@ class DiffBlock():
                     delete_event_ready_to_json = self.get_delete_event()
                     if delete_event_ready_to_json:
                         return delete_event_ready_to_json, self.suppression.line  # event, mapped_line_num
-                    
-                if self.suppression.line > current_start:
-                    hunk_delta = target_step - current_step
-                    mapped_line_num += hunk_delta
-                
                 return mapped_line_num
-
                 
     def get_delete_event(self):
         comment_symbol = "#"

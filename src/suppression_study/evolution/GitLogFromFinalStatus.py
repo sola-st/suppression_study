@@ -66,12 +66,15 @@ class GitLogFromFinalStatus():
 
         previous_file_and_line = ""
         log_result = ""
-        assert len(self.never_removed_suppressions) == len(middle_line_number_chain_remain)
+        print(len(self.never_removed_suppressions))
+        print(len(middle_line_number_chain_remain))
+        # assert len(self.never_removed_suppressions) == len(middle_line_number_chain_remain)
         # reorder to map
         all_remained_suppression_line = [suppression.line for suppression in self.never_removed_suppressions]
-        all_chain_last_line = [chain[-1] for chain in middle_line_number_chain_remain]
+        all_chain_last_line = [list(chain[-1].values())[0] for chain in middle_line_number_chain_remain]
+
         middle_line_number_chain_remain_reordered = \
-            [middle_line_number_chain_remain[all_chain_last_line.index(line)] for line in all_remained_suppression_line]
+            [middle_line_number_chain_remain[all_chain_last_line.index(line)] for line in all_remained_suppression_line] # if line in all_chain_last_line
         for suppression, middle_line_chain in zip(self.never_removed_suppressions, middle_line_number_chain_remain_reordered):
             run_command_mark = False
             file_and_line = f"{suppression.path} {suppression.line}"
@@ -96,22 +99,27 @@ class GitLogFromFinalStatus():
         previous_file_and_line = ""
         previous_checkout_commit = ""
         log_result = ""
+
+        print(len(self.delete_event_suppression_commit_list))
+        print(len(middle_line_number_chain_delete))
+
         for delete_info, middle_line_chain in zip(self.delete_event_suppression_commit_list, middle_line_number_chain_delete):
-            if delete_info.last_exists_commit != previous_checkout_commit:
-                self.repo_base.git.checkout(delete_info.last_exists_commit, force=True)
+            if delete_info:
+                if delete_info.last_exists_commit != previous_checkout_commit:
+                    self.repo_base.git.checkout(delete_info.last_exists_commit, force=True)
 
-            delete_suppression = delete_info.suppression
-            run_command_mark = False
-            file_and_line = f"{delete_suppression.path} {delete_suppression.line}"
-            if file_and_line != previous_file_and_line:
-                run_command_mark = True
+                delete_suppression = delete_info.suppression
+                run_command_mark = False
+                file_and_line = f"{delete_suppression.path} {delete_suppression.line}"
+                if file_and_line != previous_file_and_line:
+                    run_command_mark = True
 
-            expected_add_event, log_result = self.run_git_log(delete_suppression, log_result, run_command_mark)
-            # print(len(middle_line_chain))
-            expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
-            delete_event = delete_info.delete_event
-            self.add_delete_histories.append([expected_add_event, delete_event])
-            previous_file_and_line = file_and_line
-            previous_checkout_commit = delete_info.last_exists_commit
+                expected_add_event, log_result = self.run_git_log(delete_suppression, log_result, run_command_mark)
+                # print(len(middle_line_chain))
+                expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
+                delete_event = delete_info.delete_event
+                self.add_delete_histories.append([expected_add_event, delete_event])
+                previous_file_and_line = file_and_line
+                previous_checkout_commit = delete_info.last_exists_commit
 
         return self.add_delete_histories

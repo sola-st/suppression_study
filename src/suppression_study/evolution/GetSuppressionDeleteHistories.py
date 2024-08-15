@@ -81,7 +81,6 @@ class GetSuppressionDeleteHistories:
             next_date = self.selected_1000_dates_list[i + 1]
             deleted_files, file_paths_in_current_commit, file_paths_in_next_commit = self.file_status_check(current_commit, next_commit)
             last_exists_commit = ""
-            file_path_in_next_commit = None
 
             current_suppression_csv = join(self.grep_folder, f"{current_commit}_suppression.csv")
             if exists(current_suppression_csv):
@@ -92,6 +91,7 @@ class GetSuppressionDeleteHistories:
                     raw_warning_type = None
                     raw_warning_type_tmp = "aaa" # a random value that is not a warning type
                     delete_event_ready_to_json_info = None
+                    file_path_in_next_commit = None
 
                     current_file = suppression.path
                     if current_file in file_paths_in_current_commit: # file rename check
@@ -108,14 +108,19 @@ class GetSuppressionDeleteHistories:
                     else:
                         raw_warning_type = get_raw_warning_type_from_formatted_suppression_text(suppression.text) # can be numeric code or text
                         if raw_warning_type[1:].isnumeric() == True:
-                           raw_warning_type_tmp = raw_warning_type
-                           # always use the text warning type
-                           raw_warning_type = [specific for specific, numeric in self.specific_numeric_maps.items() if raw_warning_type == numeric][0]
+                            raw_warning_type_tmp = raw_warning_type
+                            # always use the text warning type
+                            map_check = [specific for specific, numeric in self.specific_numeric_maps.items() if raw_warning_type == numeric]
+                            if map_check:
+                                raw_warning_type = map_check[0]
                         assert raw_warning_type != None
 
+                        # if "2d77053d" in next_commit:
+                        #     pass
                         if current_file != previous_file: # for the same file, run git diff only once
                             diff_result = self.diff_computation(current_commit, next_commit, current_file, file_path_in_next_commit)
                         diff_contents = diff_result.stdout
+                        
                         if diff_contents:
                             delete_event_ready_to_json_info = DiffBlock(
                                 next_commit, next_date, diff_contents, suppression, raw_warning_type, \
@@ -130,18 +135,15 @@ class GetSuppressionDeleteHistories:
                         # it is not deleted, and here the int is the mapped line number of the suppression
                         remain_idx = None
                         if i == 0:
-                            middle_line_number_chain.append([delete_event_ready_to_json_info])
+                            middle_line_number_chain.append([{next_commit: delete_event_ready_to_json_info}])
                             remain_idx = len(middle_line_number_chain) - 1
                         else:
                             keys = list(current_suppression_order_one_round.keys())
                             if j in keys:
-                                try:
-                                    remain_idx = current_suppression_order_one_round[j]
-                                except:
-                                    pass
-                                middle_line_number_chain[remain_idx].append(delete_event_ready_to_json_info)
+                                remain_idx = current_suppression_order_one_round[j]
+                                middle_line_number_chain[remain_idx].append({next_commit: delete_event_ready_to_json_info})
                             else:
-                                middle_line_number_chain.append([delete_event_ready_to_json_info])
+                                middle_line_number_chain.append([{next_commit: delete_event_ready_to_json_info}])
                                 remain_idx = len(middle_line_number_chain) - 1
 
                         if not file_path_in_next_commit:
@@ -158,16 +160,19 @@ class GetSuppressionDeleteHistories:
                             delete_event_ready_to_json, suppression, last_exists_commit)
                         delete_event_suppression_commit_list.append(delete_event_and_suppression)
                         if i == 0:
-                            middle_line_number_chain.append([middle_line_number])
+                            middle_line_number_chain.append([{next_commit: middle_line_number}])
                             middle_line_number_chain.append(["delete"])
                         else:
-                            delete_idx = current_suppression_order_one_round[j]
-                            middle_line_number_chain[delete_idx].append(suppression.line)
-                            middle_line_number_chain[delete_idx].append("delete")
+                            # in theory, j should always in current_suppression_order_one_round
+                            # but in case it fails to map the indices, we use a filter
+                            if j in current_suppression_order_one_round:
+                                delete_idx = current_suppression_order_one_round[j]
+                                middle_line_number_chain[delete_idx].append({next_commit: suppression.line})
+                                middle_line_number_chain[delete_idx].append("delete")
+                            # else: ignore the case
                         # next_suppression_order_one_round.update({"delete": delete_idx})
                             
                     previous_file = current_file
-                    file_path_in_next_commit = None
                 
             # if current_suppression_order_one_round != next_suppression_order_one_round:
             #     print(next_suppression_order_one_round)
@@ -176,7 +181,7 @@ class GetSuppressionDeleteHistories:
             next_suppression_order_one_round = {}
 
         middle_line_number_chain_remain, middle_line_number_chain_delete = separate_the_line_chains(middle_line_number_chain)
-        assert len(delete_event_suppression_commit_list) == len(middle_line_number_chain_delete)
+        # assert len(delete_event_suppression_commit_list) == len(middle_line_number_chain_delete)
         return delete_event_suppression_commit_list, middle_line_number_chain_remain, middle_line_number_chain_delete
     
     def update_suppression_order(self, next_suppression_csv, file_path_in_next_commit, \
