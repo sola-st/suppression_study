@@ -135,15 +135,15 @@ class GetSuppressionDeleteHistories:
                         # it is not deleted, and here the int is the mapped line number of the suppression
                         remain_idx = None
                         if i == 0:
-                            middle_line_number_chain.append([{next_commit: delete_event_ready_to_json_info}])
+                            middle_line_number_chain.append([(file_path_in_next_commit, next_commit, delete_event_ready_to_json_info)])
                             remain_idx = len(middle_line_number_chain) - 1
                         else:
                             keys = list(current_suppression_order_one_round.keys())
                             if j in keys:
                                 remain_idx = current_suppression_order_one_round[j]
-                                middle_line_number_chain[remain_idx].append({next_commit: delete_event_ready_to_json_info})
+                                middle_line_number_chain[remain_idx].append((file_path_in_next_commit, next_commit, delete_event_ready_to_json_info))
                             else:
-                                middle_line_number_chain.append([{next_commit: delete_event_ready_to_json_info}])
+                                middle_line_number_chain.append([(file_path_in_next_commit, next_commit, delete_event_ready_to_json_info)])
                                 remain_idx = len(middle_line_number_chain) - 1
 
                         if not file_path_in_next_commit:
@@ -160,14 +160,14 @@ class GetSuppressionDeleteHistories:
                             delete_event_ready_to_json, suppression, last_exists_commit)
                         delete_event_suppression_commit_list.append(delete_event_and_suppression)
                         if i == 0:
-                            middle_line_number_chain.append([{next_commit: middle_line_number}])
+                            middle_line_number_chain.append([(file_path_in_next_commit, next_commit, middle_line_number)])
                             middle_line_number_chain.append(["delete"])
                         else:
                             # in theory, j should always in current_suppression_order_one_round
                             # but in case it fails to map the indices, we use a filter
                             if j in current_suppression_order_one_round:
                                 delete_idx = current_suppression_order_one_round[j]
-                                middle_line_number_chain[delete_idx].append({next_commit: suppression.line})
+                                middle_line_number_chain[delete_idx].append((file_path_in_next_commit, next_commit, suppression.line))
                                 middle_line_number_chain[delete_idx].append("delete")
                             # else: ignore the case
                         # next_suppression_order_one_round.update({"delete": delete_idx})
@@ -194,7 +194,7 @@ class GetSuppressionDeleteHistories:
                     suppression.line == mapped_line_num:
                     return i
                 
-            print("Mapped idx, not as expected.")
+            # print("Mapped idx, not as expected.")
             return None # lower confidence, ignore this
 
 

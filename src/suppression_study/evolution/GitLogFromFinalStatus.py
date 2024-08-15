@@ -71,10 +71,16 @@ class GitLogFromFinalStatus():
         # assert len(self.never_removed_suppressions) == len(middle_line_number_chain_remain)
         # reorder to map
         all_remained_suppression_line = [suppression.line for suppression in self.never_removed_suppressions]
-        all_chain_last_line = [list(chain[-1].values())[0] for chain in middle_line_number_chain_remain]
+        all_chain_last_line = [(chain[-1])[2] for chain in middle_line_number_chain_remain]
 
         middle_line_number_chain_remain_reordered = \
-            [middle_line_number_chain_remain[all_chain_last_line.index(line)] for line in all_remained_suppression_line] # if line in all_chain_last_line
+            [middle_line_number_chain_remain[all_chain_last_line.index(line)] for line in all_remained_suppression_line]
+
+        # all_chain_last_path_line = [[chain[-1][0], (chain[-1])[2]] for chain in middle_line_number_chain_remain]
+        # middle_line_number_chain_remain_reordered = \
+        #     [middle_line_number_chain_remain[all_chain_last_path_line.index([suppression.path, suppression.line])] \
+        #     for suppression in self.never_removed_suppressions]
+
         for suppression, middle_line_chain in zip(self.never_removed_suppressions, middle_line_number_chain_remain_reordered):
             run_command_mark = False
             file_and_line = f"{suppression.path} {suppression.line}"
@@ -103,6 +109,7 @@ class GitLogFromFinalStatus():
         print(len(self.delete_event_suppression_commit_list))
         print(len(middle_line_number_chain_delete))
 
+        # TODO Check dgl
         for delete_info, middle_line_chain in zip(self.delete_event_suppression_commit_list, middle_line_number_chain_delete):
             if delete_info:
                 if delete_info.last_exists_commit != previous_checkout_commit:

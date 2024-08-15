@@ -101,22 +101,42 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
     previous_commit = None
     warnings_suppressed_at_previous_commit = None
 
-    line_number_chain = ast.literal_eval(history[0].middle_status_chain)
-    line_number_chain.insert(0, history[0].line_number) #including middle statuses' line numbers
+    add_event = history[0]
+    event_warning_type = add_event.warning_type
+    event_file_path = add_event.file_path
+    middle_statuses_chain = ast.literal_eval(add_event.middle_status_chain)
+    # commits = [add_event.commit_id]
+    # line_nums = [add_event.line_number]
+    file_paths = []
+    commits = []
+    line_nums = []
+    for item in middle_statuses_chain:
+        if len(item) == 3:
+            path, commit, line = item
+            file_paths.append(path)
+            commits.append(commit)
+            line_nums.append(line)
+
+    if add_event.commit_id not in commits:
+        # if in, may some impacts from git happens
+        file_paths.insert(0, event_file_path)
+        commits.insert(0, add_event.commit_id)
+        line_nums.insert(0, add_event.line_number)
     
     for commit in relevant_commits:
-        event = find_closest_change_event(commit, history)
         suppression_warning_pairs = get_suppression_warning_pairs(
             repo_dir, commit, relevant_files, results_dir)
 
         # find warnings that the suppression suppresses at the current point in time
         warnings_suppressed_at_commit = []
         suppression = None
+        idx = commits.index(commit)
+        line_in_commit = line_nums[idx]
+        file_path_in_commit = file_paths[idx]
         for s, w in suppression_warning_pairs:
-            # middle statuses' line numbers are unknown, here the closet event is just a way to show the suppression
-            # TODO change the way to collect warnings_suppressed_at_commit, like keep the middle status for histories.
-            # WIP
-            if s.path == event.file_path and s.text == event.warning_type and s.line in line_number_chain:
+            if (s.path == event_file_path or s.path == file_path_in_commit) and \
+                s.text == event_warning_type and \
+                (s.line == line_in_commit or "merge" in str(line_in_commit)):
                 suppression = s
                 if w is not None:
                     warnings_suppressed_at_commit.append(w)
@@ -151,18 +171,15 @@ def main(repo_dir, commits_file, history_file, results_dir):
     all_accidentally_suppressed_warnings = []
     # go through all suppression histories
     for history_idx, history in enumerate(histories):
-        if history[0].line_number != "merge unknown":
-            # find the files and commits that are relevant for the suppression
-            relevant_files = find_files_in_history(history)
-            relevant_commits = find_relevant_commits(repo_dir, history, commits)
-            print(f"Found {len(relevant_commits)} relevant commits.")
+        # find the files and commits that are relevant for the suppression
+        relevant_files = find_files_in_history(history)
+        relevant_commits = find_relevant_commits(repo_dir, history, commits)
+        print(f"Found {len(relevant_commits)} relevant commits.")
 
-            accidentally_suppressed_warnings = check_for_accidental_suppressions(
-                repo_dir, history, relevant_commits, relevant_files, results_dir)
-            all_accidentally_suppressed_warnings.extend(accidentally_suppressed_warnings)
-            print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.\n")
-        else:
-            print(f"Skip the {history_idx + 1}/{len(histories)}th history.\n")
+        accidentally_suppressed_warnings = check_for_accidental_suppressions(
+            repo_dir, history, relevant_commits, relevant_files, results_dir)
+        all_accidentally_suppressed_warnings.extend(accidentally_suppressed_warnings)
+        print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.\n")
 
     # write results to file
     print(f"Write all {len(all_accidentally_suppressed_warnings)} accidental suppressions.")
