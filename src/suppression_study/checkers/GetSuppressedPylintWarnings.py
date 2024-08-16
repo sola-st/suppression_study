@@ -24,16 +24,16 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
     which allows us to get the list of suppressed warnings.   
     """
 
-    def __init__(self, repo_dir, commit_id, results_dir, relevant_files): 
+    def __init__(self, repo_dir, commit_id, results_dir, file_specific, relevant_files): 
         # relevant_files is a set. It is valid >=python 3.9 as relevant_files: set[str] and <3.9 relevant_files: Set[str]
         self.repo_dir = repo_dir
         self.commit_id = commit_id
         self.results_dir = results_dir
+        self.file_specific, = file_specific, 
         self.relevant_files = relevant_files
 
     def run_checker(self):
         checker = "pylint"
-        file_specific = None
         
         # the default output path from checkers/GetWarningsSuper.py
         default_report_path = join(self.results_dir, "checker_results", checker, f"{self.commit_id}_report.txt")
@@ -42,15 +42,11 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
                 files_to_analyze = [
                     f for f in self.relevant_files if exists(join(self.repo_dir, f))]
                 command_line = f"pylint --recursive=y --disable=I --enable=I0020 {' '.join(files_to_analyze)}"
-                # avoid covering the existing check reports.
-                # file_specific: file name and its first layer parent folder name as a symbol to identify different reports
-                # e.g., all/repo/a.py --> repo_a
-                file_specific = "_".join(["_".join(f.rsplit("/", 2)[1:]).rsplit(".", 1)[0] for f in files_to_analyze]) 
             else: # for running tests
                 command_line = f"pylint --recursive=y --disable=I --enable=I0020 ./"
 
         report, commit_results_dir = super(
-            GetPylintWarnings, self).run_checker(checker, command_line, file_specific)
+            GetPylintWarnings, self).run_checker(checker, command_line, self.file_specific)
         return report, commit_results_dir
 
     def read_reports(self, report):
@@ -75,19 +71,27 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
                         file_path, warning_type, int(line_number))
                     suppression_warning_pairs.append([suppression, warning])
                 elif "Parsing failed" in line:
-                    print(f"Parsing failed: {report}")
+                    # print(f"Parsing failed: {report}")
+                    suppression_warning_pairs = None
                     break
 
         return suppression_warning_pairs
 
 
 def main(repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
+    # avoid covering the existing check reports.
+    # file_specific: file name and its first layer parent folder name as a symbol to identify different reports
+    # e.g., all/repo/a.py --> repo_a
+    file_specific = None
+    if relevant_files:
+        file_specific = "_".join(relevant_files[0].rsplit("/", 3)[1:]).rsplit(".", 1)[0]
+
     tool = GetSuppressedPylintWarnings(
-        repo_dir, commit_id, results_dir, relevant_files)
+        repo_dir, commit_id, results_dir, file_specific, relevant_files, )
     report, _ = tool.run_checker()
     suppression_warning_pairs = tool.read_reports(report)
     if suppression_warning_pairs:
-        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
+        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id, file_specific)
     return suppression_warning_pairs
 
 

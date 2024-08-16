@@ -6,7 +6,7 @@ i.e., that are suppressed by a suppression that was added before the warning its
 import argparse
 import ast
 import os
-from os.path import join
+from os.path import join, exists
 from typing import List
 from suppression_study.evolution.ExtractHistory import read_histories_from_json
 from suppression_study.utils.FunctionsCommon import get_commit_list
@@ -69,7 +69,7 @@ def find_files_in_history(history: List[ChangeEvent]):
     files = set()
     for change_event in history:
         files.add(change_event.file_path)
-    return files
+    return list(files)
 
 
 def find_relevant_commits(repo_dir: str, history: List[ChangeEvent], commits: List[str]):
@@ -90,9 +90,12 @@ def find_relevant_commits(repo_dir: str, history: List[ChangeEvent], commits: Li
 
 def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir):
     # TODO mypy support
-    compute_warning_suppression_mapping(
-        repo_dir, commit, "pylint", results_dir, relevant_files=relevant_files)
-    pairs = read_mapping_from_csv(results_dir=results_dir, commit_id=commit)
+    file_specific = "_".join(relevant_files[0].rsplit("/", 3)[1:]).rsplit(".", 1)[0]
+    file = join(results_dir, f"{commit}_mapping_{file_specific}.csv")
+    if not exists(file):
+        compute_warning_suppression_mapping(
+            repo_dir, commit, "pylint", results_dir, relevant_files=relevant_files, file_specific=file_specific)
+    pairs = read_mapping_from_csv(file=file)
     return pairs
 
 
@@ -124,38 +127,47 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
         line_nums.insert(0, add_event.line_number)
     
     for commit in relevant_commits:
-        suppression_warning_pairs = get_suppression_warning_pairs(
-            repo_dir, commit, relevant_files, results_dir)
-
-        # find warnings that the suppression suppresses at the current point in time
-        warnings_suppressed_at_commit = []
-        suppression = None
-        idx = commits.index(commit)
-        line_in_commit = line_nums[idx]
-        file_path_in_commit = file_paths[idx]
-        for s, w in suppression_warning_pairs:
-            if (s.path == event_file_path or s.path == file_path_in_commit) and \
-                s.text == event_warning_type and \
-                (s.line == line_in_commit or "merge" in str(line_in_commit)):
-                suppression = s
-                if w is not None:
-                    warnings_suppressed_at_commit.append(w)
-
-        # if a new warning shows up that wasn't suppressed by this suppression
-        # at the previous commit, create an AccidentallySuppressedWarning
-        if warnings_suppressed_at_previous_commit is not None:
-            if suppression is not None:
-                if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
-                    # there's a new warning suppressed by this suppression
-                    accidentally_suppressed_warnings.append(
-                        AccidentallySuppressedWarning(previous_commit,
-                                                      commit,
-                                                      suppression,
-                                                      warnings_suppressed_at_previous_commit,
-                                                      warnings_suppressed_at_commit))
-
-        previous_commit = commit
-        warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
+        # if not "<Parsing failed>" in warnings_suppressed_at_previous_commit 
+        
+        if commit in commits:
+            suppression_warning_pairs = get_suppression_warning_pairs(
+                repo_dir, commit, relevant_files, results_dir)
+            if suppression_warning_pairs:
+                # find warnings that the suppression suppresses at the current point in time
+                warnings_suppressed_at_commit = []
+                suppression = None
+                idx = commits.index(commit)
+                line_in_commit = line_nums[idx]
+                file_path_in_commit = file_paths[idx]
+                for s, w in suppression_warning_pairs:
+                    if (s.path == event_file_path or s.path == file_path_in_commit) and \
+                        s.text == event_warning_type and \
+                        (s.line in line_nums or "merge" in str(line_in_commit)):
+                        suppression = s
+                        if w is not None:
+                            warnings_suppressed_at_commit.append(w)
+                    
+                # if a new warning shows up that wasn't suppressed by this suppression
+                # at the previous commit, create an AccidentallySuppressedWarning
+                if warnings_suppressed_at_previous_commit is not None:
+                    if suppression is not None:
+                        if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
+                            # there's a new warning suppressed by this suppression
+                            # TODO Check if the suppression is useless.
+                            accidentally_suppressed_warnings.append(
+                                AccidentallySuppressedWarning(previous_commit,
+                                                            commit,
+                                                            suppression,              
+                                                            warnings_suppressed_at_previous_commit,
+                                                            warnings_suppressed_at_commit))
+                previous_commit = commit
+                warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
+            else:
+                warnings_suppressed_at_previous_commit = None
+                previous_commit = None
+        else:
+            warnings_suppressed_at_previous_commit = None
+            previous_commit = None
 
     return accidentally_suppressed_warnings
 

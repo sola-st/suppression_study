@@ -90,29 +90,32 @@ def compute_mapping_via_pylint_support(repo_dir, suppressions, commit_id, releva
     suppression_warning_pairs = get_suppressed_pylint_warnings(
         repo_dir, commit_id, results_dir, relevant_files)
 
-    # find useful suppressions and suppressed warnings
     all_suppressed_warnings = set()
     useful_suppressions = set() # to write to file
     useful_suppressions_to_compare = set()
-    for suppression, warning in suppression_warning_pairs:
-        suppression_to_compare = Suppression(suppression.path, suppression.text.replace(" ", "").strip(), suppression.line)
-        useful_suppressions_to_compare.add(suppression_to_compare) # avoid noise from " " when do the comparison
-        # still add the original one, keep the original format to correctly get raw warning types in visualization
-        useful_suppressions.add(suppression) 
-        all_suppressed_warnings.add(warning)
-
-    # find useless suppressions
     useless_suppressions = set()
-    for suppression in suppressions:
-        suppression_to_compare = Suppression(suppression.path, suppression.text.replace(" ", "").strip(), suppression.line)
-        if suppression_to_compare not in useful_suppressions_to_compare:
-            useless_suppressions.add(suppression) 
-            suppression_warning_pairs.append((suppression, None))
+
+    if suppression_warning_pairs:
+        # find useful suppressions and suppressed warnings
+        for suppression, warning in suppression_warning_pairs:
+            suppression_to_compare = Suppression(suppression.path, suppression.text.replace(" ", "").strip(), suppression.line)
+            useful_suppressions_to_compare.add(suppression_to_compare) # avoid noise from " " when do the comparison
+            # still add the original one, keep the original format to correctly get raw warning types in visualization
+            useful_suppressions.add(suppression) 
+            all_suppressed_warnings.add(warning)
+
+        # find useless suppressions
+        for suppression in suppressions:
+            suppression_to_compare = Suppression(suppression.path, suppression.text.replace(" ", "").strip(), suppression.line)
+            if suppression_to_compare not in useful_suppressions_to_compare:
+                useless_suppressions.add(suppression) 
+                suppression_warning_pairs.append((suppression, None))
 
     return suppression_warning_pairs, list(all_suppressed_warnings), list(useful_suppressions), list(useless_suppressions)
 
 
-def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warnings_file=None, relevant_files: List[str] = None):
+def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, \
+        warnings_file=None, relevant_files: List[str] = None, file_specific=None):
     # checkout the commit
     target_repo = Repo(repo_dir)
     target_repo.git.checkout(commit_id, force=True)
@@ -144,16 +147,16 @@ def main(repo_dir, commit_id, checker, results_dir, suppressions_file=None, warn
             repo_dir, suppressions, original_warnings, commit_id, checker, results_dir)
 
     if suppression_warning_pairs:
-        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id)
+        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id, file_specific)
     if all_suppressed_warnings:
         write_suppressed_warnings_to_csv(
-            all_suppressed_warnings, results_dir, commit_id)
+            all_suppressed_warnings, results_dir, commit_id, file_specific)
     if useless_suppressions:
         write_suppression_to_csv(
-            useless_suppressions, results_dir, commit_id, "useless")
+            useless_suppressions, results_dir, commit_id, "useless", file_specific)
     if useful_suppressions:
         write_suppression_to_csv(
-            useful_suppressions, results_dir, commit_id, "useful")
+            useful_suppressions, results_dir, commit_id, "useful", file_specific)
 
 
 if __name__ == "__main__":
