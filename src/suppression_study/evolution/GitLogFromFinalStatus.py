@@ -66,20 +66,25 @@ class GitLogFromFinalStatus():
 
         previous_file_and_line = ""
         log_result = ""
-        print(len(self.never_removed_suppressions))
-        print(len(middle_line_number_chain_remain))
+        print(f"remain:{len(self.never_removed_suppressions)}")
+        print(f"remain:{len(middle_line_number_chain_remain)}")
         # assert len(self.never_removed_suppressions) == len(middle_line_number_chain_remain)
         # reorder to map
         all_remained_suppression_line = [suppression.line for suppression in self.never_removed_suppressions]
         all_chain_last_line = [(chain[-1])[2] for chain in middle_line_number_chain_remain]
 
-        middle_line_number_chain_remain_reordered = \
-            [middle_line_number_chain_remain[all_chain_last_line.index(line)] for line in all_remained_suppression_line]
-
-        # all_chain_last_path_line = [[chain[-1][0], (chain[-1])[2]] for chain in middle_line_number_chain_remain]
         # middle_line_number_chain_remain_reordered = \
-        #     [middle_line_number_chain_remain[all_chain_last_path_line.index([suppression.path, suppression.line])] \
-        #     for suppression in self.never_removed_suppressions]
+        #     [middle_line_number_chain_remain[all_chain_last_line.index(line)] for line in all_remained_suppression_line]
+        middle_line_number_chain_remain_reordered = []
+        for i, line in enumerate(all_remained_suppression_line):
+            map_idx = all_chain_last_line.index(line)
+            chain = middle_line_number_chain_remain[map_idx]
+            while self.never_removed_suppressions[i].path != chain[-1][0]:
+                all_chain_last_line_tmp = all_chain_last_line[map_idx+1:]
+                map_idx += (all_chain_last_line_tmp.index(line) + 1)
+                chain = middle_line_number_chain_remain[map_idx]
+        
+            middle_line_number_chain_remain_reordered.append(chain)
 
         for suppression, middle_line_chain in zip(self.never_removed_suppressions, middle_line_number_chain_remain_reordered):
             run_command_mark = False
@@ -89,7 +94,13 @@ class GitLogFromFinalStatus():
             # expected_add_event is a dict, and ready to write to history json file.
             expected_add_event, log_result = self.run_git_log(suppression, log_result, run_command_mark)
             # print(len(middle_line_chain))
-            expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
+            simplified_middle_line_chain = []
+            for chain in middle_line_chain:
+                if chain[0] == suppression.path:
+                    chain[0] = ""
+                simplified_middle_line_chain.append(chain) # keep only the renamed file
+            # simplified_middle_line_chain = [chain.pop[0] for chain in middle_line_chain if chain[0] == suppression.path]
+            expected_add_event.update({"middle_status_chain": str(simplified_middle_line_chain)})
             # all the suppression level events in histories is a list
             # 1) [add event, remaining event]
             # 2) [add event, delete event]
@@ -106,10 +117,9 @@ class GitLogFromFinalStatus():
         previous_checkout_commit = ""
         log_result = ""
 
-        print(len(self.delete_event_suppression_commit_list))
-        print(len(middle_line_number_chain_delete))
+        print(f"delete:{len(self.delete_event_suppression_commit_list)}")
+        print(f"delete:{len(middle_line_number_chain_delete)}")
 
-        # TODO Check dgl
         for delete_info, middle_line_chain in zip(self.delete_event_suppression_commit_list, middle_line_number_chain_delete):
             if delete_info:
                 if delete_info.last_exists_commit != previous_checkout_commit:
@@ -123,7 +133,14 @@ class GitLogFromFinalStatus():
 
                 expected_add_event, log_result = self.run_git_log(delete_suppression, log_result, run_command_mark)
                 # print(len(middle_line_chain))
-                expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
+                # expected_add_event.update({"middle_status_chain": str(middle_line_chain)})
+                simplified_middle_line_chain = []
+                for chain in middle_line_chain:
+                    if chain[0] == delete_suppression.path:
+                       chain[0] = ""
+                       simplified_middle_line_chain.append(chain) 
+                # simplified_middle_line_chain = [list(chain) tuple(chain.pop[0]) for chain in middle_line_chain if chain[0] == delete_suppression.path]
+                expected_add_event.update({"middle_status_chain": str(simplified_middle_line_chain)})
                 delete_event = delete_info.delete_event
                 self.add_delete_histories.append([expected_add_event, delete_event])
                 previous_file_and_line = file_and_line
