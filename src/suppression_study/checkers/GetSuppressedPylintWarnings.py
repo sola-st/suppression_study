@@ -34,6 +34,8 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
 
     def run_checker(self):
         checker = "pylint"
+        report = None
+        commit_results_dir = None
         
         # the default output path from checkers/GetWarningsSuper.py
         default_report_path = join(self.results_dir, "checker_results", checker, f"{self.commit_id}_report.txt")
@@ -45,8 +47,9 @@ class GetSuppressedPylintWarnings(GetPylintWarnings):
             else: # for running tests
                 command_line = f"pylint --recursive=y --disable=I --enable=I0020 ./"
 
-        report, commit_results_dir = super(
-            GetPylintWarnings, self).run_checker(checker, command_line, self.file_specific)
+            report, commit_results_dir = super(
+                GetPylintWarnings, self).run_checker(checker, command_line, self.file_specific)
+
         return report, commit_results_dir
 
     def read_reports(self, report):
@@ -89,9 +92,12 @@ def main(repo_dir, commit_id, results_dir, relevant_files: List[str] = None):
     tool = GetSuppressedPylintWarnings(
         repo_dir, commit_id, results_dir, file_specific, relevant_files, )
     report, _ = tool.run_checker()
-    suppression_warning_pairs = tool.read_reports(report)
-    if suppression_warning_pairs:
-        write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id, file_specific)
+
+    suppression_warning_pairs = []
+    if report:
+        suppression_warning_pairs = tool.read_reports(report)
+        if suppression_warning_pairs:
+            write_mapping_to_csv(suppression_warning_pairs, results_dir, commit_id, file_specific)
     return suppression_warning_pairs
 
 

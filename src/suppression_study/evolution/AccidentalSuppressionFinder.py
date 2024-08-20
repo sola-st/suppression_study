@@ -38,18 +38,20 @@ def find_relevant_range_of_commits(suppression_history, commits):
 
     Returns a list with the oldest relevant commit first.
     """
+    range_of_commits = []
     oldest_event = suppression_history[0]
     begin_commit = oldest_event.commit_id
-    begin_idx = commits.index(begin_commit)
-    newest_event = suppression_history[-1]
-    end_commit = newest_event.commit_id
-    end_idx = commits.index(end_commit)
-    if newest_event.change_operation == "file delete":
-        # the file is not exist in the last commit, no need to run checker and check the warnings and suppressions. 
-        end_idx += 1 
+    if begin_commit in commits:
+        begin_idx = commits.index(begin_commit)
+        newest_event = suppression_history[-1]
+        end_commit = newest_event.commit_id
+        end_idx = commits.index(end_commit)
+        if newest_event.change_operation == "file delete":
+            # the file is not exist in the last commit, no need to run checker and check the warnings and suppressions. 
+            end_idx += 1 
 
-    range_of_commits = commits[end_idx: begin_idx+1] 
-    range_of_commits.reverse() # we want the oldest commit first
+        range_of_commits = commits[end_idx: begin_idx+1] 
+        range_of_commits.reverse() # we want the oldest commit first
 
     return range_of_commits
 
@@ -128,7 +130,6 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
     
     for commit in relevant_commits:
         # if not "<Parsing failed>" in warnings_suppressed_at_previous_commit 
-        
         if commit in commits:
             suppression_warning_pairs = get_suppression_warning_pairs(
                 repo_dir, commit, relevant_files, results_dir)
@@ -142,7 +143,7 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
                 for s, w in suppression_warning_pairs:
                     if (s.path == event_file_path or s.path == file_path_in_commit) and \
                         s.text == event_warning_type and \
-                        (s.line in line_nums or "merge" in str(line_in_commit)):
+                        (s.line == line_in_commit or "merge" in str(line_in_commit)):
                         suppression = s
                         if w is not None:
                             warnings_suppressed_at_commit.append(w)
