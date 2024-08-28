@@ -1,9 +1,44 @@
+import ast
+from io import StringIO
 import os
 import re
 from os.path import join
 import json
+import tokenize
 from suppression_study.experiments.Experiment import Experiment
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
+
+
+def get_code_structure(file):
+    with open(file, 'r') as file:
+        source = file.read()
+    
+    tree = ast.parse(source)
+    code_structure = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            code_structure.append((node.lineno, type(node).__name__, node.name))
+
+    return source, sorted(code_structure, key=lambda x: x[0])
+
+def get_first_code_line(token_lines):
+    """
+    Identify the first line containing actual Python code, ignoring comments and blank lines.
+    """
+    for token in token_lines:
+        if token.type == tokenize.NAME or token.type == tokenize.STRING:
+            return token.start[0]
+    return None
+
+def get_first_code_line_after(start_line, token_lines):
+    """
+    Find the first actual code line after a specific start line, ignoring comments and blank lines.
+    """
+    for token in token_lines:
+        if token.start[0] > start_line and (token.type == tokenize.NAME or token.type == tokenize.STRING):
+            return token.start[0]
+    return None
 
 
 class CheckSuppressionLevels(Experiment):
@@ -23,32 +58,41 @@ class CheckSuppressionLevels(Experiment):
         with open(file_path, 'r') as file:
             lines = file.readlines()
 
+        source, code_structure = get_code_structure(file_path)
+        tokens = list(tokenize.generate_tokens(StringIO(source).readline))
+        first_code_line = get_first_code_line(tokens)
+
+        key = "block_level"  # Default to block-level
         for line_num, is_useless in zip(suppression_line_nums, is_useless_list):
             i = line_num - 1
             stripped_line = lines[i].strip()
             suppression_match = re.search(r'\s*pylint:\s*disable', stripped_line)
             if suppression_match:
-                # Check for line-level suppressions
-                if suppression_match:
-                    key = None
-                    if stripped_line.startswith("#"): # may block-level, including file level
-                        # Check for function-level and class-level suppressions
-                        start_line = lines[i-1].strip()
-                        if start_line.startswith('def '):
-                            key = 'function_level'
-                        elif start_line.startswith('class '):
-                            key = 'class_level'
+                # Check for file-level suppression (before the first line of actual code)
+                if first_code_line and line_num < first_code_line:
+                    key = "file_level"
+                else:
+                    # Check for line-level suppressions
+                    if suppression_match:
+                        if not stripped_line.startswith("#"):
+                            key = "line_level"
                         else:
-                            key = 'block_level'
-                    else:
-                        key = 'line_level'
+                            # Check for class-level or function-level suppression
+                            for lineno, node_type, name in code_structure:
+                                first_code_line_after = get_first_code_line_after(lineno, tokens)
+                                if line_num > lineno and (not first_code_line_after or line_num < first_code_line_after):
+                                    if node_type == 'ClassDef':
+                                        key = "class_level"
+                                    elif node_type == 'FunctionDef':
+                                        key = "function_level"
+                                    break
+           
+            suppression_levels[key].append(f"{is_useless}, {line_num}, {stripped_line}")
+            if is_useless:
+                self.all_repo_counts_useless[key] += 1
+                self.individual_repo_counts_useless[key] += 1
+                self.individual_repo_counts_useless["all"] += 1
 
-                    if key:
-                        suppression_levels[key].append(f"{is_useless}, {line_num}, {stripped_line}")
-                        if is_useless:
-                            self.all_repo_counts_useless[key] += 1
-                            self.individual_repo_counts_useless[key] += 1
-                            self.individual_repo_counts_useless["all"] += 1
                         
         counts = {}
         keys = suppression_levels.keys()
@@ -78,7 +122,7 @@ class CheckSuppressionLevels(Experiment):
         self.all_repo_counts_useless = {"all": 0} 
         self.individual_repo_counts_useless = {"all": 0}
 
-        self.levels = ["class_level", "function_level", "block_level", "line_level"]
+        self.levels = ["file_level", "class_level", "function_level", "block_level", "line_level"]
         for l in self.levels:
             self.all_repo_counts.update({l: 0})
             self.individual_repo_counts.update({l: 0})
