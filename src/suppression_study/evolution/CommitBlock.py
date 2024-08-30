@@ -78,7 +78,7 @@ class CommitBlock:
             if last_commit_block_mark:
                 return add_event_ready_to_json
             else:
-                add_event_ready_to_json.update(backup="backup")
+                add_event_ready_to_json.update({"backup": "backup"})
                 return add_event_ready_to_json
         
         # for normal commit (not merge commit)

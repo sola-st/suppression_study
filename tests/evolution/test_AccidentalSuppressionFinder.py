@@ -14,20 +14,22 @@ def run_test_on_repo(repo_name, repo_url, expected_result_file):
         repo_dir = join(working_dir, repo_name)
         selected_1000_commits_csv = join(repo_dir, "check_commits_1000.csv")
         select_1000_commits(repo_dir, selected_1000_commits_csv)
-        subprocess.run(["python", "-m", "suppression_study.evolution.ExtractHistory",
+        subprocess.run(["python", "-m", "suppression_study.suppression.intention.ExtractHistoryWithChain",
                         "--repo_dir=" + repo_dir,
                         "--selected_1000_commits_csv=" + selected_1000_commits_csv,
                         "--results_dir=" + working_dir])
 
         history_file = join(
-            working_dir, "histories_suppression_level_all.json")
+            working_dir, "histories_suppression_level_with_chain.json")
 
         repo_dir = join(working_dir, repo_name)
+        # the results json file will be written to working_dir
         subprocess.run(["python", "-m", "suppression_study.evolution.AccidentalSuppressionFinder",
                         "--repo_dir=" + repo_dir,
                         "--commits_file=" + selected_1000_commits_csv,
                         "--history_file=" + history_file,
-                        "--results_dir=" + repo_dir]) # the results json file will be written to working_dir
+                        "--results_dir=" + repo_dir,
+                        "--file_name_specific=non-specific"]) 
 
         actual_result_file = join(
             working_dir, "accidentally_suppressed_warnings.json")

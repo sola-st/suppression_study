@@ -26,6 +26,8 @@ def get_change_event_dict(given_object):
         "warning_type": given_object.warning_type,
         "line_number": given_object.line_number,
         "change_operation": given_object.change_operation,
-        "middle_status_chain": given_object.middle_status_chain
     }
+    if given_object.middle_status_chain:
+        change_event.update({"middle_status_chain": given_object.middle_status_chain})
+
     return change_event

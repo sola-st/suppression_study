@@ -28,6 +28,8 @@ parser.add_argument("--history_file",
                     help="JSON file with the suppression histories of the repository", required=True)
 parser.add_argument(
     "--results_dir", help="Directory where to put the results", required=True)
+parser.add_argument("--file_name_specific", default=None,
+                    help="file specific for mapping, useless and useful suppression files", required=False)
 
 
 def find_relevant_range_of_commits(suppression_history, commits):
@@ -90,10 +92,15 @@ def find_relevant_commits(repo_dir: str, history: List[ChangeEvent], commits: Li
     return result # the commits that changes the relevant files.
 
 
-def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir):
+def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir, is_file_specific):
     # TODO mypy support
-    file_specific = "_".join(relevant_files[0].rsplit("/", 3)[1:]).rsplit(".", 1)[0]
-    file = join(results_dir, f"{commit}_mapping_{file_specific}.csv")
+    file_specific = None
+    if not is_file_specific: # now the is_file_specific is None
+        file_specific = "_".join(relevant_files[0].rsplit("/", 3)[1:]).rsplit(".", 1)[0]
+        file = join(results_dir, f"{commit}_mapping_{file_specific}.csv")
+    else: # is_file_specific is "non-specific", refer to test_AccidentalSuppressionFinder.py
+        file = join(results_dir, f"{commit}_mapping.csv")
+        
     if not exists(file):
         compute_warning_suppression_mapping(
             repo_dir, commit, "pylint", results_dir, relevant_files=relevant_files, file_specific=file_specific)
@@ -101,7 +108,7 @@ def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir)
     return pairs
 
 
-def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relevant_files, results_dir):
+def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relevant_files, results_dir, is_file_specific):
     accidentally_suppressed_warnings = []
     previous_commit = None
     warnings_suppressed_at_previous_commit = None
@@ -132,7 +139,7 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
         # if not "<Parsing failed>" in warnings_suppressed_at_previous_commit 
         if commit in commits:
             suppression_warning_pairs = get_suppression_warning_pairs(
-                repo_dir, commit, relevant_files, results_dir)
+                repo_dir, commit, relevant_files, results_dir, is_file_specific)
             if suppression_warning_pairs:
                 # find warnings that the suppression suppresses at the current point in time
                 warnings_suppressed_at_commit = []
@@ -173,7 +180,7 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
     return accidentally_suppressed_warnings
 
 
-def main(repo_dir, commits_file, history_file, results_dir):
+def main(repo_dir, commits_file, history_file, results_dir, is_file_specific):
     # read the list of commit ids
     commits = get_commit_list(commits_file)
 
@@ -190,7 +197,7 @@ def main(repo_dir, commits_file, history_file, results_dir):
         print(f"Found {len(relevant_commits)} relevant commits.")
 
         accidentally_suppressed_warnings = check_for_accidental_suppressions(
-            repo_dir, history, relevant_commits, relevant_files, results_dir)
+            repo_dir, history, relevant_commits, relevant_files, results_dir, is_file_specific)
         all_accidentally_suppressed_warnings.extend(accidentally_suppressed_warnings)
         print(f"Done with {history_idx + 1}/{len(histories)} histories. Found {len(accidentally_suppressed_warnings)} accidentally suppressed warnings.\n")
 
@@ -203,4 +210,4 @@ def main(repo_dir, commits_file, history_file, results_dir):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args.repo_dir, args.commits_file, args.history_file, args.results_dir)
+    main(args.repo_dir, args.commits_file, args.history_file, args.results_dir, args.file_name_specific)

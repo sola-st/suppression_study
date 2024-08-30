@@ -4,10 +4,8 @@ import json
 import os
 from os.path import join
 import subprocess
-from suppression_study.evolution.ChangeEvent import ChangeEvent
-
-from suppression_study.evolution.GetSuppressionDeleteHistories import GetSuppressionDeleteHistories
-from suppression_study.evolution.GitLogFromFinalStatus import GitLogFromFinalStatus
+from suppression_study.suppression.intention.GetSuppressionDeleteHistories import GetSuppressionDeleteHistories
+from suppression_study.suppression.intention.GitLogFromFinalStatus import GitLogFromFinalStatus
 from suppression_study.evolution.Select1000Commits import select_1000_commits
 from suppression_study.suppression.NumericSpecificTypeMap import get_warning_kind_to_numeric_code
 from suppression_study.suppression.Suppression import read_suppressions_from_file
@@ -20,22 +18,6 @@ parser.add_argument(
 )
 parser.add_argument("--results_dir", help="Directory where to put the results", required=True)
 
-
-def read_histories_from_json(json_file):
-    """ Returns a list of lists of ChangeEvents. """
-    with open(json_file, "r") as f:
-        raw_histories = json.load(f)
-
-    histories = []
-    for raw_history_wrapper in raw_histories:
-        keys = list(raw_history_wrapper.keys())
-        assert len(keys) == 1 and keys[0].startswith("# S")
-        raw_history = raw_history_wrapper[keys[0]]
-        
-        change_events = [ChangeEvent(**raw_event) for raw_event in raw_history] 
-        histories.append(change_events)
-    
-    return histories
 
 def sort_by_date(all_histories):
     # sort the histories events by datetime
@@ -90,7 +72,7 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     # change commits and dates lists to from oldest to newest
     selected_1000_commits_list.reverse()
     selected_1000_dates_list.reverse()
-    delete_event_suppression_commit_list = GetSuppressionDeleteHistories(
+    delete_event_suppression_commit_list, middle_line_number_chain_remain, middle_line_number_chain_delete = GetSuppressionDeleteHistories(
         repo_dir, selected_1000_commits_list, selected_1000_dates_list, suppression_result, specific_numeric_maps
     ).track_commits_forward()
 
@@ -98,8 +80,8 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     # finally get the histories: 1) add event 2) add delete events
     evolution_init = GitLogFromFinalStatus(repo_dir, never_removed_suppressions, 
             delete_event_suppression_commit_list, specific_numeric_maps)
-    only_add_event_histories = evolution_init.git_log_never_removed_suppression(last_commit_with_suppression)
-    add_delete_histories = evolution_init.git_log_deleted_suppression()
+    only_add_event_histories = evolution_init.git_log_never_removed_suppression(last_commit_with_suppression, middle_line_number_chain_remain)
+    add_delete_histories = evolution_init.git_log_deleted_suppression(middle_line_number_chain_delete)
 
     all_histories = []
     history_index = 0
@@ -109,8 +91,8 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
 
     # Write all extracted suppression level histories to a JSON file.
     sort_by_date(all_histories)
-    print(f"Extracted {len(all_histories)} histories.")
-    history_json_file = join(results_dir, "histories_suppression_level_all.json")
+    print(f"Extracted {len(all_histories)} histories with chain.")
+    history_json_file = join(results_dir, "histories_suppression_level_with_chain.json")
     write_all_histories_to_json(history_json_file, all_histories)
 
 

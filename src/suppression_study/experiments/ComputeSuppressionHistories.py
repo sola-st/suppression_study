@@ -4,6 +4,7 @@ from multiprocessing import Pool, cpu_count
 from suppression_study.evolution.Select1000Commits import select_1000_commits
 from suppression_study.experiments.Experiment import Experiment
 from suppression_study.evolution.ExtractHistory import main as extract_history
+from suppression_study.suppression.intention.ExtractHistoryWithChain import main as extract_history_with_chain
 from suppression_study.utils.FunctionsCommon import write_commit_info_to_csv
 from suppression_study.utils.GitRepoUtils import repo_dir_to_name
 
@@ -20,7 +21,7 @@ class ComputeSuppressionHistories(Experiment):
         select_1000_commits(repo_dir, commit_list_file_1000)
         return commit_list_file_1000
 
-    def run(self):
+    def run(self, version=None):
         # prepare repositories
         repo_dirs = self.get_repo_dirs()
         self.checkout_latest_commits()
@@ -43,13 +44,22 @@ class ComputeSuppressionHistories(Experiment):
         # extract histories, in parallel on different repos
         cores_to_use = cpu_count() - 1 # leave one core for other processes
         print(f"Using {cores_to_use} cores to extract histories in parallel.")
-        with Pool(processes=cores_to_use) as pool:
-            pool.map(extract_history_wrapper, args_for_all_repos)
+        if version:
+            with Pool(processes=cores_to_use) as pool:
+                pool.map(extract_history_with_chain_wrapper, args_for_all_repos)
+        else:   
+            with Pool(processes=cores_to_use) as pool:
+                pool.map(extract_history_wrapper, args_for_all_repos)
 
 def extract_history_wrapper(args):
     print(f"Starting history extraction on {args[0]}")
     extract_history(*args)
     print(f"Done with history extraction on {args[0]}")
+
+def extract_history_with_chain_wrapper(args):
+    print(f"Starting history (with chain) extraction on {args[0]}")
+    extract_history_with_chain(*args)
+    print(f"Done with history (with chain) extraction on {args[0]}")
 
 if __name__ == "__main__":
     ComputeSuppressionHistories().run()

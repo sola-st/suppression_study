@@ -58,8 +58,9 @@ def write_suppressed_warnings_to_csv(all_suppressed_warnings, results_dir, commi
 def write_suppression_to_csv(
         useless_suppressions, results_dir, commit_id, kind, file_specific=None):
     file_to_write = join(results_dir, f"{commit_id}_{kind}_suppressions.csv")
-    if file_to_write:
+    if file_specific:
         file_to_write = join(results_dir, f"{commit_id}_{kind}_suppressions_{file_specific}.csv")
+
     with open(file_to_write, "w") as f:
         writer = csv.writer(f)
         for suppression in useless_suppressions:
