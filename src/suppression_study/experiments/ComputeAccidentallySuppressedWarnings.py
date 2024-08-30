@@ -12,7 +12,7 @@ class ComputeAccidentallySuppressedWarnings(Experiment):
     Applies the AccidentalSuppressionFinder to the the first 1000 commits of each repository.
 
     Depends on:
-     * ComputeSuppressionHistories
+     * ComputeIntermediateChains
     """
 
     def run(self):
@@ -32,11 +32,11 @@ def run_on_repo(repo_dir):
     print(f"Computing accidentally suppressed warnings for {repo_name}")
     commits_file = join("data", "results", repo_name, "commit_id_list_1000.csv")
     assert exists(commits_file)
-    history_file = join("data", "results", repo_name, "histories_suppression_level_all.json")
+    history_file = join("data", "results", repo_name, "histories_suppression_level_with_chain.json")
     assert exists(history_file)
     results_dir = join("data", "results", repo_name, "accidental")
     find_accidentally_suppressed_warnings(
-        repo_dir, commits_file, history_file, results_dir)
+        repo_dir, commits_file, history_file, results_dir, None)
 
 
 if __name__ == "__main__":
