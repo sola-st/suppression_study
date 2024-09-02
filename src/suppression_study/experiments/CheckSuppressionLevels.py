@@ -155,13 +155,12 @@ class CheckSuppressionLevels(Experiment):
             is_useless_list = []
             suppression_num = len(suppressions_in_latest_commit)
             for i, line in enumerate(suppressions_in_latest_commit):
+                is_useless = False
                 line_splits = line.split(",")
                 file_path = line_splits[0]
                 line_num = int(line_splits[-1])
                 if line in useless_suppressions_in_latest_commit:
-                    is_useless_list.append("useless")
-                else:
-                    is_useless_list.append("")
+                    is_useless = True
                 
                 if i + 1 == suppression_num:
                     if file_path != pre_file_path:
@@ -170,8 +169,13 @@ class CheckSuppressionLevels(Experiment):
                         suppression_line_nums = []
                         is_useless_list = []
                     suppression_line_nums.append(line_num)
+                    if is_useless:
+                        is_useless_list.append("useless")
+                    else:
+                        is_useless_list.append("")
                     file_contain_suppression = join(repo_dir, file_path)
                     self.check_pylint_suppression_level(file_contain_suppression, suppression_line_nums, is_useless_list)
+                    # here is the end point.
                 elif file_path != pre_file_path:
                     file_contain_suppression = join(repo_dir, pre_file_path)
                     self.check_pylint_suppression_level(file_contain_suppression, suppression_line_nums, is_useless_list)
@@ -179,7 +183,10 @@ class CheckSuppressionLevels(Experiment):
                     is_useless_list = []
                 
                 suppression_line_nums.append(line_num)
-
+                if is_useless:
+                    is_useless_list.append("useless")
+                else:
+                    is_useless_list.append("")
                 pre_file_path = file_path
 
             # repo level summary
