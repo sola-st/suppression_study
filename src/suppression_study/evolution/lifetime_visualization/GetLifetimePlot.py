@@ -19,12 +19,13 @@ def visualize_lifetime(lifetime_group_output_csv):
     data = load_data_from_csv(lifetime_group_output_csv)
     output_pdf = lifetime_group_output_csv.replace("_groups.csv", "_visualization.pdf")
     
-    plt.rcParams["figure.figsize"] = (8, 5)
+    plt.rcParams["figure.figsize"] = (12, 4)
+    plt.rcParams.update({'font.size': 14})
     fig, (ax_day, ax_rate) = plt.subplots(nrows=1, ncols=2)
 
     for ax in (ax_day, ax_rate):
         for tick in ax.get_xticklabels():
-            tick.set_rotation(45)
+            tick.set_rotation(30)
 
     ax_day.set_xlabel("Days")
     ax_day.set_ylabel("Number of suppressions")
@@ -49,7 +50,7 @@ def visualize_lifetime(lifetime_group_output_csv):
         ax_rate.bar(data['commit_based_rates_range'], rate, label=keyword.split('_')[-1], bottom=bottom_rate)
         bottom_rate += rate
 
-    ax_rate.legend(legend_labels, loc="upper right", fontsize=10)
+    ax_rate.legend(legend_labels, loc="upper right")
 
     plt.tight_layout()
     plt.savefig(output_pdf)

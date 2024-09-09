@@ -76,12 +76,13 @@ class VisualizeWarningSuppressionMapsOnLatestCommit(Experiment):
                 x_to_y[">10"] += occurrences
 
         output_file = join("data", "results", outfile)
-        plt.rcParams.update({'font.size': 15})
+        plt.rcParams["figure.figsize"] = (6, 3)
+        plt.rcParams.update({'font.size': 18})
         plt.clf()
         plt.bar(x_to_y.keys(), x_to_y.values())
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-        plt.tight_layout()
+        plt.tight_layout(pad=0)
         plt.savefig(output_file)
         print(f"Saved histogram to {output_file}")
 
