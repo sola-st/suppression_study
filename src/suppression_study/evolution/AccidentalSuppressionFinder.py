@@ -7,8 +7,10 @@ import argparse
 import ast
 import os
 from os.path import join, exists
+import subprocess
 from typing import List
 from suppression_study.evolution.ExtractHistory import read_histories_from_json
+from suppression_study.evolution.MapWarningLines import MapWarningLines
 from suppression_study.utils.FunctionsCommon import get_commit_list
 from suppression_study.warnings.WarningSuppressionMapper import main as compute_warning_suppression_mapping
 from suppression_study.warnings.WarningSuppressionUtil import read_mapping_from_csv
@@ -111,6 +113,7 @@ def get_suppression_warning_pairs(repo_dir, commit, relevant_files, results_dir,
 def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relevant_files, results_dir, is_file_specific):
     accidentally_suppressed_warnings = []
     previous_commit = None
+    previous_suppression = None
     warnings_suppressed_at_previous_commit = None
 
     add_event = history[0]
@@ -158,24 +161,54 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
                 # if a new warning shows up that wasn't suppressed by this suppression
                 # at the previous commit, create an AccidentallySuppressedWarning
                 if warnings_suppressed_at_previous_commit is not None:
+                    to_append = False
                     if suppression is not None:
-                        if len(warnings_suppressed_at_commit) > len(warnings_suppressed_at_previous_commit):
+                        refined_warnings = []
+                        num_new_warning = 0
+                        current_len = len(warnings_suppressed_at_commit)
+                        previous_len = len(warnings_suppressed_at_previous_commit)
+                        if previous_len > current_len:
+                            pass
+                        elif previous_len == current_len and warnings_suppressed_at_previous_commit != warnings_suppressed_at_commit:
+                            backup_warnings_suppressed_at_previous_commit = [w for w in warnings_suppressed_at_previous_commit]
+                            backup_warnings_suppressed_at_commit = [w for w in warnings_suppressed_at_commit]
+                            # the warnings may different, run diff to check the line number maps
+                            refined_warnings, num_new_warning = MapWarningLines(repo_dir, previous_commit, commit, \
+                                    backup_warnings_suppressed_at_previous_commit, backup_warnings_suppressed_at_commit ).check_warning_mapping()
+                            if refined_warnings == None:
+                                pass # ignore the cases
+                            else:
+                                if num_new_warning > 0:
+                                    to_append == True
+                        elif previous_len < current_len:
+                            to_append = True
+                            num_new_warning = current_len - previous_len
+                            
+                        if to_append == True:
                             # there's a new warning suppressed by this suppression
-                            # TODO Check if the suppression is useless.
+                            summary = f"from {previous_len} to {current_len}, new warnings: {num_new_warning}"
+                            warnings_suppressed_at_commit_v = warnings_suppressed_at_commit
+                            if refined_warnings:
+                                warnings_suppressed_at_commit_v = refined_warnings
                             accidentally_suppressed_warnings.append(
-                                AccidentallySuppressedWarning(previous_commit,
+                                AccidentallySuppressedWarning(summary,
+                                                            previous_commit,
                                                             commit,
+                                                            previous_suppression,
                                                             suppression,              
                                                             warnings_suppressed_at_previous_commit,
-                                                            warnings_suppressed_at_commit))
+                                                            warnings_suppressed_at_commit_v))
                 previous_commit = commit
+                previous_suppression = suppression
                 warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
             else:
                 warnings_suppressed_at_previous_commit = None
                 previous_commit = None
+                previous_suppression = None
         else:
             warnings_suppressed_at_previous_commit = None
             previous_commit = None
+            previous_suppression = None
 
     return accidentally_suppressed_warnings
 
