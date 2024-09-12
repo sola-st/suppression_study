@@ -2,16 +2,12 @@ import json
 
 
 class AccidentallySuppressedWarning:
-    def __init__(self, summary, previous_commit, commit, previous_suppression, suppression, \
-                previous_warnings, warnings, new_warning_hinder):
-        self.summary = summary
+    def __init__(self, previous_commit, commit, suppression, previous_warnings, warnings):
         self.previous_commit = previous_commit
         self.commit = commit
-        self.previous_suppression = previous_suppression
         self.suppression = suppression
         self.previous_warnings = previous_warnings
         self.warnings = warnings
-        self.new_warning_hinder = new_warning_hinder
 
     def __lt__(self, other):
         """Sort based on attributes. Useful for getting a deterministic order when writing to a file."""
@@ -19,8 +15,6 @@ class AccidentallySuppressedWarning:
             return self.previous_commit < other.previous_commit
         elif self.commit != other.commit:
             return self.commit < other.commit
-        elif self.previous_suppression != other.previous_suppression:
-            return self.previous_suppression < other.previous_suppression
         elif self.suppression != other.suppression:
             return self.suppression < other.suppression
         elif self.previous_warnings != other.previous_warnings:
@@ -30,22 +24,15 @@ class AccidentallySuppressedWarning:
 
     def to_dict(self):
         d = {
-            "summary": self.summary,
             "previous_commit": self.previous_commit,
             "commit": self.commit,
-            "previous_suppression": {
-                "path": self.previous_suppression.path,
-                "text": self.previous_suppression.text,
-                "line": self.previous_suppression.line
-            },
             "suppression": {
                 "path": self.suppression.path,
                 "text": self.suppression.text,
                 "line": self.suppression.line
             },
             "previous_warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.previous_warnings)],
-            "warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.warnings)],
-            "new_warning_hinder": self.new_warning_hinder
+            "warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.warnings)]
         }
         return d
 

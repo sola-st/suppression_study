@@ -1,6 +1,5 @@
 import subprocess
-from suppression_study.warnings.Warning import Warning
-
+# Sept. 12, just keep the file here, but this is not necessary for old experiment setting.
 
 class MapWarningLines():
     def __init__(self, repo_dir, pre_c, c, pre_warnings, warnings):
