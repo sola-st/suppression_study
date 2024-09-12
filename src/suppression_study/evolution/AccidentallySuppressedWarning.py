@@ -2,7 +2,8 @@ import json
 
 
 class AccidentallySuppressedWarning:
-    def __init__(self, summary, previous_commit, commit, previous_suppression, suppression, previous_warnings, warnings):
+    def __init__(self, summary, previous_commit, commit, previous_suppression, suppression, \
+                previous_warnings, warnings, new_warning_hinder):
         self.summary = summary
         self.previous_commit = previous_commit
         self.commit = commit
@@ -10,6 +11,7 @@ class AccidentallySuppressedWarning:
         self.suppression = suppression
         self.previous_warnings = previous_warnings
         self.warnings = warnings
+        self.new_warning_hinder = new_warning_hinder
 
     def __lt__(self, other):
         """Sort based on attributes. Useful for getting a deterministic order when writing to a file."""
@@ -42,7 +44,8 @@ class AccidentallySuppressedWarning:
                 "line": self.suppression.line
             },
             "previous_warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.previous_warnings)],
-            "warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.warnings)]
+            "warnings": [{"path": w.path, "kind": w.kind, "line": w.line} for w in sorted(self.warnings)],
+            "new_warning_hinder": self.new_warning_hinder
         }
         return d
 

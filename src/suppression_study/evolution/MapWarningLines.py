@@ -10,17 +10,14 @@ class MapWarningLines():
         self.pre_warnings = pre_warnings
         self.warnings = warnings
 
-        self.refined_warnings = []
-        self.mapped_warning_lines = []
+        self.new_warning_hinder = []
+        self.overall_new_warning_counts = 0
         
     def check_warning_mapping(self):
         pre_file = self.pre_warnings[0].path
         file = self.warnings[0].path
 
-        for w in self.pre_warnings:
-            self.mapped_warning_lines.append(w.line)
-
-        commit_diff_command = f"git diff --word-diff --unified=0 {self.pre_c}:{pre_file} {self.c}:{file}"
+        commit_diff_command = f"git diff --unified=0 {self.pre_c}:{pre_file} {self.c}:{file}"
         diff_result = subprocess.run(commit_diff_command, cwd=self.repo_dir, shell=True,
             stdout=subprocess.PIPE, universal_newlines=True)
         diff_contents = diff_result.stdout
@@ -30,55 +27,28 @@ class MapWarningLines():
             diff_line = diff_line.strip()
             if diff_line.startswith("@@"):
                 tmp = diff_line.split(" ")
-                base_hunk_range, base_step = get_diff_reported_range(tmp[1])
-                for i, w, warning_line in zip(range(len(self.pre_warnings)), self.pre_warnings, self.mapped_warning_lines):
-                    if warning_line < base_hunk_range.start:
-                        self.map_helper(w, warning_line)
-                    else:
-                        target_hunk_range, target_step = get_diff_reported_range(tmp[2], False)
-                        if warning_line in list(base_hunk_range):
-                            ref_delta = warning_line - base_hunk_range.start
-                            may_mapped_line = target_hunk_range.start + ref_delta
-                            self.map_helper(w, may_mapped_line)
-                        else:
-                            move_steps = target_step - base_step
-                            self.mapped_warning_lines[i] += move_steps
-                
-                if not self.mapped_warning_lines:
-                    break
+                base_hunk_range = get_diff_reported_range(tmp[1])
+                target_hunk_range = get_diff_reported_range(tmp[2], False)
+                base_hunk_lines = list(base_hunk_range)
+                target_hunk_lines = list(target_hunk_range)
+                previous_warning_line_in_hunk = [w.line for w in self.pre_warnings if w.line in base_hunk_lines]
+                current_warning_line_in_hunk = [w.line for w in self.warnings if w.line in target_hunk_lines]
+                previous_len = len(previous_warning_line_in_hunk)
+                current_len = len(current_warning_line_in_hunk)
 
-        if self.mapped_warning_lines:
-            # map the warning after the last changed hunk
-            for w, warning_line in zip(self.pre_warnings, self.mapped_warning_lines):
-                self.map_helper(w, warning_line)
-            if self.mapped_warning_lines:
-                print(f"Inaccurate mapping happens. Current commit: {self.c}, file path: {file}")
-                return None, False
+                if previous_len < current_len:
+                    # new warning occurs
+                    new_warning_count = current_len - previous_len
+                    self.overall_new_warning_counts += new_warning_count
+                    self.new_warning_hinder.append({
+                        "new_warnings": new_warning_count,
+                        "base_hunk": f"{base_hunk_range}",
+                        "target_hunk": f"{target_hunk_range}", 
+                        "mapped_previous_warnings": f"{previous_warning_line_in_hunk}",
+                        "potential_new_warnings": f"{current_warning_line_in_hunk}"})
 
-        self.refined_warnings.append(None) # A symbol to start adding new warnings 
-        is_new_warning = []
-        for w in self.warnings:
-            if w not in self.refined_warnings:
-                self.refined_warnings.append(w)   
-                is_new_warning.append(True)
-        # print(f"{len(is_new_warning)}: is_new_warning")
-        return self.refined_warnings, len(is_new_warning) # the number of new warnings
-
-    def map_helper(self, warning, warning_line):
-        updated_w = Warning(warning.path, warning.kind, warning_line)
-        for w in self.warnings:
-            if updated_w == w: # old warning
-                self.refined_warnings.append(updated_w)
-                self.warnings.remove(updated_w)
-                break
-            self.refined_warnings.append(None) # mean the self.warnings fixed/disappeared
-        # do not check the mapped line for it anymore
-        try:
-            self.mapped_warning_lines.remove(warning_line)
-        except:
-            print(f"{warning_line} and {w.line}")
-        self.pre_warnings.remove(warning)
-
+        return self.new_warning_hinder, self.overall_new_warning_counts
+    
 
 def get_diff_reported_range(meta_range, base=True):
     '''
@@ -110,4 +80,4 @@ def get_diff_reported_range(meta_range, base=True):
 
     reported_range = range(start, end) # [x, y)
 
-    return reported_range, step
+    return reported_range

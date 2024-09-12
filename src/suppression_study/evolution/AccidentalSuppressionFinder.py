@@ -161,35 +161,25 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
                 # if a new warning shows up that wasn't suppressed by this suppression
                 # at the previous commit, create an AccidentallySuppressedWarning
                 if warnings_suppressed_at_previous_commit is not None:
-                    to_append = False
                     if suppression is not None:
-                        refined_warnings = []
+                        new_warning_hinder = None
                         num_new_warning = 0
                         current_len = len(warnings_suppressed_at_commit)
                         previous_len = len(warnings_suppressed_at_previous_commit)
                         if previous_len > current_len:
                             pass
-                        elif previous_len == current_len and warnings_suppressed_at_previous_commit != warnings_suppressed_at_commit:
+                        elif previous_len == current_len and warnings_suppressed_at_previous_commit != warnings_suppressed_at_commit: #  
                             backup_warnings_suppressed_at_previous_commit = [w for w in warnings_suppressed_at_previous_commit]
                             backup_warnings_suppressed_at_commit = [w for w in warnings_suppressed_at_commit]
                             # the warnings may different, run diff to check the line number maps
-                            refined_warnings, num_new_warning = MapWarningLines(repo_dir, previous_commit, commit, \
+                            new_warning_hinder, num_new_warning = MapWarningLines(repo_dir, previous_commit, commit, \
                                     backup_warnings_suppressed_at_previous_commit, backup_warnings_suppressed_at_commit ).check_warning_mapping()
-                            if refined_warnings == None:
-                                pass # ignore the cases
-                            else:
-                                if num_new_warning > 0:
-                                    to_append == True
                         elif previous_len < current_len:
-                            to_append = True
                             num_new_warning = current_len - previous_len
                             
-                        if to_append == True:
+                        if num_new_warning > 0:
                             # there's a new warning suppressed by this suppression
                             summary = f"from {previous_len} to {current_len}, new warnings: {num_new_warning}"
-                            warnings_suppressed_at_commit_v = warnings_suppressed_at_commit
-                            if refined_warnings:
-                                warnings_suppressed_at_commit_v = refined_warnings
                             accidentally_suppressed_warnings.append(
                                 AccidentallySuppressedWarning(summary,
                                                             previous_commit,
@@ -197,7 +187,8 @@ def check_for_accidental_suppressions(repo_dir, history, relevant_commits, relev
                                                             previous_suppression,
                                                             suppression,              
                                                             warnings_suppressed_at_previous_commit,
-                                                            warnings_suppressed_at_commit_v))
+                                                            warnings_suppressed_at_commit,
+                                                            new_warning_hinder))
                 previous_commit = commit
                 previous_suppression = suppression
                 warnings_suppressed_at_previous_commit = warnings_suppressed_at_commit
