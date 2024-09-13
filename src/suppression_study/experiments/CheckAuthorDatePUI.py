@@ -4,36 +4,50 @@ import subprocess
 from datetime import datetime
 from os.path import join
 from datetime import datetime
+from suppression_study.evolution.ExtractHistory import read_histories_from_json
 
 
-def get_commit_info(commit_hash, project_dir):
-    """Get authors and date information for a given commit hash in a specific repo."""
-    # Command to get the commit author and co-authors
-    author_command = f"git -C {project_dir} log --format='%aN' {commit_hash} -n 1"
-    coauthor_command = f"git -C {project_dir} log --format='%b' {commit_hash} -n 1"
-    # Command to get the commit date
-    date_command = f"git -C {project_dir} log --format='%ai' {commit_hash} -n 1"
-
-    author = subprocess.check_output(author_command, shell=True).decode('utf-8').strip()
-    coauthor_output = subprocess.check_output(coauthor_command, shell=True).decode('utf-8').strip()
-    commit_date = subprocess.check_output(date_command, shell=True).decode('utf-8').strip()
-
-    # Find any Co-authored-by: lines in the commit body
-    coauthors = []
-    for line in coauthor_output.split('\n'):
-        if line.startswith('Co-authored-by:'):
-            coauthor_name = line.split(':', 1)[1].strip().split('<')[0].strip()
-            coauthors.append(coauthor_name)
-
-    # Combine author and co-authors into a single list
-    authors = [author] + coauthors
-
-    return authors, commit_date
+history_dict = {}
 
 def calculate_date_difference(date1, date2):
     """Calculate the difference in days between two dates."""
     delta = date2 - date1
     return delta.days
+
+def read_histories(repo_name):
+    if not repo_name in history_dict.keys():
+        repo_history_file = join("data", "results", repo_name, "histories_suppression_level_with_chain.json")
+        histories = read_histories_from_json(repo_history_file)
+        history_dict.update({repo_name : histories})
+    
+def get_introduce_commit(commit, suppression, repo_name):
+    introduce_commit = None
+    histories = history_dict[repo_name]
+    for h in histories:
+        refined_path = ''
+        add_event = h[0]
+        if add_event.middle_status_chain != "[]":
+            if suppression["text"] == add_event.warning_type: 
+                if suppression["path"] != add_event.file_path:
+                    # this is used to consider file rename
+                    refined_path = suppression["path"]
+            
+                if f"{refined_path}, '{commit}', {suppression['line']}" in str(add_event.middle_status_chain):
+                    introduce_commit = add_event.commit_id
+                    break
+    
+    return introduce_commit
+            
+def get_commit_info(commit_hash, repo_dir):
+    """Get authors and date information for a given commit hash in a specific repo."""
+
+    result = subprocess.run(
+            ['git', 'show', '--no-patch', '--format="%an|%ad"', commit_hash], 
+            capture_output=True, text=True, check=True, cwd=repo_dir)
+    output = result.stdout.strip().strip('"')
+    author, date_str = output.split('|')
+    date = datetime.strptime(date_str, '%a %b %d %H:%M:%S %Y %z')
+    return author, date
 
 def main(file_path):
     with open(file_path, 'r') as file:
@@ -46,32 +60,30 @@ def main(file_path):
         repo_path = join("data", "repos", repo_name)
 
         check_dict = check_item["Check"][1]
-        previous_commit = check_dict["previous_commit"]
+        # previous_commit = check_dict["previous_commit"]
         commit = check_dict["commit"]
+        suppression = check_dict["suppression"]
+        read_histories(repo_name)
+        introduce_commit = get_introduce_commit(commit, suppression, repo_name)
 
-        authors1, date1 = get_commit_info(previous_commit, repo_path)
-        authors2, date2 = get_commit_info(commit, repo_path)
+        if introduce_commit:
+            author_of_add_commit, date1 = get_commit_info(introduce_commit, repo_path)
+            author_of_later_commit, date2 = get_commit_info(commit, repo_path)
 
-        # Check authors and calculate date difference
-        author = None
-        delta_days = None
-        if authors1 and authors2:
-            if authors1 == authors2:
-                author = "same"
-            elif set(authors1) & set(authors2):
-                author = "different but inclusive"
-            else:
-                author = "different"
+            # Check authors and calculate date difference
+            author = "different"
+            delta_days = None
+            if author_of_add_commit and author_of_later_commit:
+                if author_of_add_commit == author_of_later_commit:
+                    author = "same"
+                    
+            if date1 and date2:
+                delta_days = calculate_date_difference(date1, date2)
 
-        if date1 and date2:
-            date1 = date1.split()[0]  # Extract only the date part (ignoring time)
-            date2 = date2.split()[0]
-            date_format = "%Y-%m-%d"
-            delta_days = (datetime.strptime(date2, date_format) - datetime.strptime(date1, date_format)).days
+            results.append([introduce_commit, author_of_add_commit, date1, commit, author_of_later_commit, date2, author, delta_days])
+            introduce_commit = None
 
-        results.append([previous_commit, ', '.join(authors1), date1, commit, ', '.join(authors2), date2, author, delta_days])
-
-    with open(join("data", "results", "inspection_author_time3.csv"), 'w', newline='') as file:
+    with open(join("data", "results", "inspection_author_time.csv"), 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(results)
 

@@ -67,7 +67,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
 
 
 def _plot_distribution_overall_plot(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
-    plt.rcParams.update({'font.size': 20})
+    plt.rcParams.update({'font.size': 24})
     fig, ax = plt.subplots(figsize=(10, 6)) 
 
     # Define colors for each dataset
@@ -125,7 +125,7 @@ def _plot_distribution_overall_plot(repo_names, suppression_nums_csvs, output_pd
     ax.set_xlabel('Number of commits')
     ax.set_ylabel('Number of suppressions')
 
-    plt.tight_layout()
+    plt.tight_layout(pad=0)
     plt.savefig(output_pdf)
 
 

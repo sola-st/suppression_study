@@ -31,22 +31,32 @@ Some experiments have dependencies on others. For example, you can run all exper
 
 **Inspections:**  
 * InspectSuppressionHistories.py &emsp; Shuffle all extracted suppression histories. Get the add and delete commit git urls for the corresponding change event for manual inspection.
-* InspectSuppressionRelatedCommits.py &emsp; Randomly samples commit that either add or remove a suppression and prepare them for manual inspection.
+* InspectSuppressionRelatedCommits.py &emsp; Randomly samples commit that either add or remove a suppression and prepare them for manual inspection. 
+* InspectAccidentallySuppressedWarnings.py &emsp; Collect all potentially unintended suppressions from the projects and prepare them for manual inspection. 
 
 ## Structure of the *data* directory
 
 The *data* directory contains the following subdirectories and files, most of which are created by running the experiments:
 * Files:
     * *data/specific_numeric_type_map.csv* includes the mappings between Pylint warning types and their numeric code.
+    * *2020_CodeReview_Spec.pdf* and *2022_CodeReview_Spec.pdf* are course requirements for the Java/JavaScript student projects.
     * Other files are about the studied repositories.
 * Subdirectories:
-    * *data/repos* contains the cloned repositories we study.
-    * *data/results* contains the results of running the experiments:
-        * *data/results/<repo_name>* contains all results for the repository *repo_name*.
-        * *data/results/<repo_name>/commits/<commit_id>* contains all results for a specific commit hash <commit_id>
-Files with names starts with *inspection_* contain the inspection of some results.
-        * *start_end_commits_1000.csv* records the start and end commits for 10 Python projects.
-        * Other files are about the student projects (code review specification + open coding).
+    * *data/repos* contains the repositories we study: 
+        * Now it is empty, the experiments will check the existence and clone the repositories as needed.
+    * **data/results** contains the results of running the experiments:
+        * **[Individual perspective]** *data/results/<repo_name>* contains all results for the repository.
+        *repo_name*.   
+          * For each project, the following records the detailed results for RQ1 to RQ5:
+            * Related to RQ1
+              * *data/results/<repo_name>/commits/<commit_id>* contains all results for a specific commit hash <commit_id>        
+            * Related to RQ2
+              * *grep* records the suppressions in the 1,000 commits.
+              * *histories_suppression_level_all.json* is the history file.
+            * Related to RQs 3 and 4
+              * *suppression2warnings* contains the files where record the maps between suppressions and warnings, and the useless/useful suppressions. 
+            * RQ5 is based on all result files above
+      * **[Overall perspective] Folders RQ1 to RQ5 contain the overall result of the corresponding research question.**
 
 ## Reproducing the results in the paper
 Choose between **SLOW MODE**, which extracts the suppressions and warnings and may take several hours, depending on hardware, and **FAST MODE**, which generates the tables and plots (the ones with no manual analysis required) from pre-computed results and should take less than 30 minutes (include cloning the repositories). 
@@ -56,33 +66,32 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 ### SLOW MODE
 #### RQ1: Prevalence of Suppressions. 
 * Run RunCheckersOnLatestCommit.py. 
-* Analysis to get the unified warning kinds and the number of each kind. -> Table I.
+* Analysis to get the unified warning kinds and the number of each kind. -> Table 1.
 
 #### RQ2: Evolution of Suppressions.
 * Run ComputeSuppressionHistories.py.
-* Specify the exp.repo_file with the value 'python_repos.txt' in the entry point of CountSuppressionsOnLatestCommit.py and run it. -> suppressions_per_repo.tex (part of Table II).
+* Specify the exp.repo_file with the value 'python_repos.txt' in the entry point of CountSuppressionsOnLatestCommit.py and run it. -> suppressions_per_repo.tex (part of Table 2).
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
 * Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table II).
-* suppressions_per_repo.tex + commits_and_histories.tex -> Table II.
+* suppressions_per_repo.tex + commits_and_histories.tex -> Table 2.
 
 #### RQ3: Relation Between Suppressions and Warnings.
 * Run ComputeWarningSuppressionMapsOnLatestCommit.py
-* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Figures 6 and 7.
+* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Table 3, Figures 5 and 6.
 
 #### RQ4: Potentially unintended suppressions.
 * ComputeIntermediateChains.py 
 * ComputeAccidentallySuppressedWarnings.py 
-* Manual analysis. -> Table xx. **To update all the figure and table indices.**
+* Manual analysis. -> Table 5
 
 #### RQ5: Reasons for Using Suppressions.
 * Run InspectSuppressionRelatedCommits.py
-* Manual analysis. -> Table III
+* Manual analysis. -> Table 6
 
 ### FAST MODE
-All tables in results: Tables I--III, Tables I and II require manual analysis.  
-All figures in results: Figures 4--7.   
-* Specify the exp.repo_file with the value 'python_repos.txt' in the entry point of CountSuppressionsOnLatestCommit.py and run it. -> suppressions_per_repo.tex (part of Table II).
+All tables (exclude the ones require manual analysis) and figures in results: 
+* Specify the exp.repo_file with the value 'python_repos.txt' in the entry point of CountSuppressionsOnLatestCommit.py and run it. -> suppressions_per_repo.tex (part of Table 2).
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
-* Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table II).
-* suppressions_per_repo.tex + commits_and_histories.tex -> Table II.
-* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Figures 6 and 7.
+* Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table 2).
+* suppressions_per_repo.tex + commits_and_histories.tex -> Table 2.
+* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Figures 5 and 6.
