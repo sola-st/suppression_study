@@ -77,7 +77,8 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 
 #### RQ3: Relation Between Suppressions and Warnings.
 * Run ComputeWarningSuppressionMapsOnLatestCommit.py
-* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Table 3, Figures 5 and 6.
+* Run VisualizeLifetimeForAllSuppressions.py --> Figure 5
+* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Table 3 and Figure 6.
 
 #### RQ4: Potentially unintended suppressions.
 * ComputeIntermediateChains.py 
@@ -94,4 +95,5 @@ All tables (exclude the ones require manual analysis) and figures in results:
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
 * Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table 2).
 * suppressions_per_repo.tex + commits_and_histories.tex -> Table 2.
-* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Figures 5 and 6.
+* Run VisualizeLifetimeForAllSuppressions.py --> Figure 5
+* Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Table 3 and Figure 6.

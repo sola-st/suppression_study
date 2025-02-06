@@ -67,6 +67,7 @@ def _plot_distribution(repo_names, suppression_nums_csvs, output_pdf, start_comm
 
 
 def _plot_distribution_overall_plot(repo_names, suppression_nums_csvs, output_pdf, start_commit_indices, end_commit_indices):
+    plt.rcParams["pdf.fonttype"] = 42 # use ttf fonts
     plt.rcParams.update({'font.size': 24})
     fig, ax = plt.subplots(figsize=(10, 6)) 
 
@@ -102,7 +103,7 @@ def _plot_distribution_overall_plot(repo_names, suppression_nums_csvs, output_pd
                     xytext=(last_commit_num + 10, num_suppressions[last_commit_num - 1]), color=color)
         
     # Set legend for star marker
-    ax.scatter([], [], s=400, marker='*', color='gray', label='Selected start / end commit')
+    ax.scatter([], [], s=400, marker='*', color='gray', label='Selected start or end commit')
     ax.legend()
 
     # set to get extra space on the end of x-axis, 

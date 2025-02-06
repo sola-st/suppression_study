@@ -18,7 +18,7 @@ def visualize_lifetime(lifetime_group_output_csv):
     '''
     data = load_data_from_csv(lifetime_group_output_csv)
     output_pdf = lifetime_group_output_csv.replace("_groups.csv", "_visualization.pdf")
-    
+    plt.rcParams["pdf.fonttype"] = 42
     plt.rcParams["figure.figsize"] = (12, 4)
     plt.rcParams.update({'font.size': 14})
     fig, (ax_day, ax_rate) = plt.subplots(nrows=1, ncols=2)
