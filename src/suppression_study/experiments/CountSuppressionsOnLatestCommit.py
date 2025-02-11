@@ -153,5 +153,5 @@ class CountSuppressionsOnLatestCommit(Experiment):
 
 if __name__ == "__main__":
     exp = CountSuppressionsOnLatestCommit()
-    exp.repo_file = join("data", "python_repos_46_using_pylint.txt")
+    exp.repo_file = join("data", "python_repos.txt")
     exp.run()

@@ -70,7 +70,7 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 
 #### RQ2: Evolution of Suppressions.
 * Run ComputeSuppressionHistories.py.
-* Specify the exp.repo_file with the value 'python_repos.txt' in the entry point of CountSuppressionsOnLatestCommit.py and run it. -> suppressions_per_repo.tex (part of Table 2).
+* Run CountSuppressionsOnLatestCommit.py -> suppressions_per_repo.tex (part of Table 2).
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
 * Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table II).
 * suppressions_per_repo.tex + commits_and_histories.tex -> Table 2.
@@ -91,7 +91,7 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 
 ### FAST MODE
 All tables (exclude the ones require manual analysis) and figures in results: 
-* Specify the exp.repo_file with the value 'python_repos.txt' in the entry point of CountSuppressionsOnLatestCommit.py and run it. -> suppressions_per_repo.tex (part of Table 2).
+* Run CountSuppressionsOnLatestCommit.py -> suppressions_per_repo.tex (part of Table 2).
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
 * Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table 2).
 * suppressions_per_repo.tex + commits_and_histories.tex -> Table 2.
