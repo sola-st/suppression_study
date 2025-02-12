@@ -9,8 +9,7 @@
 
 ## Experiments
 
-The entry point for all experiments performed for the study is the scripts in the *src/suppression_study/experiments* directory.  
-You can run experiments with a command like this:
+The entry point for all experiments performed for the study is the scripts in the *src/suppression_study/experiments* directory. You can run experiments with a command like this:
 `python -m suppression_study.experiments.<NameOfExperiment>`
 
 Some experiments have dependencies on others. For example, you can run all experiments in this order:
@@ -59,8 +58,7 @@ The *data* directory contains the following subdirectories and files, most of wh
       * **[Overall perspective] Folders RQ1 to RQ5 contain the overall result of the corresponding research question.**
 
 ## Reproducing the results in the paper
-Choose between **SLOW MODE**, which extracts the suppressions and warnings and may take several hours, depending on hardware,   
-and **FAST MODE**, which generates the tables and plots from pre-computed results and should take less than 30 minutes (include cloning the repositories). 
+Choose between **SLOW MODE**, which extracts the suppressions and warnings and may take several hours, depending on hardware, and **FAST MODE**, which generates the tables and plots from pre-computed results and should take less than 30 minutes (include cloning the repositories). 
 
 **Note**: If no explicit path is written, by default all code files are in *src/suppression_study/experiments* and result files are in *data/results*.
 
