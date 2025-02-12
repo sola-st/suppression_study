@@ -9,7 +9,7 @@
 
 ## Experiments
 
-The entry point for all experiments performed for the study is the scripts in the *src/suppression_study/experiments* directory.
+The entry point for all experiments performed for the study is the scripts in the *src/suppression_study/experiments* directory.  
 You can run experiments with a command like this:
 `python -m suppression_study.experiments.<NameOfExperiment>`
 
@@ -43,8 +43,8 @@ The *data* directory contains the following subdirectories and files, most of wh
     * Other files are about the studied repositories.
 * Subdirectories:
     * *data/repos* contains the repositories we study: 
-        * Now it is empty, the experiments will check the existence and clone the repositories as needed.
-    * **data/results** contains the results of running the experiments:
+        * Now it is empty, the experiments will check the existence and clone the repositories as needed.  
+    * **data/results** [Load pre-computed results](#load-pre-computed-results), contains the results of running the experiments:
         * **[Individual perspective]** *data/results/<repo_name>* contains all results for the repository.
         *repo_name*.   
           * For each project, the following records the detailed results for RQ1 to RQ5:
@@ -59,7 +59,8 @@ The *data* directory contains the following subdirectories and files, most of wh
       * **[Overall perspective] Folders RQ1 to RQ5 contain the overall result of the corresponding research question.**
 
 ## Reproducing the results in the paper
-Choose between **SLOW MODE**, which extracts the suppressions and warnings and may take several hours, depending on hardware, and **FAST MODE**, which generates the tables and plots (the ones with no manual analysis required) from pre-computed results and should take less than 30 minutes (include cloning the repositories). 
+Choose between **SLOW MODE**, which extracts the suppressions and warnings and may take several hours, depending on hardware,   
+and **FAST MODE**, which generates the tables and plots from pre-computed results and should take less than 30 minutes (include cloning the repositories). 
 
 **Note**: If no explicit path is written, by default all code files are in *src/suppression_study/experiments* and result files are in *data/results*.
 
@@ -90,7 +91,15 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 * Manual analysis. -> Table 6
 
 ### FAST MODE
-All tables (exclude the ones require manual analysis) and figures in results: 
+#### Load pre-computed results 
+Before generate the table and plots, load the pre-computed results. Here are two options:
+* [Option 1] Run LoadPreComputedResults.py, it will automatically load and place the results folder in the correct location.
+* [Option 2] Manually download results.zip from release v1.0.0 and extract it into the _data_ folder.
+
+You can check the structure of _data/results_ [here](#structure-of-the-data-directory).
+
+#### Reproduce tables and plots:  
+All tables and figures (exclude the ones require manual analysis) in results: 
 * Run CountSuppressionsOnLatestCommit.py -> suppressions_per_repo.tex (part of Table 2).
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
 * Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table 2).
