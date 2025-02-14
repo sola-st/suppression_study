@@ -92,7 +92,7 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 #### Load pre-computed results 
 Before generate the table and plots, load the pre-computed results. Here are two options:
 * [Option 1] Run LoadPreComputedResults.py, it will automatically load and place the results folder in the correct location.
-* [Option 2] Manually download results.zip from release v1.0.0 and extract it into the _data_ folder.
+* [Option 2] Manually download results.zip from the latest release and extract it into the _data_ folder.
 
 You can check the structure of _data/results_ [here](#structure-of-the-data-directory).
 
