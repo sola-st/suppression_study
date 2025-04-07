@@ -60,7 +60,16 @@ The *data* directory contains the following subdirectories and files, most of wh
 ## Reproducing the results in the paper
 Choose between **SLOW MODE**, which extracts the suppressions and warnings and may take several hours, depending on hardware, and **FAST MODE**, which generates the tables and plots from pre-computed results and should take less than 30 minutes (include cloning the repositories). 
 
-**Note**: If no explicit path is written, by default all code files are in *src/suppression_study/experiments* and result files are in *data/results*.
+**Notes**: 
+* If no explicit path is written, by default all code files are in *src/suppression_study/experiments* and result files are in *data/results*.  
+
+* The file names of the generated tables and plots in the *data/results* folder:
+  * Table 2 &emsp; suppressions_per_repo.tex + commits_and_histories.tex
+  * Table 3 &emsp; suppression_levels/overall_table.tex
+  * Table 4 &emsp; useful_and_useless_suppressions.tex
+  * Figure 4 &emsp; repo10_suppression_num_on_main.pdf
+  * Figure 5 &emsp; lifetime_visualization.pdf
+  * Figure 6 &emsp; suppressions_to_warnings.pdf + warnings_to_suppressions.pdf
 
 ### SLOW MODE
 #### RQ1: Prevalence of Suppressions. 
@@ -81,8 +90,9 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 * Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Table 4 and Figure 6.
 
 #### RQ4: Potentially unintended suppressions.
-* ComputeIntermediateChains.py 
-* ComputeAccidentallySuppressedWarnings.py 
+* Run ComputeIntermediateChains.py 
+* Run ComputeAccidentallySuppressedWarnings.py 
+* Run InspectAccidentallySuppressedWarnings.py
 * Manual analysis. -> Table 5
 
 #### RQ5: Reasons for Using Suppressions.
