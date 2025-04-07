@@ -55,4 +55,4 @@ if __name__=="__main__":
 
     with open(output_file, "w") as f:
         f.writelines(latex_table)
-    print("Done.")
+    print("Result table written to data/results/suppression_levels/overall_table.tex.")
