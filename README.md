@@ -12,6 +12,8 @@
 The entry point for all experiments performed for the study is the scripts in the *src/suppression_study/experiments* directory. You can run experiments with a command like this:
 `python -m suppression_study.experiments.<NameOfExperiment>`
 
+To install our study as a package, run `pip install -e .` from the root of this project.
+
 Some experiments have dependencies on others. For example, you can run all experiments in this order:
 * RunCheckersOnLatestCommit.py &emsp; Get warnings in the newest studied commit.
 * CountSuppressionsNumOnMainCommits.py &emsp; Extract and count suppressions for all commits.
@@ -62,6 +64,8 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 
 **Notes**: 
 * If no explicit path is written, by default all code files are in *src/suppression_study/experiments* and result files are in *data/results*.  
+
+* Remember to run `pip install -e .` from the root of this project to make the modules available.
 
 * The file names of the generated tables and plots in the *data/results* folder:
   * Table 2 &emsp; suppressions_per_repo.tex + commits_and_histories.tex
