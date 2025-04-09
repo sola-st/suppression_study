@@ -49,7 +49,7 @@ def run_checker_on_repo(args):
         elif checker == "mypy":
             get_mypy_warnings(repo_dir, commit_id, tmp_result_dir)
         tmp_path = join(
-            tmp_result_dir, f"checker_results/{commit_id}/{commit_id}_warnings.csv")
+            tmp_result_dir, f"checker_results/{checker}/{commit_id}_warnings.csv")
         makedirs(target_dir, exist_ok=True)
         move(tmp_path, target_file)
         print(f"Have copied {checker} warnings into {target_file}")

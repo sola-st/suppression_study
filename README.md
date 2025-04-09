@@ -1,23 +1,33 @@
 # An Empirical Study of Suppressions of Static Analysis Warnings
 
-**Dependencies:**
-  GitPython~=3.1.31,
-  pylint==2.17.4,
-  pydantic==2.3.0,
-  matplotlib>=3.5,
-  and scipy.
+This paper presents the first in-depth empirical study of suppressions of static analysis warnings, addressing questions about the prevalence of suppressions, their evolution over time, the relationship between suppressions and warnings, and the reasons for using suppressions.
+
+## Setup
+Choose one of the following options to set up the project.
+
+#### Option 1: Run locally
+If you prefer to run the code locally, make sure you have `python>=3.8`, and run the following from the root directory of this project:
+1. `pip install -r requirements.txt`  
+2. `apt-get install sloccount`
+3. `pip install -e .`
+
+#### Option 2: Run with Docker
+If you prefer to isolate the packages that you install during the reproduction, use Docker.
+1. Install Docker (if it is your first time using Docker, [Docker Desktop](https://docs.docker.com/desktop/) is recommended)
+2. Build the image: `docker build -t suppression_study .`  
+3. Run the container: 
+  * With files editable: `docker run -it -v $(pwd):/suppression_home suppression_study`
+  * With files non-editable: `docker run -it suppression_study`
 
 ## Experiments
 
 The entry point for all experiments performed for the study is the scripts in the *src/suppression_study/experiments* directory. You can run experiments with a command like this:
 `python -m suppression_study.experiments.<NameOfExperiment>`
 
-To install our study as a package, run `pip install -e .` from the root of this project.
-
 Some experiments have dependencies on others. For example, you can run all experiments in this order:
 * RunCheckersOnLatestCommit.py &emsp; Get warnings in the newest studied commit.
-* CountSuppressionsNumOnMainCommits.py &emsp; Extract and count suppressions for all commits.
 * CountSuppressionsOnLatestCommit.py &emsp; Extract and count suppressions for a specific commit.
+* CountSuppressionsNumOnMainCommits.py &emsp; Extract and count suppressions for all commits.
 * ComputeSuppressionHistories.py &emsp; Extract histories of suppressions.
 * ComputeWarningSuppressionMapsOnLatestCommit.py &emsp; Compute the mappings between warnings and suppressions (the newest commit).
 * ComputeIntermediateChains.py &emsp; Extract intermediate line number chains for the histories. 
@@ -65,7 +75,9 @@ Choose between **SLOW MODE**, which extracts the suppressions and warnings and m
 **Notes**: 
 * If no explicit path is written, by default all code files are in *src/suppression_study/experiments* and result files are in *data/results*.  
 
-* Remember to run `pip install -e .` from the root of this project to make the modules available.
+* Some file executions use `grep`, which may display the warning message:
+`grep: warning: * at start of expression.`
+This warning can be safely ignored and does not affect the execution.
 
 * The file names of the generated tables and plots in the *data/results* folder:
   * Table 2 &emsp; suppressions_per_repo.tex + commits_and_histories.tex

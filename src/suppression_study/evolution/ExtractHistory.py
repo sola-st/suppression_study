@@ -2,7 +2,7 @@ import argparse
 import datetime
 import json
 import os
-from os.path import join
+from os.path import join, exists
 import subprocess
 from suppression_study.evolution.ChangeEvent import ChangeEvent
 
@@ -54,12 +54,12 @@ def write_all_histories_to_json(history_json_file, all_histories):
 
 def main(repo_dir, selected_1000_commits_csv, results_dir):
     # Get commit list and suppression for selected commits.
-    if not os.path.exists(selected_1000_commits_csv):
+    if not exists(selected_1000_commits_csv):
         select_1000_commits(repo_dir, selected_1000_commits_csv)
     selected_1000_commits_list, selected_1000_dates_list = get_commit_date_lists(selected_1000_commits_csv)
     # Grep for suppressions in all relevant commits
     suppression_result = join(results_dir, "grep")
-    if not os.path.exists(suppression_result):
+    if not exists(suppression_result):
         subprocess.run(
             ["python", "-m", "suppression_study.suppression.GrepSuppressionPython",
             "--repo_dir=" + repo_dir,
@@ -76,7 +76,7 @@ def main(repo_dir, selected_1000_commits_csv, results_dir):
     last_commit_with_suppression = ""
     for commit in selected_1000_commits_list: # newest to oldest
         commit_suppression_csv = join(suppression_result, f"{commit}_suppression.csv")
-        if os.path.exists(commit_suppression_csv):
+        if exists(commit_suppression_csv):
             never_removed_suppressions = read_suppressions_from_file(commit_suppression_csv)
             last_commit_with_suppression = commit
             break
