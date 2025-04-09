@@ -4,7 +4,7 @@ import zipfile
 from io import BytesIO
 
 
-GITHUB_RELEASE_URL = "https://github.com/sola-st/suppression_study/releases/download/v2.1.0/results.zip"  
+GITHUB_RELEASE_URL = "https://github.com/sola-st/suppression_study/releases/download/v2.1.1/results.zip"  
 DESTINATION_FOLDER = "./data" # save the results folder inside the "data" folder (data/results).
 os.makedirs(DESTINATION_FOLDER, exist_ok=True)
 

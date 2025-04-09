@@ -15,7 +15,7 @@ If you prefer to run the code locally, make sure you have `python>=3.8`, and run
 If you prefer to isolate the packages that you install during the reproduction, use Docker.
 1. Install Docker (if it is your first time using Docker, [Docker Desktop](https://docs.docker.com/desktop/) is recommended)
 2. Build the image: `docker build -t suppression_study .`  
-3. Run the container: 
+3. Run the container (run one of the following): 
   * With files editable: `docker run -it -v $(pwd):/suppression_home suppression_study`
   * With files non-editable: `docker run -it suppression_study`
 
@@ -32,6 +32,7 @@ Some experiments have dependencies on others. For example, you can run all exper
 * ComputeWarningSuppressionMapsOnLatestCommit.py &emsp; Compute the mappings between warnings and suppressions (the newest commit).
 * ComputeIntermediateChains.py &emsp; Extract intermediate line number chains for the histories. 
 * ComputeAccidentallySuppressedWarnings.py &emsp; Find potentially unintended suppressions.
+* Get1000Commits.py  &emsp; Get an overview of the start and end commits of the repositories.
 
 **Visualization**
 * DistributionOfSuppressionsNumOnMainCommits.py
@@ -93,8 +94,11 @@ This warning can be safely ignored and does not affect the execution.
 * Analysis to get the unified warning kinds and the number of each kind. -> Table 1.
 
 #### RQ2: Evolution of Suppressions.
+* Run ComputeWarningSuppressionMapsOnLatestCommit.py   
+-> Although this file is part of RQ3, running it here can help reduce the execution time of ComputeSuppressionHistories.py later.
 * Run ComputeSuppressionHistories.py.
 * Run CountSuppressionsOnLatestCommit.py -> suppressions_per_repo.tex (part of Table 2).
+* Run Get1000Commits.py
 * Run DistributionOfSuppressionsNumOnMainCommits.py -> Figure 4.
 * Run VisualizeLifetimeForAllSuppressions.py -> Figure 5 and commits_and_histories.tex (remaining Part of Table 2).
 * suppressions_per_repo.tex + commits_and_histories.tex -> Table 2.
@@ -102,7 +106,8 @@ This warning can be safely ignored and does not affect the execution.
 #### RQ3: Relation Between Suppressions and Warnings.
 * Run CheckSuppressionLevels.py
 * Run TableSuppressionLevels.py--> Table 3.
-* Run ComputeWarningSuppressionMapsOnLatestCommit.py
+* Run ComputeWarningSuppressionMapsOnLatestCommit.py   
+-> If you have already run it in RQ2, there’s no need to run it again.
 * Run VisualizeWarningSuppressionMapsOnLatestCommit.py -> Table 4 and Figure 6.
 
 #### RQ4: Potentially unintended suppressions.
