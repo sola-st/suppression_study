@@ -1,6 +1,6 @@
 # An Empirical Study of Suppressions of Static Analysis Warnings
 
-This paper presents the first in-depth empirical study of suppressions of static analysis warnings, addressing questions about the prevalence of suppressions, their evolution over time, the relationship between suppressions and warnings, and the reasons for using suppressions.
+[This paper](https://www.software-lab.org/publications/fse2025_suppressions.pdf) presents the first in-depth empirical study of suppressions of static analysis warnings, addressing questions about the prevalence of suppressions, their evolution over time, the relationship between suppressions and warnings, and the reasons for using suppressions.
 
 ## Setup
 Choose one of the following options to set up the project.
